@@ -36,6 +36,8 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
+
 @RunWith(Enclosed.class)
 public class CopyUnitTest {
 	@Ignore
@@ -9237,6 +9239,16 @@ public class CopyUnitTest {
 				copyFrom(source, 144, subject, 32,  48);
 				assertThat(subject, is(equalTo(expected)));
 			}
+		}
+	}
+
+	@RunWith(Enclosed.class)
+	public static class ByteArray extends ByteArrayBuilder {
+		public static class CopyFromDifferentSource extends Cases.CopyFromDifferentSource<byte[]> {
+			@Override protected void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public byte[] build(long... d) { return build0(d); }
 		}
 	}
 }
