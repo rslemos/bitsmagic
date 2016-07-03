@@ -87,4 +87,15 @@ public interface StorageBuilder<T> {
 			return result;
 		}
 	}
+	
+	static class LongArrayBuilder {
+		protected static long[] build0(long...d) {
+			long[] result = new long[d.length * 1];
+			for (int i = 0; i < d.length; i++) {
+				result[i * 1 + 0] = (long) (d[d.length - i - 1] >>>  0);
+			}
+		
+			return result;
+		}
+	}
 }

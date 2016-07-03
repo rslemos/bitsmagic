@@ -1270,4 +1270,266 @@ public class Store {
 		data[index] &= mask;
 		data[index] |= (int)(v >> 2*INT_DATA_LINES - offset) & ~mask;
 	}
+
+	/********** long[] **********/
+
+	private static final int LONG_ADDRESS_LINES = 6;
+	private static final int LONG_DATA_LINES = 1 << LONG_ADDRESS_LINES;
+	private static final int LONG_ADDRESS_MASK = ~(-1 << LONG_ADDRESS_LINES);
+	private static final long LONG_DATA_MASK = ~0L;
+	
+	// we expect this function to be heavily inlined
+	private static long read(long[] data, int index) {
+		return index >=0 && index < data.length ? data[index] : 0;
+	}
+
+	public static boolean readBit(long[] data, int i) {
+		int index = i >> LONG_ADDRESS_LINES;
+
+		if (index < 0 || index >= data.length)
+			return false;
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		return (data[index] << ~offset) < 0;
+	}
+
+	public static void writeBit(long[] data, int i, boolean v) {
+		int index = i >> LONG_ADDRESS_LINES;
+
+		if (index >= 0 && index < data.length) {
+			int offset = i & LONG_ADDRESS_MASK;
+			if (v)
+				data[index] |= 1L << offset;
+			else
+				data[index] &= ~(1L << offset);
+		}
+	}
+
+	public static byte readByte(long[] data, int i) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		long d0 = read(data, index);
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		if (offset == 0)
+			return (byte) d0;
+
+		d0 >>>= offset;
+		
+		if (offset + Byte.SIZE <= LONG_DATA_LINES)
+			return (byte)d0;
+
+		long d1 = read(data, ++index);
+		d1 <<= LONG_DATA_LINES - offset;
+		
+		return (byte) (d1 | d0);
+	}
+
+	public static void writeByte(long[] data, int i, byte v) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		
+		long mask = ~(LONG_DATA_MASK << Byte.SIZE) << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (long)v << offset & mask;
+		}
+		
+		if (offset + Byte.SIZE <= LONG_DATA_LINES)
+			return;
+		
+		if (++index >= data.length) return;
+		
+		mask = ~(LONG_DATA_MASK << Byte.SIZE) >>> LONG_DATA_LINES - offset;
+		
+		data[index] &= ~mask;
+		data[index] |= (v >>> (LONG_DATA_LINES-offset)) & mask;
+	}
+
+	public static char readChar(long[] data, int i) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		long d0 = read(data, index);
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		if (offset == 0)
+			return (char) d0;
+
+		d0 >>>= offset;
+		
+		if (offset + Character.SIZE <= LONG_DATA_LINES)
+			return (char)d0;
+
+		long d1 = read(data, ++index);
+		d1 <<= LONG_DATA_LINES - offset;
+		
+		return (char) (d1 | d0);
+	}
+
+	public static void writeChar(long[] data, int i, char v) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		
+		long mask = ~(LONG_DATA_MASK << Character.SIZE) << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (long)v << offset & mask;
+		}
+		
+		if (offset + Character.SIZE <= LONG_DATA_LINES)
+			return;
+		
+		if (++index >= data.length) return;
+
+		mask = ~(LONG_DATA_MASK << Character.SIZE) >>> LONG_DATA_LINES - offset;
+		
+		data[index] &= ~mask;
+		data[index] |= v >>> LONG_DATA_LINES - offset & mask;
+	}
+
+	public static short readShort(long[] data, int i) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		long d0 = read(data, index);
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		if (offset == 0)
+			return (short) d0;
+
+		d0 >>>= offset;
+		
+		if (offset + Short.SIZE <= LONG_DATA_LINES)
+			return (short)d0;
+
+		long d1 = read(data, ++index);
+		d1 <<= LONG_DATA_LINES - offset;
+		
+		return (short) (d1 | d0);
+	}
+
+	public static void writeShort(long[] data, int i, short v) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		
+		long mask = ~(LONG_DATA_MASK << Short.SIZE) << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (long)v << offset & mask;
+		}
+		
+		if (offset + Short.SIZE <= LONG_DATA_LINES)
+			return;
+		
+		if (++index >= data.length) return;
+
+		mask = ~(LONG_DATA_MASK << Short.SIZE) >>> LONG_DATA_LINES - offset;
+		
+		data[index] &= ~mask;
+		data[index] |= v >>> LONG_DATA_LINES - offset & mask;
+	}
+
+	public static int readInt(long[] data, int i) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		long d0 = read(data, index);
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		if (offset == 0)
+			return (int) d0;
+
+		d0 >>>= offset;
+		
+		if (offset + Integer.SIZE <= LONG_DATA_LINES)
+			return (int)d0;
+
+		long d1 = read(data, ++index);
+		d1 <<= LONG_DATA_LINES - offset;
+		
+		return (int) (d1 | d0);
+	}
+
+	public static void writeInt(long[] data, int i, int v) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		
+		long mask = ~(LONG_DATA_MASK << Integer.SIZE) << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (long)v << offset & mask;
+		}
+		
+		if (offset + Integer.SIZE <= LONG_DATA_LINES)
+			return;
+		
+		if (++index >= data.length) return;
+
+		mask = ~(LONG_DATA_MASK << Integer.SIZE) >>> LONG_DATA_LINES - offset;
+		
+		data[index] &= ~mask;
+		data[index] |= v >>> LONG_DATA_LINES - offset & mask;
+	}
+
+	public static long readLong(long[] data, int i) {
+		int index = i >> LONG_ADDRESS_LINES;
+		
+		long d0 = read(data, index);
+	
+		int offset = i & LONG_ADDRESS_MASK;
+		if (offset == 0)
+			return d0;
+		
+		long d1 = read(data, ++index);
+		
+		d0 >>>= offset;
+		d1 <<= LONG_DATA_LINES - offset;
+		
+		return d1 | d0;
+	}
+
+	public static void writeLong(long[] data, int i, long v) {
+		int index = i >> LONG_ADDRESS_LINES;
+	
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & LONG_ADDRESS_MASK;
+		if (offset == 0) {
+			if (index >= 0)
+				data[index] = (v >> 0);
+	
+			return;
+		}
+	
+		long mask = LONG_DATA_MASK << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (v << offset) & mask;
+		}
+		
+		if (++index >= data.length) return;
+		
+		data[index] &= mask;
+		data[index] |= (v >>> LONG_DATA_LINES - offset) & ~mask;
+	}
 }
