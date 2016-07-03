@@ -1,5 +1,11 @@
 # bitsmagic
+
+[![Master status][master status]][master travis-ci] 
+
 Code library for simple (yet magic) bit manipulation
+
+[master status]: https://travis-ci.org/rslemos/bitsmagic.png?branch=master
+[master travis-ci]: https://travis-ci.org/rslemos/bitsmagic
 
 --------------------------------------------------------------------------------
   BEGIN COPYRIGHT NOTICE
