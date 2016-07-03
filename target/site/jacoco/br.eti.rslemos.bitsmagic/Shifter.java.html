@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Shifter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic</a> &gt; <span class="el_source">Shifter.java</span></div><h1>Shifter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic;
+
+/**
+ * This class consists exclusively of static methods that implement a barrel 
+ * shifter over arrays of integral primitive types.
+ * 
+ * &lt;p&gt;For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * &lt;/p&gt;
+ * &lt;p&gt;The operations implemented in this class try to mimic Java shift 
+ * operators: the shift amount is always taken modulo shift region width.
+ * &lt;/p&gt;
+ * &lt;p&gt;Offlimits bits are hardwired to 0: when shifted in they appear as 0; 
+ * when shifted out they are simply discarded. Methods in this class should 
+ * never throw {@code ArrayIndexOutOfBoundsException}.
+ * &lt;/p&gt;
+ * &lt;p&gt;{@code NullPointerException} is thrown if the given array is {@code null}.
+ * &lt;/p&gt;
+ * &lt;p&gt;All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * &lt;/p&gt;
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ * @see Store
+ */
+public class Shifter {
+<span class="nc" id="L59">	private Shifter() { /* non-instantiable */ }</span>
+
+	private static int fixAmount(int length, int amount) {
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">		if (length &lt;= 0)</span>
+<span class="nc" id="L63">			return 0;</span>
+
+		// correct amount greater than length
+<span class="fc" id="L66">		amount %= length;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">		if (amount &lt; 0)</span>
+			// correct for negative amount
+<span class="fc" id="L69">			amount += length;</span>
+		
+<span class="fc" id="L71">		return amount;</span>
+	}
+	
+	/********** byte[] **********/
+	
+	/**
+	 * Shifts to the right (towards LSB) the specified region of the given 
+	 * storage by the specified amount. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} the storage is left unchanged. The {@code amount} is 
+	 * taken modulo {@code to - from}. If {@code amount} is negative, it is 
+	 * added {@code to - from} until positive. The real amount of bits shifted 
+	 * will be between 0, inclusive, and {@code to - from}, exclusive. If the 
+	 * real amount of bits shifted is 0, the storage is left unchanged. The 
+	 * shifted in bits to the left (on MSB) are hardwired to 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        shifted to the right.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        shifted to the right.
+	 * @param amount number of bits to shift to right. This number is taken 
+	 *        modulo {@code to - from}. If negative, it is added 
+	 *        {@code to - from} until positive.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void shr(byte[] data, int from, int to, int amount) {
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L100">			throw new NullPointerException();</span>
+
+<span class="fc" id="L102">		amount = fixAmount(to - from, amount);</span>
+
+<span class="fc bfc" id="L104" title="All 2 branches covered.">		if (amount == 0)</span>
+<span class="fc" id="L105">			return;</span>
+		
+<span class="fc" id="L107">		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);</span>
+<span class="fc" id="L108">		Store.fill(data, to - amount, to, false);</span>
+<span class="fc" id="L109">	}</span>
+	
+	/********** char[] **********/
+	
+	/**
+	 * Shifts to the right (towards LSB) the specified region of the given 
+	 * storage by the specified amount. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} the storage is left unchanged. The {@code amount} is 
+	 * taken modulo {@code to - from}. If {@code amount} is negative, it is 
+	 * added {@code to - from} until positive. The real amount of bits shifted 
+	 * will be between 0, inclusive, and {@code to - from}, exclusive. If the 
+	 * real amount of bits shifted is 0, the storage is left unchanged. The 
+	 * shifted in bits to the left (on MSB) are hardwired to 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        shifted to the right.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        shifted to the right.
+	 * @param amount number of bits to shift to right. This number is taken 
+	 *        modulo {@code to - from}. If negative, it is added 
+	 *        {@code to - from} until positive.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void shr(char[] data, int from, int to, int amount) {
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L137">			throw new NullPointerException();</span>
+
+<span class="fc" id="L139">		amount = fixAmount(to - from, amount);</span>
+
+<span class="fc bfc" id="L141" title="All 2 branches covered.">		if (amount == 0)</span>
+<span class="fc" id="L142">			return;</span>
+		
+<span class="fc" id="L144">		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);</span>
+<span class="fc" id="L145">		Store.fill(data, to - amount, to, false);</span>
+<span class="fc" id="L146">	}</span>
+	
+	/********** short[] **********/
+	
+	/**
+	 * Shifts to the right (towards LSB) the specified region of the given 
+	 * storage by the specified amount. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} the storage is left unchanged. The {@code amount} is 
+	 * taken modulo {@code to - from}. If {@code amount} is negative, it is 
+	 * added {@code to - from} until positive. The real amount of bits shifted 
+	 * will be between 0, inclusive, and {@code to - from}, exclusive. If the 
+	 * real amount of bits shifted is 0, the storage is left unchanged. The 
+	 * shifted in bits to the left (on MSB) are hardwired to 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        shifted to the right.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        shifted to the right.
+	 * @param amount number of bits to shift to right. This number is taken 
+	 *        modulo {@code to - from}. If negative, it is added 
+	 *        {@code to - from} until positive.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void shr(short[] data, int from, int to, int amount) {
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L174">			throw new NullPointerException();</span>
+
+<span class="fc" id="L176">		amount = fixAmount(to - from, amount);</span>
+
+<span class="fc bfc" id="L178" title="All 2 branches covered.">		if (amount == 0)</span>
+<span class="fc" id="L179">			return;</span>
+		
+<span class="fc" id="L181">		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);</span>
+<span class="fc" id="L182">		Store.fill(data, to - amount, to, false);</span>
+<span class="fc" id="L183">	}</span>
+	
+	/********** int[] **********/
+	
+	/**
+	 * Shifts to the right (towards LSB) the specified region of the given 
+	 * storage by the specified amount. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} the storage is left unchanged. The {@code amount} is 
+	 * taken modulo {@code to - from}. If {@code amount} is negative, it is 
+	 * added {@code to - from} until positive. The real amount of bits shifted 
+	 * will be between 0, inclusive, and {@code to - from}, exclusive. If the 
+	 * real amount of bits shifted is 0, the storage is left unchanged. The 
+	 * shifted in bits to the left (on MSB) are hardwired to 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        shifted to the right.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        shifted to the right.
+	 * @param amount number of bits to shift to right. This number is taken 
+	 *        modulo {@code to - from}. If negative, it is added 
+	 *        {@code to - from} until positive.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void shr(int[] data, int from, int to, int amount) {
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L211">			throw new NullPointerException();</span>
+
+<span class="fc" id="L213">		amount = fixAmount(to - from, amount);</span>
+
+<span class="fc bfc" id="L215" title="All 2 branches covered.">		if (amount == 0)</span>
+<span class="fc" id="L216">			return;</span>
+		
+<span class="fc" id="L218">		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);</span>
+<span class="fc" id="L219">		Store.fill(data, to - amount, to, false);</span>
+<span class="fc" id="L220">	}</span>
+	
+	/********** long[] **********/
+	
+	/**
+	 * Shifts to the right (towards LSB) the specified region of the given 
+	 * storage by the specified amount. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} the storage is left unchanged. The {@code amount} is 
+	 * taken modulo {@code to - from}. If {@code amount} is negative, it is 
+	 * added {@code to - from} until positive. The real amount of bits shifted 
+	 * will be between 0, inclusive, and {@code to - from}, exclusive. If the 
+	 * real amount of bits shifted is 0, the storage is left unchanged. The 
+	 * shifted in bits to the left (on MSB) are hardwired to 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        shifted to the right.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        shifted to the right.
+	 * @param amount number of bits to shift to right. This number is taken 
+	 *        modulo {@code to - from}. If negative, it is added 
+	 *        {@code to - from} until positive.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void shr(long[] data, int from, int to, int amount) {
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L248">			throw new NullPointerException();</span>
+
+<span class="fc" id="L250">		amount = fixAmount(to - from, amount);</span>
+
+<span class="fc bfc" id="L252" title="All 2 branches covered.">		if (amount == 0)</span>
+<span class="fc" id="L253">			return;</span>
+		
+<span class="fc" id="L255">		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);</span>
+<span class="fc" id="L256">		Store.fill(data, to - amount, to, false);</span>
+<span class="fc" id="L257">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

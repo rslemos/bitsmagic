@@ -1,0 +1,3090 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Store.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic</a> &gt; <span class="el_source">Store.java</span></div><h1>Store.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic;
+
+import java.util.Arrays;
+
+/**
+ * This class consists exclusively of static methods that read or write bits 
+ * over arrays of integral primitive type.
+ * 
+ * &lt;p&gt;The number of bits available per array element (element width) varies 
+ * according to the storage class used:
+ * &lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@code byte}: 8 bits ({@code Byte.SIZE});&lt;/li&gt;
+ *   &lt;li&gt;{@code char}: 16 bits ({@code Character.SIZE});&lt;/li&gt;
+ *   &lt;li&gt;{@code short}: 16 bits ({@code Short.SIZE});&lt;/li&gt;
+ *   &lt;li&gt;{@code int}: 32 bits ({@code Integer.SIZE});&lt;/li&gt;
+ *   &lt;li&gt;{@code long}: 64 bits ({@code Long.SIZE}).&lt;/li&gt;
+ * &lt;/ul&gt;
+ * &lt;p&gt;The total number of bits available (non-offlimits bits) is the product of 
+ * {@code arraysize} by {@code element width}.
+ * &lt;/p&gt;
+ * &lt;p&gt;For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. The bit mapping 
+ * goes as follows ({@code S} is the element width in bits):
+ * &lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;bits &amp;lt; 0: always offlimits;&lt;/li&gt;
+ *   &lt;li&gt;bit 0: the least significant bit of first element;&lt;/li&gt;
+ *   &lt;li&gt;bit 1: the second least significant bit of first element;&lt;/li&gt;
+ *   &lt;li&gt;bit S-1: the most significant bit of first element (this happens to be 
+ *     the sign bit on signed types: {@code short}, {@code int} and 
+ *     {@code long});&lt;/li&gt;
+ *   &lt;li&gt;bit S: the least significant bit of second element;&lt;/li&gt;
+ *   &lt;li&gt;bit S+1: the second least significant bit of second element;&lt;/li&gt;
+ *   &lt;li&gt;bit 2S-1: the most significant bit of second element;&lt;/li&gt;
+ *   &lt;li&gt;bits &amp;gt;= available bits (as previously defined): always offlimits.
+ *     &lt;/li&gt;
+ * &lt;/ul&gt;
+ * &lt;p&gt;Offlimits bits are hardwired to 0: they always read as 0, and any value 
+ * written to them is discarded. Except where otherwise noted, methods in this 
+ * class should never throw {@code ArrayIndexOutOfBoundsException}.
+ * &lt;/p&gt;
+ * &lt;p&gt;{@code NullPointerException} is thrown if the given array is {@code null}.
+ * &lt;/p&gt;
+ * &lt;p&gt;All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * &lt;/p&gt;
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ */
+public class Store {
+<span class="nc" id="L82">	private Store() { /* non-instantiable */ }</span>
+
+	/********** byte[] **********/
+
+	static final int BYTE_ADDRESS_LINES = 3;
+	static final int BYTE_DATA_LINES = 1 &lt;&lt; BYTE_ADDRESS_LINES;
+	static final int BYTE_ADDRESS_MASK = ~(-1 &lt;&lt; BYTE_ADDRESS_LINES);
+	static final int BYTE_DATA_MASK = ~(-1 &lt;&lt; BYTE_DATA_LINES);
+	
+	// we expect this function to be heavily inlined
+	private static int read(byte[] data, int index) {
+<span class="fc bfc" id="L93" title="All 4 branches covered.">		return index &lt; data.length &amp;&amp; index &gt;=0 ? data[index] &amp; BYTE_DATA_MASK : 0;</span>
+	}
+
+	/**
+	 * Reads the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static boolean readBit(byte[] data, int i) {
+<span class="fc" id="L105">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L107" title="All 4 branches covered.">		if (index &gt;= data.length || index &lt; 0)</span>
+<span class="fc" id="L108">			return false;</span>
+		
+<span class="fc" id="L110">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc" id="L111">		return readBit0(data, index, offset);</span>
+	}
+	
+	private static boolean readBit0(byte[] data, int index, int offset) {
+<span class="fc bfc" id="L115" title="All 2 branches covered.">		return (data[index] &lt;&lt; ~offset) &lt; 0;</span>
+	}
+	
+	/**
+	 * Writes the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBit(byte[] data, int i, boolean v) {
+<span class="fc" id="L128">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L130" title="All 4 branches covered.">		if (index &lt; data.length &amp;&amp; index &gt;= 0)</span>
+<span class="fc" id="L131">			writeBit0(data, index, i &amp; BYTE_ADDRESS_MASK, v);</span>
+<span class="fc" id="L132">	}</span>
+
+	private static void writeBit0(byte[] data, int index, int offset, boolean v) {
+<span class="fc bfc" id="L135" title="All 2 branches covered.">		if (v)</span>
+<span class="fc" id="L136">			data[index] |= 1 &lt;&lt; offset;</span>
+		else
+<span class="fc" id="L138">			data[index] &amp;= ~(1 &lt;&lt; offset);</span>
+<span class="fc" id="L139">	}</span>
+
+	/**
+	 * Assigns the specified bit value to each bit of the specified range of 
+	 * the given storage. The range to be filled extends from offset 
+	 * {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} this method does nothing.
+	 * 
+	 * &lt;p&gt;This method behaves as the following code:
+	 * &lt;pre&gt;
+	 *   for(int i = from; i &amp;lt; to; i++)
+	 *     Store.writeBit(data, i, v);
+	 * &lt;/pre&gt;
+	 * &lt;/p&gt;
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        filled with the specified value.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        filled with the specified value.
+	 * @param v value whose contents will be used to fill the specified region 
+	 *        into {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void fill(byte[] data, int from, int to, boolean v) {
+		// clamp
+<span class="fc bfc" id="L166" title="All 2 branches covered.">		if (from &lt; 0)</span>
+<span class="fc" id="L167">			from = 0;</span>
+		
+<span class="fc bfc" id="L169" title="All 2 branches covered.">		if (to &gt; data.length &lt;&lt; BYTE_ADDRESS_LINES)</span>
+<span class="fc" id="L170">			to = data.length &lt;&lt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L172" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L173">			return;</span>
+
+<span class="fc" id="L175">		int[] index  = {from  &gt;&gt; BYTE_ADDRESS_LINES, to &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L176">		int[] offset = {from  &amp; BYTE_ADDRESS_MASK,   to &amp; BYTE_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L178" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L181">			final long LOWEST_BITS_FROM = ~(BYTE_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L182">			final long HIGHEST_BITS_TO = BYTE_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc bfc" id="L184" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L185">				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);</span>
+			else
+<span class="fc" id="L187">				data[index[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+			
+<span class="fc" id="L189">			return;</span>
+		}
+		
+<span class="fc bfc" id="L192" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L195">			final long HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc bfc" id="L197" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L198">				data[index[0]] |= HIGHEST_BITS;</span>
+			else
+<span class="fc" id="L200">				data[index[0]] &amp;= ~HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L203">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L206" title="All 2 branches covered.">		if (index[1] &gt; index[0])</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">			Arrays.fill(data, index[0], index[1], (byte) (v ? -1 : 0));</span>
+
+<span class="fc bfc" id="L209" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L210">			final long LOWEST_BITS = ~(BYTE_DATA_MASK &lt;&lt; offset[1]);</span>
+
+<span class="fc bfc" id="L212" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L213">				data[index[1]] |= LOWEST_BITS;</span>
+			else
+<span class="fc" id="L215">				data[index[1]] &amp;= ~LOWEST_BITS;</span>
+		}
+<span class="fc" id="L217">	}</span>
+
+	/**
+	 * Reads as {@code byte} the 8 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static byte readByte(byte[] data, int i) {
+<span class="fc" id="L230">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L232">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L234">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L236">			return (byte) d0;</span>
+
+<span class="fc" id="L238">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc" id="L240">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L241">		d1 &lt;&lt;= BYTE_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L243">		return (byte) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 8 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeByte(byte[] data, int i, byte v) {
+<span class="fc" id="L258">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L260" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L263">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L265">		int mask = ~(BYTE_DATA_MASK &lt;&lt; Byte.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L267" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L268">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L269">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L272" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L273">			return;</span>
+		
+<span class="fc bfc" id="L275" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L277">		mask = ~(BYTE_DATA_MASK &lt;&lt; Byte.SIZE) &gt;&gt;&gt; BYTE_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L279">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L280">		data[index] |= (v &gt;&gt; (BYTE_DATA_LINES-offset)) &amp; mask;</span>
+<span class="fc" id="L281">	}</span>
+
+	/**
+	 * Reads as {@code char} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static char readChar(byte[] data, int i) {
+<span class="fc" id="L294">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L296">		int d0 = read(data, index);</span>
+<span class="fc" id="L297">		int d1 = read(data, ++index);</span>
+	
+<span class="fc" id="L299">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L301">			return (char) (d1 &lt;&lt; BYTE_DATA_LINES | d0);</span>
+		
+<span class="fc" id="L303">		int d2 = read(data, ++index);</span>
+		
+<span class="fc" id="L305">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L306">		d1 &lt;&lt;= BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L307">		d2 &lt;&lt;= 2*BYTE_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L309">		return (char) (d2 | d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeChar(byte[] data, int i, char v) {
+<span class="fc" id="L324">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L326" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L327" title="All 2 branches covered.">		if (index &lt; -2) return;</span>
+		
+<span class="fc" id="L329">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L332">				data[index] = (byte)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L334" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L335" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L336">				data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES);</span>
+			
+<span class="fc" id="L338">			return;</span>
+		}
+	
+<span class="fc" id="L341">		int mask = BYTE_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L343" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L344">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L345">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L348" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L350">			data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L352" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L354">		data[index] &amp;= mask;</span>
+<span class="fc" id="L355">		data[index] |= (byte)(v &gt;&gt; 2*BYTE_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L356">	}</span>
+
+	/**
+	 * Reads as {@code short} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static short readShort(byte[] data, int i) {
+<span class="fc" id="L369">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L371">		int d0 = read(data, index);</span>
+<span class="fc" id="L372">		int d1 = read(data, ++index);</span>
+	
+<span class="fc" id="L374">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L375" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L376">			return (short) (d1 &lt;&lt; BYTE_DATA_LINES | d0);</span>
+		
+<span class="fc" id="L378">		int d2 = read(data, ++index);</span>
+		
+<span class="fc" id="L380">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L381">		d1 &lt;&lt;= BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L382">		d2 &lt;&lt;= 2*BYTE_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L384">		return (short) (d2 | d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeShort(byte[] data, int i, short v) {
+<span class="fc" id="L399">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L401" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L402" title="All 2 branches covered.">		if (index &lt; -2) return;</span>
+		
+<span class="fc" id="L404">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L405" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L406" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L407">				data[index] = (byte)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L409" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L410" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L411">				data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES);</span>
+			
+<span class="fc" id="L413">			return;</span>
+		}
+	
+<span class="fc" id="L416">		int mask = BYTE_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L418" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L419">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L420">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L423" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L424" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L425">			data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L427" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L429">		data[index] &amp;= mask;</span>
+<span class="fc" id="L430">		data[index] |= (byte)(v &gt;&gt; 2*BYTE_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L431">	}</span>
+
+	/**
+	 * Reads as {@code int} the 32 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int readInt(byte[] data, int i) {
+<span class="fc" id="L444">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L446">		int d0 = read(data, index);</span>
+<span class="fc" id="L447">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L448">		int d2 = read(data, ++index);</span>
+<span class="fc" id="L449">		int d3 = read(data, ++index);</span>
+	
+<span class="fc" id="L451">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L452" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L453">			return (int) (d3 &lt;&lt; 3*BYTE_DATA_LINES | d2 &lt;&lt; 2*BYTE_DATA_LINES | d1 &lt;&lt; BYTE_DATA_LINES | d0);</span>
+		
+<span class="fc" id="L455">		long d4 = read(data, ++index);</span>
+		
+<span class="fc" id="L457">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L458">		d1 &lt;&lt;= BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L459">		d2 &lt;&lt;= 2*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L460">		d3 &lt;&lt;= 3*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L461">		d4 &lt;&lt;= 4*BYTE_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L463">		return (int) (d4 | d3 | d2 | d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 32 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeInt(byte[] data, int i, int v) {
+<span class="fc" id="L478">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L480" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L481" title="All 2 branches covered.">		if (index &lt; -4) return;</span>
+		
+<span class="fc" id="L483">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L484" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L485" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L486">				data[index] = (byte)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L488" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L489" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L490">				data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L492" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L493" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L494">				data[index] = (byte)(v &gt;&gt; 2*BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L496" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L497" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L498">				data[index] = (byte)(v &gt;&gt; 3*BYTE_DATA_LINES);</span>
+			
+<span class="fc" id="L500">			return;</span>
+		}
+	
+<span class="fc" id="L503">		int mask = BYTE_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L505" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L506">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L507">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L510" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L511" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L512">			data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L514" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L515" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L516">			data[index] = (byte)(v &gt;&gt; 2*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L518" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L519" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L520">			data[index] = (byte)(v &gt;&gt; 3*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L522" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L524">		data[index] &amp;= mask;</span>
+<span class="fc" id="L525">		data[index] |= (byte)(v &gt;&gt; 4*BYTE_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L526">	}</span>
+
+	/**
+	 * Reads as {@code long} the 64 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static long readLong(byte[] data, int i) {
+<span class="fc" id="L539">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L541">		int d0 = read(data, index);</span>
+<span class="fc" id="L542">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L543">		int d2 = read(data, ++index);</span>
+<span class="fc" id="L544">		long d3 = read(data, ++index);</span>
+<span class="fc" id="L545">		long d4 = read(data, ++index);</span>
+<span class="fc" id="L546">		long d5 = read(data, ++index);</span>
+<span class="fc" id="L547">		long d6 = read(data, ++index);</span>
+<span class="fc" id="L548">		long d7 = read(data, ++index);</span>
+	
+<span class="fc" id="L550">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L551" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L552">			return d7 &lt;&lt; 7*BYTE_DATA_LINES | d6 &lt;&lt; 6*BYTE_DATA_LINES | d5 &lt;&lt; 5*BYTE_DATA_LINES | d4 &lt;&lt; 4*BYTE_DATA_LINES</span>
+					| d3 &lt;&lt; 3*BYTE_DATA_LINES | d2 &lt;&lt; 2*BYTE_DATA_LINES | d1 &lt;&lt; BYTE_DATA_LINES | d0;
+		
+<span class="fc" id="L555">		long d8 = read(data, ++index);</span>
+		
+<span class="fc" id="L557">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L558">		d1 &lt;&lt;= BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L559">		d2 &lt;&lt;= 2*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L560">		d3 &lt;&lt;= 3*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L561">		d4 &lt;&lt;= 4*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L562">		d5 &lt;&lt;= 5*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L563">		d6 &lt;&lt;= 6*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L564">		d7 &lt;&lt;= 7*BYTE_DATA_LINES - offset;</span>
+<span class="fc" id="L565">		d8 &lt;&lt;= 8*BYTE_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L567">		return d8 | d7 | d6 | d5 | d4 | d3 | d2 | d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 64 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeLong(byte[] data, int i, long v) {
+<span class="fc" id="L582">		int index = i &gt;&gt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L584" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L585" title="All 2 branches covered.">		if (index &lt; -8) return;</span>
+		
+<span class="fc" id="L587">		int offset = i &amp; BYTE_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L588" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L589" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L590">				data[index] = (byte)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L592" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L593" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L594">				data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L596" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L597" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L598">				data[index] = (byte)(v &gt;&gt; 2*BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L600" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L601" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L602">				data[index] = (byte)(v &gt;&gt; 3*BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L604" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L605" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L606">				data[index] = (byte)(v &gt;&gt; 4*BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L608" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L609" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L610">				data[index] = (byte)(v &gt;&gt; 5*BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L612" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L613" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L614">				data[index] = (byte)(v &gt;&gt; 6*BYTE_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L616" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L617" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L618">				data[index] = (byte)(v &gt;&gt; 7*BYTE_DATA_LINES);</span>
+			
+<span class="fc" id="L620">			return;</span>
+		}
+	
+<span class="fc" id="L623">		int mask = BYTE_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L625" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L626">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L627">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L630" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L631" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L632">			data[index] = (byte)(v &gt;&gt; BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L634" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L635" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L636">			data[index] = (byte)(v &gt;&gt; 2*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L638" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L639" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L640">			data[index] = (byte)(v &gt;&gt; 3*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L642" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L643" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L644">			data[index] = (byte)(v &gt;&gt; 4*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L646" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L647" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L648">			data[index] = (byte)(v &gt;&gt; 5*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L650" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L651" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L652">			data[index] = (byte)(v &gt;&gt; 6*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L654" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L655" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L656">			data[index] = (byte)(v &gt;&gt; 7*BYTE_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L658" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L660">		data[index] &amp;= mask;</span>
+<span class="fc" id="L661">		data[index] |= (byte)(v &gt;&gt; 8*BYTE_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L662">	}</span>
+
+	/**
+	 * Returns a string representation of the contents of the given storage. 
+	 * The string representation consists of digits '0' and '1' for all 
+	 * non-offlimits bits. The first character of the returned string 
+	 * represents the 0&lt;sup&gt;th&lt;/sup&gt; bit.
+	 * 
+	 * @param data storage array.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(byte[] data) {
+<span class="fc" id="L675">		return readBitString(data, 0, data.length * BYTE_DATA_LINES - 0);</span>
+	}
+	
+	/**
+	 * Returns a string representation of a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1' for 
+	 * bits ranging from {@code offset}, inclusive, to {@code offset + length}, 
+	 * exclusive. If any offlimits bit is touched, this method will throw 
+	 * {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param length number of digits returned.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(byte[] data, int offset, int length) {
+<span class="fc" id="L694">		char[] dest = new char[length];</span>
+<span class="fc" id="L695">		return new String(readBitString(data, offset, dest, 0, length));</span>
+	}
+	
+	private static char[] readBitString(byte[] src, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc" id="L699">		Arrays.fill(dest, destPos, length, '0');</span>
+		
+<span class="fc bfc" id="L701" title="All 2 branches covered.">		for (int i = destPos + length - 1, index = 0; i &gt;= destPos; i--, srcPos++) {</span>
+<span class="fc" id="L702">			index += srcPos &gt;&gt; BYTE_ADDRESS_LINES;</span>
+<span class="fc" id="L703">			srcPos &amp;= BYTE_ADDRESS_MASK;</span>
+
+<span class="fc bfc" id="L705" title="All 2 branches covered.">			if (readBit0(src, index, srcPos))</span>
+<span class="fc" id="L706">				dest[i] = '1';</span>
+		}
+		
+<span class="fc" id="L709">		return dest;</span>
+	}
+
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code 0}, inclusive, to 
+	 * {@code string's length}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param v string whose contents are stored into given storage.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(byte[] data, String v) {
+<span class="fc" id="L724">		writeBitString(data, 0, v);</span>
+<span class="fc" id="L725">	}</span>
+	
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code offset}, inclusive, to 
+	 * {@code offset + length}, exclusive. If any offlimits bit is touched, 
+	 * this method will throw {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param v string whose contents are stored into given storage.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(byte[] data, int offset, String v) {
+<span class="fc" id="L743">		writeBitString(data, offset, v.length(), v);</span>
+<span class="fc" id="L744">	}</span>
+	
+	private static void writeBitString(byte[] data, int offset, int length, String v) {
+<span class="fc" id="L747">		writeBitString(data, offset, v.toCharArray(), 0, length);</span>
+<span class="fc" id="L748">	}</span>
+	
+	private static void writeBitString(byte[] dest, int destPos, char[] src, int srcPos, int length) {
+<span class="fc bfc" id="L751" title="All 2 branches covered.">		for (int i = srcPos + length - 1, index = 0; i &gt;= srcPos; i--, destPos++) {</span>
+<span class="fc" id="L752">			index += destPos &gt;&gt; BYTE_ADDRESS_LINES;</span>
+<span class="fc" id="L753">			destPos &amp;= BYTE_ADDRESS_MASK;</span>
+			
+<span class="fc bfc" id="L755" title="All 2 branches covered.">			writeBit0(dest, index, destPos, src[i] == '1');</span>
+		}
+<span class="fc" id="L757">	}</span>
+
+	/********** char[] **********/
+
+	static final int CHAR_ADDRESS_LINES = 4;
+	static final int CHAR_DATA_LINES = 1 &lt;&lt; CHAR_ADDRESS_LINES;
+	static final int CHAR_ADDRESS_MASK = ~(-1 &lt;&lt; CHAR_ADDRESS_LINES);
+	static final int CHAR_DATA_MASK = ~(-1 &lt;&lt; CHAR_DATA_LINES);
+	
+	// we expect this function to be heavily inlined
+	private static int read(char[] data, int index) {
+<span class="fc bfc" id="L768" title="All 4 branches covered.">		return index &lt; data.length &amp;&amp; index &gt;=0 ? data[index] &amp; CHAR_DATA_MASK : 0;</span>
+	}
+
+	/**
+	 * Reads the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static boolean readBit(char[] data, int i) {
+<span class="fc" id="L780">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L782" title="All 4 branches covered.">		if (index &gt;= data.length || index &lt; 0)</span>
+<span class="fc" id="L783">			return false;</span>
+		
+<span class="fc" id="L785">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc" id="L786">		return readBit0(data, index, offset);</span>
+	}
+
+	private static boolean readBit0(char[] data, int index, int offset) {
+<span class="fc bfc" id="L790" title="All 2 branches covered.">		return (data[index] &lt;&lt; ~offset) &lt; 0;</span>
+	}
+	
+	/**
+	 * Writes the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBit(char[] data, int i, boolean v) {
+<span class="fc" id="L803">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L805" title="All 4 branches covered.">		if (index &lt; data.length &amp;&amp; index &gt;= 0)</span>
+<span class="fc" id="L806">			writeBit0(data, index, i &amp; CHAR_ADDRESS_MASK, v);</span>
+<span class="fc" id="L807">	}</span>
+
+	private static void writeBit0(char[] data, int index, int offset, boolean v) {
+<span class="fc bfc" id="L810" title="All 2 branches covered.">		if (v)</span>
+<span class="fc" id="L811">			data[index] |= 1 &lt;&lt; offset;</span>
+		else
+<span class="fc" id="L813">			data[index] &amp;= ~(1 &lt;&lt; offset);</span>
+<span class="fc" id="L814">	}</span>
+
+	/**
+	 * Assigns the specified bit value to each bit of the specified range of 
+	 * the given storage. The range to be filled extends from offset 
+	 * {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} this method does nothing.
+	 * 
+	 * &lt;p&gt;This method behaves as the following code:
+	 * &lt;/p&gt;
+	 * &lt;pre&gt;
+	 *   for(int i = from; i &lt; to; i++)
+	 *     Store.writeBit(data, i, v);
+	 * &lt;/pre&gt;
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        filled with the specified value.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        filled with the specified value.
+	 * @param v value whose contents will be used to fill the specified region 
+	 *        into {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void fill(char[] data, int from, int to, boolean v) {
+		// clamp
+<span class="fc bfc" id="L841" title="All 2 branches covered.">		if (from &lt; 0)</span>
+<span class="fc" id="L842">			from = 0;</span>
+		
+<span class="fc bfc" id="L844" title="All 2 branches covered.">		if (to &gt; data.length &lt;&lt; CHAR_ADDRESS_LINES)</span>
+<span class="fc" id="L845">			to = data.length &lt;&lt; CHAR_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L847" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L848">			return;</span>
+
+<span class="fc" id="L850">		int[] index  = {from  &gt;&gt; CHAR_ADDRESS_LINES, to &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L851">		int[] offset = {from  &amp; CHAR_ADDRESS_MASK,   to &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L853" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L856">			final long LOWEST_BITS_FROM = ~(CHAR_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L857">			final long HIGHEST_BITS_TO = CHAR_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc bfc" id="L859" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L860">				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);</span>
+			else
+<span class="fc" id="L862">				data[index[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+			
+<span class="fc" id="L864">			return;</span>
+		}
+		
+<span class="fc bfc" id="L867" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L870">			final long HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc bfc" id="L872" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L873">				data[index[0]] |= HIGHEST_BITS;</span>
+			else
+<span class="fc" id="L875">				data[index[0]] &amp;= ~HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L878">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L881" title="All 2 branches covered.">		if (index[1] &gt; index[0])</span>
+<span class="fc bfc" id="L882" title="All 2 branches covered.">			Arrays.fill(data, index[0], index[1], (char) (v ? -1 : 0));</span>
+
+<span class="fc bfc" id="L884" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L885">			final long LOWEST_BITS = ~(CHAR_DATA_MASK &lt;&lt; offset[1]);</span>
+
+<span class="fc bfc" id="L887" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L888">				data[index[1]] |= LOWEST_BITS;</span>
+			else
+<span class="fc" id="L890">				data[index[1]] &amp;= ~LOWEST_BITS;</span>
+		}
+<span class="fc" id="L892">	}</span>
+
+	/**
+	 * Reads as {@code byte} the 8 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static byte readByte(char[] data, int i) {
+<span class="fc" id="L905">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L907">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L909">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L910" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L911">			return (byte) d0;</span>
+
+<span class="fc" id="L913">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L915" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= CHAR_DATA_LINES)</span>
+<span class="fc" id="L916">			return (byte)d0;</span>
+
+<span class="fc" id="L918">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L919">		d1 &lt;&lt;= CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L921">		return (byte) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 8 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeByte(char[] data, int i, byte v) {
+<span class="fc" id="L936">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L938" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L939" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L941">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L943">		int mask = ~(CHAR_DATA_MASK &lt;&lt; Byte.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L945" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L946">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L947">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L950" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= CHAR_DATA_LINES)</span>
+<span class="fc" id="L951">			return;</span>
+		
+<span class="fc bfc" id="L953" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L955">		mask = ~(CHAR_DATA_MASK &lt;&lt; Byte.SIZE) &gt;&gt;&gt; CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L957">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L958">		data[index] |= (v &gt;&gt; (CHAR_DATA_LINES-offset)) &amp; mask;</span>
+<span class="fc" id="L959">	}</span>
+
+	/**
+	 * Reads as {@code char} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static char readChar(char[] data, int i) {
+<span class="fc" id="L972">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L974">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L976">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L977" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L978">			return (char) d0;</span>
+
+<span class="fc" id="L980">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc" id="L982">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L983">		d1 &lt;&lt;= CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L985">		return (char) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeChar(char[] data, int i, char v) {
+<span class="fc" id="L1000">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L1002" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1003" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L1005">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L1007">		int mask = ~(CHAR_DATA_MASK &lt;&lt; Character.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1009" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1010">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1011">			data[index] |= v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1014" title="All 2 branches covered.">		if (offset + Character.SIZE &lt;= CHAR_DATA_LINES)</span>
+<span class="fc" id="L1015">			return;</span>
+		
+<span class="fc bfc" id="L1017" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L1019">		mask = ~(CHAR_DATA_MASK &lt;&lt; Character.SIZE) &gt;&gt; CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1021">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1022">		data[index] |= v &gt;&gt; CHAR_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L1023">	}</span>
+
+	/**
+	 * Reads as {@code short} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static short readShort(char[] data, int i) {
+<span class="fc" id="L1036">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1038">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L1040">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1041" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1042">			return (short) d0;</span>
+
+<span class="fc" id="L1044">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc" id="L1046">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L1047">		d1 &lt;&lt;= CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1049">		return (short) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeShort(char[] data, int i, short v) {
+<span class="fc" id="L1064">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L1066" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1067" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L1069">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L1071">		int mask = ~(CHAR_DATA_MASK &lt;&lt; Short.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1073" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1074">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1075">			data[index] |= v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1078" title="All 2 branches covered.">		if (offset + Short.SIZE &lt;= CHAR_DATA_LINES)</span>
+<span class="fc" id="L1079">			return;</span>
+		
+<span class="fc bfc" id="L1081" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L1083">		mask = ~(CHAR_DATA_MASK &lt;&lt; Short.SIZE) &gt;&gt; CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1085">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1086">		data[index] |= v &gt;&gt; CHAR_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L1087">	}</span>
+
+	/**
+	 * Reads as {@code int} the 32 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int readInt(char[] data, int i) {
+<span class="fc" id="L1100">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1102">		int d0 = read(data, index);</span>
+<span class="fc" id="L1103">		int d1 = read(data, ++index);</span>
+	
+<span class="fc" id="L1105">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1106" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1107">			return d1 &lt;&lt; CHAR_DATA_LINES | d0;</span>
+		
+<span class="fc" id="L1109">		int d2 = read(data, ++index);</span>
+		
+<span class="fc" id="L1111">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L1112">		d1 &lt;&lt;= CHAR_DATA_LINES - offset;</span>
+<span class="fc" id="L1113">		d2 &lt;&lt;= 2*CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1115">		return d2 | d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 32 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeInt(char[] data, int i, int v) {
+<span class="fc" id="L1130">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L1132" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1133" title="All 2 branches covered.">		if (index &lt; -2) return;</span>
+		
+<span class="fc" id="L1135">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1136" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L1137" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1138">				data[index] = (char)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L1140" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1141" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1142">				data[index] = (char)(v &gt;&gt; CHAR_DATA_LINES);</span>
+			
+<span class="fc" id="L1144">			return;</span>
+		}
+	
+<span class="fc" id="L1147">		int mask = CHAR_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1149" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1150">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1151">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1154" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1155" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1156">			data[index] = (char)(v &gt;&gt; CHAR_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1158" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L1160">		data[index] &amp;= mask;</span>
+<span class="fc" id="L1161">		data[index] |= (char)(v &gt;&gt; 2*CHAR_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L1162">	}</span>
+
+	/**
+	 * Reads as {@code long} the 64 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static long readLong(char[] data, int i) {
+<span class="fc" id="L1175">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1177">		long d0 = read(data, index);</span>
+<span class="fc" id="L1178">		long d1 = read(data, ++index);</span>
+<span class="fc" id="L1179">		long d2 = read(data, ++index);</span>
+<span class="fc" id="L1180">		long d3 = read(data, ++index);</span>
+	
+<span class="fc" id="L1182">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1183" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1184">			return d3 &lt;&lt; 3*CHAR_DATA_LINES | d2 &lt;&lt; 2*CHAR_DATA_LINES | d1 &lt;&lt; CHAR_DATA_LINES | d0;</span>
+		
+<span class="fc" id="L1186">		long d4 = read(data, ++index);</span>
+		
+<span class="fc" id="L1188">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L1189">		d1 &lt;&lt;= CHAR_DATA_LINES - offset;</span>
+<span class="fc" id="L1190">		d2 &lt;&lt;= 2*CHAR_DATA_LINES - offset;</span>
+<span class="fc" id="L1191">		d3 &lt;&lt;= 3*CHAR_DATA_LINES - offset;</span>
+<span class="fc" id="L1192">		d4 &lt;&lt;= 4*CHAR_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1194">		return d4 | d3 | d2 | d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 64 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeLong(char[] data, int i, long v) {
+<span class="fc" id="L1209">		int index = i &gt;&gt; CHAR_ADDRESS_LINES;</span>
+	
+<span class="fc bfc" id="L1211" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1212" title="All 2 branches covered.">		if (index &lt; -4) return;</span>
+		
+<span class="fc" id="L1214">		int offset = i &amp; CHAR_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1215" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L1216" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1217">				data[index] = (char)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L1219" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1220" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1221">				data[index] = (char)(v &gt;&gt; CHAR_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L1223" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1224" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1225">				data[index] = (char)(v &gt;&gt; 2*CHAR_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L1227" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1228" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1229">				data[index] = (char)(v &gt;&gt; 3*CHAR_DATA_LINES);</span>
+			
+<span class="fc" id="L1231">			return;</span>
+		}
+	
+<span class="fc" id="L1234">		int mask = CHAR_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1236" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1237">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1238">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1241" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1242" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1243">			data[index] = (char)(v &gt;&gt; CHAR_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1245" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1246" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1247">			data[index] = (char)(v &gt;&gt; 2*CHAR_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1249" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1250" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1251">			data[index] = (char)(v &gt;&gt; 3*CHAR_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1253" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L1255">		data[index] &amp;= mask;</span>
+<span class="fc" id="L1256">		data[index] |= (char)(v &gt;&gt; 4*CHAR_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L1257">	}</span>
+
+	/**
+	 * Returns a string representation of the contents of the given storage. 
+	 * The string representation consists of digits '0' and '1' for all 
+	 * non-offlimits bits. The first character of the returned string 
+	 * represents the 0&lt;sup&gt;th&lt;/sup&gt; bit.
+	 * 
+	 * @param data storage array.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(char[] data) {
+<span class="fc" id="L1270">		return readBitString(data, 0, data.length * CHAR_DATA_LINES - 0);</span>
+	}
+	
+	/**
+	 * Returns a string representation of a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1' for 
+	 * bits ranging from {@code offset}, inclusive, to {@code offset + length}, 
+	 * exclusive. If any offlimits bit is touched, this method will throw 
+	 * {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param length number of digits returned.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(char[] data, int offset, int length) {
+<span class="fc" id="L1289">		char[] dest = new char[length];</span>
+<span class="fc" id="L1290">		return new String(readBitString(data, offset, dest, 0, length));</span>
+	}
+	
+	private static char[] readBitString(char[] src, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc" id="L1294">		Arrays.fill(dest, destPos, length, '0');</span>
+		
+<span class="fc bfc" id="L1296" title="All 2 branches covered.">		for (int i = destPos + length - 1, index = 0; i &gt;= destPos; i--, srcPos++) {</span>
+<span class="fc" id="L1297">			index += srcPos &gt;&gt; CHAR_ADDRESS_LINES;</span>
+<span class="fc" id="L1298">			srcPos &amp;= CHAR_ADDRESS_MASK;</span>
+
+<span class="fc bfc" id="L1300" title="All 2 branches covered.">			if (readBit0(src, index, srcPos))</span>
+<span class="fc" id="L1301">				dest[i] = '1';</span>
+		}
+		
+<span class="fc" id="L1304">		return dest;</span>
+	}
+
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code 0}, inclusive, to 
+	 * {@code string's length}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param v string whose contents are stored into given storage.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(char[] data, String v) {
+<span class="fc" id="L1319">		writeBitString(data, 0, v);</span>
+<span class="fc" id="L1320">	}</span>
+	
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code offset}, inclusive, to 
+	 * {@code offset + length}, exclusive. If any offlimits bit is touched, 
+	 * this method will throw {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param v string whose contents are stored into given storage.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(char[] data, int offset, String v) {
+<span class="fc" id="L1338">		writeBitString(data, offset, v.length(), v);</span>
+<span class="fc" id="L1339">	}</span>
+	
+	private static void writeBitString(char[] data, int offset, int length, String v) {
+<span class="fc" id="L1342">		writeBitString(data, offset, v.toCharArray(), 0, length);</span>
+<span class="fc" id="L1343">	}</span>
+	
+	private static void writeBitString(char[] dest, int destPos, char[] src, int srcPos, int length) {
+<span class="fc bfc" id="L1346" title="All 2 branches covered.">		for (int i = srcPos + length - 1, index = 0; i &gt;= srcPos; i--, destPos++) {</span>
+<span class="fc" id="L1347">			index += destPos &gt;&gt; CHAR_ADDRESS_LINES;</span>
+<span class="fc" id="L1348">			destPos &amp;= CHAR_ADDRESS_MASK;</span>
+			
+<span class="fc bfc" id="L1350" title="All 2 branches covered.">			writeBit0(dest, index, destPos, src[i] == '1');</span>
+		}
+<span class="fc" id="L1352">	}</span>
+
+	/********** short[] **********/
+
+	static final int SHORT_ADDRESS_LINES = 4;
+	static final int SHORT_DATA_LINES = 1 &lt;&lt; SHORT_ADDRESS_LINES;
+	static final int SHORT_ADDRESS_MASK = ~(-1 &lt;&lt; SHORT_ADDRESS_LINES);
+	static final int SHORT_DATA_MASK = ~(-1 &lt;&lt; SHORT_DATA_LINES);
+	
+	// we expect this function to be heavily inlined
+	private static int read(short[] data, int index) {
+<span class="fc bfc" id="L1363" title="All 4 branches covered.">		return index &lt; data.length &amp;&amp; index &gt;=0 ? data[index] &amp; SHORT_DATA_MASK : 0;</span>
+	}
+
+	/**
+	 * Reads the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static boolean readBit(short[] data, int i) {
+<span class="fc" id="L1375">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L1377" title="All 4 branches covered.">		if (index &gt;= data.length || index &lt; 0)</span>
+<span class="fc" id="L1378">			return false;</span>
+		
+<span class="fc" id="L1380">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc" id="L1381">		return readBit0(data, index, offset);</span>
+	}
+
+	private static boolean readBit0(short[] data, int index, int offset) {
+<span class="fc bfc" id="L1385" title="All 2 branches covered.">		return (data[index] &lt;&lt; ~offset) &lt; 0;</span>
+	}
+	
+	/**
+	 * Writes the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBit(short[] data, int i, boolean v) {
+<span class="fc" id="L1398">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L1400" title="All 4 branches covered.">		if (index &lt; data.length &amp;&amp; index &gt;= 0)</span>
+<span class="fc" id="L1401">			writeBit0(data, index, i &amp; SHORT_ADDRESS_MASK, v);</span>
+<span class="fc" id="L1402">	}</span>
+
+	private static void writeBit0(short[] data, int index, int offset, boolean v) {
+<span class="fc bfc" id="L1405" title="All 2 branches covered.">		if (v)</span>
+<span class="fc" id="L1406">			data[index] |= 1 &lt;&lt; offset;</span>
+		else
+<span class="fc" id="L1408">			data[index] &amp;= ~(1 &lt;&lt; offset);</span>
+<span class="fc" id="L1409">	}</span>
+
+	/**
+	 * Assigns the specified bit value to each bit of the specified range of 
+	 * the given storage. The range to be filled extends from offset 
+	 * {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} this method does nothing.
+	 * 
+	 * &lt;p&gt;This method behaves as the following code:
+	 * &lt;/p&gt;
+	 * &lt;pre&gt;
+	 *   for(int i = from; i &lt; to; i++)
+	 *     Store.writeBit(data, i, v);
+	 * &lt;/pre&gt;
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        filled with the specified value.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        filled with the specified value.
+	 * @param v value whose contents will be used to fill the specified region 
+	 *        into {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void fill(short[] data, int from, int to, boolean v) {
+		// clamp
+<span class="fc bfc" id="L1436" title="All 2 branches covered.">		if (from &lt; 0)</span>
+<span class="fc" id="L1437">			from = 0;</span>
+		
+<span class="fc bfc" id="L1439" title="All 2 branches covered.">		if (to &gt; data.length &lt;&lt; SHORT_ADDRESS_LINES)</span>
+<span class="fc" id="L1440">			to = data.length &lt;&lt; SHORT_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L1442" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L1443">			return;</span>
+
+<span class="fc" id="L1445">		int[] index  = {from  &gt;&gt; SHORT_ADDRESS_LINES, to &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L1446">		int[] offset = {from  &amp; SHORT_ADDRESS_MASK,   to &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L1448" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L1451">			final long LOWEST_BITS_FROM = ~(SHORT_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L1452">			final long HIGHEST_BITS_TO = SHORT_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc bfc" id="L1454" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L1455">				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);</span>
+			else
+<span class="fc" id="L1457">				data[index[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+			
+<span class="fc" id="L1459">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1462" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L1465">			final long HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc bfc" id="L1467" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L1468">				data[index[0]] |= HIGHEST_BITS;</span>
+			else
+<span class="fc" id="L1470">				data[index[0]] &amp;= ~HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L1473">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L1476" title="All 2 branches covered.">		if (index[1] &gt; index[0])</span>
+<span class="fc bfc" id="L1477" title="All 2 branches covered.">			Arrays.fill(data, index[0], index[1], (short) (v ? -1 : 0));</span>
+
+<span class="fc bfc" id="L1479" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L1480">			final long LOWEST_BITS = ~(SHORT_DATA_MASK &lt;&lt; offset[1]);</span>
+
+<span class="fc bfc" id="L1482" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L1483">				data[index[1]] |= LOWEST_BITS;</span>
+			else
+<span class="fc" id="L1485">				data[index[1]] &amp;= ~LOWEST_BITS;</span>
+		}
+<span class="fc" id="L1487">	}</span>
+
+	/**
+	 * Reads as {@code byte} the 8 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static byte readByte(short[] data, int i) {
+<span class="fc" id="L1500">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1502">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L1504">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1505" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1506">			return (byte) d0;</span>
+
+<span class="fc" id="L1508">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L1510" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= SHORT_DATA_LINES)</span>
+<span class="fc" id="L1511">			return (byte)d0;</span>
+
+<span class="fc" id="L1513">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L1514">		d1 &lt;&lt;= SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1516">		return (byte) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 8 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeByte(short[] data, int i, byte v) {
+<span class="fc" id="L1531">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L1533" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1534" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L1536">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L1538">		int mask = ~(SHORT_DATA_MASK &lt;&lt; Byte.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1540" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1541">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1542">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1545" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= SHORT_DATA_LINES)</span>
+<span class="fc" id="L1546">			return;</span>
+		
+<span class="fc bfc" id="L1548" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L1550">		mask = ~(SHORT_DATA_MASK &lt;&lt; Byte.SIZE) &gt;&gt;&gt; SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1552">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1553">		data[index] |= (v &gt;&gt; (SHORT_DATA_LINES-offset)) &amp; mask;</span>
+<span class="fc" id="L1554">	}</span>
+
+	/**
+	 * Reads as {@code char} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static char readChar(short[] data, int i) {
+<span class="fc" id="L1567">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1569">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L1571">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1572" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1573">			return (char) d0;</span>
+		
+<span class="fc" id="L1575">		int d1 = read(data, ++index);</span>
+
+<span class="fc" id="L1577">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L1578">		d1 &lt;&lt;= SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1580">		return (char) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeChar(short[] data, int i, char v) {
+<span class="fc" id="L1595">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L1597" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1598" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L1600">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L1602">		int mask = ~(SHORT_DATA_MASK &lt;&lt; Character.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1604" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1605">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1606">			data[index] |= v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1609" title="All 2 branches covered.">		if (offset + Character.SIZE &lt;= SHORT_DATA_LINES)</span>
+<span class="fc" id="L1610">			return;</span>
+		
+<span class="fc bfc" id="L1612" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L1614">		mask = ~(SHORT_DATA_MASK &lt;&lt; Character.SIZE) &gt;&gt; SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1616">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1617">		data[index] |= v &gt;&gt; SHORT_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L1618">	}</span>
+
+	/**
+	 * Reads as {@code short} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static short readShort(short[] data, int i) {
+<span class="fc" id="L1631">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1633">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L1635">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1636" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1637">			return (short) d0;</span>
+
+<span class="fc" id="L1639">		int d1 = read(data, ++index);</span>
+		
+<span class="fc" id="L1641">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L1642">		d1 &lt;&lt;= SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1644">		return (short) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeShort(short[] data, int i, short v) {
+<span class="fc" id="L1659">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L1661" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1662" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L1664">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L1666">		int mask = ~(SHORT_DATA_MASK &lt;&lt; Short.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1668" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1669">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1670">			data[index] |= v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1673" title="All 2 branches covered.">		if (offset + Short.SIZE &lt;= SHORT_DATA_LINES)</span>
+<span class="fc" id="L1674">			return;</span>
+		
+<span class="fc bfc" id="L1676" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L1678">		mask = ~(SHORT_DATA_MASK &lt;&lt; Short.SIZE) &gt;&gt; SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1680">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1681">		data[index] |= v &gt;&gt; SHORT_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L1682">	}</span>
+
+	/**
+	 * Reads as {@code int} the 32 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int readInt(short[] data, int i) {
+<span class="fc" id="L1695">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1697">		int d0 = read(data, index);</span>
+<span class="fc" id="L1698">		int d1 = read(data, ++index);</span>
+	
+<span class="fc" id="L1700">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1701" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1702">			return d1 &lt;&lt; SHORT_DATA_LINES | d0;</span>
+		
+<span class="fc" id="L1704">		int d2 = read(data, ++index);</span>
+		
+<span class="fc" id="L1706">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L1707">		d1 &lt;&lt;= SHORT_DATA_LINES - offset;</span>
+<span class="fc" id="L1708">		d2 &lt;&lt;= 2*SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1710">		return d2 | d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 32 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeInt(short[] data, int i, int v) {
+<span class="fc" id="L1725">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L1727" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1728" title="All 2 branches covered.">		if (index &lt; -2) return;</span>
+		
+<span class="fc" id="L1730">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1731" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L1732" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1733">				data[index] = (short)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L1735" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1736" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1737">				data[index] = (short)(v &gt;&gt; SHORT_DATA_LINES);</span>
+			
+<span class="fc" id="L1739">			return;</span>
+		}
+	
+<span class="fc" id="L1742">		int mask = SHORT_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1744" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1745">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1746">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1749" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1750" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1751">			data[index] = (short)(v &gt;&gt; SHORT_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1753" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L1755">		data[index] &amp;= mask;</span>
+<span class="fc" id="L1756">		data[index] |= (short)(v &gt;&gt; 2*SHORT_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L1757">	}</span>
+
+	/**
+	 * Reads as {@code long} the 64 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static long readLong(short[] data, int i) {
+<span class="fc" id="L1770">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L1772">		long d0 = read(data, index);</span>
+<span class="fc" id="L1773">		long d1 = read(data, ++index);</span>
+<span class="fc" id="L1774">		long d2 = read(data, ++index);</span>
+<span class="fc" id="L1775">		long d3 = read(data, ++index);</span>
+	
+<span class="fc" id="L1777">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1778" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L1779">			return d3 &lt;&lt; 3*SHORT_DATA_LINES | d2 &lt;&lt; 2*SHORT_DATA_LINES | d1 &lt;&lt; SHORT_DATA_LINES | d0;</span>
+		
+<span class="fc" id="L1781">		long d4 = read(data, ++index);</span>
+		
+<span class="fc" id="L1783">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L1784">		d1 &lt;&lt;= SHORT_DATA_LINES - offset;</span>
+<span class="fc" id="L1785">		d2 &lt;&lt;= 2*SHORT_DATA_LINES - offset;</span>
+<span class="fc" id="L1786">		d3 &lt;&lt;= 3*SHORT_DATA_LINES - offset;</span>
+<span class="fc" id="L1787">		d4 &lt;&lt;= 4*SHORT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L1789">		return d4 | d3 | d2 | d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 64 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeLong(short[] data, int i, long v) {
+<span class="fc" id="L1804">		int index = i &gt;&gt; SHORT_ADDRESS_LINES;</span>
+	
+<span class="fc bfc" id="L1806" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1807" title="All 2 branches covered.">		if (index &lt; -4) return;</span>
+		
+<span class="fc" id="L1809">		int offset = i &amp; SHORT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L1810" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L1811" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1812">				data[index] = (short)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L1814" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1815" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1816">				data[index] = (short)(v &gt;&gt; SHORT_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L1818" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1819" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1820">				data[index] = (short)(v &gt;&gt; 2*SHORT_DATA_LINES);</span>
+			
+<span class="fc bfc" id="L1822" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1823" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L1824">				data[index] = (short)(v &gt;&gt; 3*SHORT_DATA_LINES);</span>
+			
+<span class="fc" id="L1826">			return;</span>
+		}
+	
+<span class="fc" id="L1829">		int mask = SHORT_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L1831" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L1832">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L1833">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L1836" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1837" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1838">			data[index] = (short)(v &gt;&gt; SHORT_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1840" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1841" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1842">			data[index] = (short)(v &gt;&gt; 2*SHORT_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1844" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L1845" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L1846">			data[index] = (short)(v &gt;&gt; 3*SHORT_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L1848" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L1850">		data[index] &amp;= mask;</span>
+<span class="fc" id="L1851">		data[index] |= (short)(v &gt;&gt; 4*SHORT_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L1852">	}</span>
+
+	/**
+	 * Returns a string representation of the contents of the given storage. 
+	 * The string representation consists of digits '0' and '1' for all 
+	 * non-offlimits bits. The first character of the returned string 
+	 * represents the 0&lt;sup&gt;th&lt;/sup&gt; bit.
+	 * 
+	 * @param data storage array.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(short[] data) {
+<span class="fc" id="L1865">		return readBitString(data, 0, data.length * SHORT_DATA_LINES - 0);</span>
+	}
+	
+	/**
+	 * Returns a string representation of a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1' for 
+	 * bits ranging from {@code offset}, inclusive, to {@code offset + length}, 
+	 * exclusive. If any offlimits bit is touched, this method will throw 
+	 * {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param length number of digits returned.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(short[] data, int offset, int length) {
+<span class="fc" id="L1884">		char[] dest = new char[length];</span>
+<span class="fc" id="L1885">		return new String(readBitString(data, offset, dest, 0, length));</span>
+	}
+	
+	private static char[] readBitString(short[] src, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc" id="L1889">		Arrays.fill(dest, destPos, length, '0');</span>
+		
+<span class="fc bfc" id="L1891" title="All 2 branches covered.">		for (int i = destPos + length - 1, index = 0; i &gt;= destPos; i--, srcPos++) {</span>
+<span class="fc" id="L1892">			index += srcPos &gt;&gt; SHORT_ADDRESS_LINES;</span>
+<span class="fc" id="L1893">			srcPos &amp;= SHORT_ADDRESS_MASK;</span>
+
+<span class="fc bfc" id="L1895" title="All 2 branches covered.">			if (readBit0(src, index, srcPos))</span>
+<span class="fc" id="L1896">				dest[i] = '1';</span>
+		}
+		
+<span class="fc" id="L1899">		return dest;</span>
+	}
+
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code 0}, inclusive, to 
+	 * {@code string's length}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param v string whose contents are stored into given storage.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(short[] data, String v) {
+<span class="fc" id="L1914">		writeBitString(data, 0, v);</span>
+<span class="fc" id="L1915">	}</span>
+	
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code offset}, inclusive, to 
+	 * {@code offset + length}, exclusive. If any offlimits bit is touched, 
+	 * this method will throw {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param v string whose contents are stored into given storage.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(short[] data, int offset, String v) {
+<span class="fc" id="L1933">		writeBitString(data, offset, v.length(), v);</span>
+<span class="fc" id="L1934">	}</span>
+	
+	private static void writeBitString(short[] data, int offset, int length, String v) {
+<span class="fc" id="L1937">		writeBitString(data, offset, v.toCharArray(), 0, length);</span>
+<span class="fc" id="L1938">	}</span>
+	
+	private static void writeBitString(short[] dest, int destPos, char[] src, int srcPos, int length) {
+<span class="fc bfc" id="L1941" title="All 2 branches covered.">		for (int i = srcPos + length - 1, index = 0; i &gt;= srcPos; i--, destPos++) {</span>
+<span class="fc" id="L1942">			index += destPos &gt;&gt; SHORT_ADDRESS_LINES;</span>
+<span class="fc" id="L1943">			destPos &amp;= SHORT_ADDRESS_MASK;</span>
+			
+<span class="fc bfc" id="L1945" title="All 2 branches covered.">			writeBit0(dest, index, destPos, src[i] == '1');</span>
+		}
+<span class="fc" id="L1947">	}</span>
+
+	/********** int[] **********/
+
+	static final int INT_ADDRESS_LINES = 5;
+	static final int INT_DATA_LINES = 1 &lt;&lt; INT_ADDRESS_LINES;
+	static final int INT_ADDRESS_MASK = ~(-1 &lt;&lt; INT_ADDRESS_LINES);
+	static final int INT_DATA_MASK = ~0;
+	static final long INT_DATA_MASKL = ~(-1L &lt;&lt; INT_DATA_LINES);
+	
+	// we expect this function to be heavily inlined
+	private static int read(int[] data, int index) {
+<span class="fc bfc" id="L1959" title="All 4 branches covered.">		return index &lt; data.length &amp;&amp; index &gt;=0 ? data[index] : 0;</span>
+	}
+
+	private static long readl(int[] data, int index) {
+<span class="fc bfc" id="L1963" title="All 4 branches covered.">		return index &lt; data.length &amp;&amp; index &gt;=0 ? (long)data[index] &amp; INT_DATA_MASKL : 0;</span>
+	}
+
+	/**
+	 * Reads the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static boolean readBit(int[] data, int i) {
+<span class="fc" id="L1975">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L1977" title="All 4 branches covered.">		if (index &gt;= data.length || index &lt; 0)</span>
+<span class="fc" id="L1978">			return false;</span>
+		
+<span class="fc" id="L1980">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+<span class="fc" id="L1981">		return readBit0(data, index, offset);</span>
+	}
+
+	private static boolean readBit0(int[] data, int index, int offset) {
+<span class="fc bfc" id="L1985" title="All 2 branches covered.">		return (data[index] &lt;&lt; ~offset) &lt; 0;</span>
+	}
+	
+	/**
+	 * Writes the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBit(int[] data, int i, boolean v) {
+<span class="fc" id="L1998">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L2000" title="All 4 branches covered.">		if (index &lt; data.length &amp;&amp; index &gt;= 0)</span>
+<span class="fc" id="L2001">			writeBit0(data, index, i &amp; INT_ADDRESS_MASK, v);</span>
+<span class="fc" id="L2002">	}</span>
+
+	private static void writeBit0(int[] data, int index, int offset, boolean v) {
+<span class="fc bfc" id="L2005" title="All 2 branches covered.">		if (v)</span>
+<span class="fc" id="L2006">			data[index] |= 1 &lt;&lt; offset;</span>
+		else
+<span class="fc" id="L2008">			data[index] &amp;= ~(1 &lt;&lt; offset);</span>
+<span class="fc" id="L2009">	}</span>
+
+	/**
+	 * Assigns the specified bit value to each bit of the specified range of 
+	 * the given storage. The range to be filled extends from offset 
+	 * {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} this method does nothing.
+	 * 
+	 * &lt;p&gt;This method behaves as the following code:
+	 * &lt;/p&gt;
+	 * &lt;pre&gt;
+	 *   for(int i = from; i &lt; to; i++)
+	 *     Store.writeBit(data, i, v);
+	 * &lt;/pre&gt;
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        filled with the specified value.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        filled with the specified value.
+	 * @param v value whose contents will be used to fill the specified region 
+	 *        into {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void fill(int[] data, int from, int to, boolean v) {
+		// clamp
+<span class="fc bfc" id="L2036" title="All 2 branches covered.">		if (from &lt; 0)</span>
+<span class="fc" id="L2037">			from = 0;</span>
+		
+<span class="fc bfc" id="L2039" title="All 2 branches covered.">		if (to &gt; data.length &lt;&lt; INT_ADDRESS_LINES)</span>
+<span class="fc" id="L2040">			to = data.length &lt;&lt; INT_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L2042" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L2043">			return;</span>
+
+<span class="fc" id="L2045">		int[] index  = {from  &gt;&gt; INT_ADDRESS_LINES, to &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L2046">		int[] offset = {from  &amp; INT_ADDRESS_MASK,   to &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L2048" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L2051">			final long LOWEST_BITS_FROM = ~(INT_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L2052">			final long HIGHEST_BITS_TO = INT_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc bfc" id="L2054" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L2055">				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);</span>
+			else
+<span class="fc" id="L2057">				data[index[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+			
+<span class="fc" id="L2059">			return;</span>
+		}
+		
+<span class="fc bfc" id="L2062" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L2065">			final long HIGHEST_BITS = INT_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc bfc" id="L2067" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L2068">				data[index[0]] |= HIGHEST_BITS;</span>
+			else
+<span class="fc" id="L2070">				data[index[0]] &amp;= ~HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L2073">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L2076" title="All 2 branches covered.">		if (index[1] &gt; index[0])</span>
+<span class="fc bfc" id="L2077" title="All 2 branches covered.">			Arrays.fill(data, index[0], index[1], v ? -1 : 0);</span>
+
+<span class="fc bfc" id="L2079" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L2080">			final long LOWEST_BITS = ~(INT_DATA_MASK &lt;&lt; offset[1]);</span>
+
+<span class="fc bfc" id="L2082" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L2083">				data[index[1]] |= LOWEST_BITS;</span>
+			else
+<span class="fc" id="L2085">				data[index[1]] &amp;= ~LOWEST_BITS;</span>
+		}
+<span class="fc" id="L2087">	}</span>
+
+	/**
+	 * Reads as {@code byte} the 8 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static byte readByte(int[] data, int i) {
+<span class="fc" id="L2100">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2102">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L2104">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2105" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2106">			return (byte) d0;</span>
+
+<span class="fc" id="L2108">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L2110" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= INT_DATA_LINES)</span>
+<span class="fc" id="L2111">			return (byte)d0;</span>
+
+<span class="fc" id="L2113">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L2114">		d1 &lt;&lt;= INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2116">		return (byte) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 8 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeByte(int[] data, int i, byte v) {
+<span class="fc" id="L2131">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2133" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2134" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2136">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L2138">		int mask = ~(INT_DATA_MASK &lt;&lt; Byte.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2140" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2141">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2142">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2145" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= INT_DATA_LINES)</span>
+<span class="fc" id="L2146">			return;</span>
+		
+<span class="fc bfc" id="L2148" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L2150">		mask = ~(INT_DATA_MASK &lt;&lt; Byte.SIZE) &gt;&gt;&gt; INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2152">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2153">		data[index] |= (v &gt;&gt; (INT_DATA_LINES-offset)) &amp; mask;</span>
+<span class="fc" id="L2154">	}</span>
+
+	/**
+	 * Reads as {@code char} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static char readChar(int[] data, int i) {
+<span class="fc" id="L2167">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2169">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L2171">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2172" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2173">			return (char) d0;</span>
+
+<span class="fc" id="L2175">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L2177" title="All 2 branches covered.">		if (offset + Character.SIZE &lt;= INT_DATA_LINES)</span>
+<span class="fc" id="L2178">			return (char)d0;</span>
+
+<span class="fc" id="L2180">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L2181">		d1 &lt;&lt;= INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2183">		return (char) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeChar(int[] data, int i, char v) {
+<span class="fc" id="L2198">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2200" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2201" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2203">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L2205">		int mask = ~(INT_DATA_MASK &lt;&lt; Character.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2207" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2208">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2209">			data[index] |= v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2212" title="All 2 branches covered.">		if (offset + Character.SIZE &lt;= INT_DATA_LINES)</span>
+<span class="fc" id="L2213">			return;</span>
+		
+<span class="fc bfc" id="L2215" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L2217">		mask = ~(INT_DATA_MASK &lt;&lt; Character.SIZE) &gt;&gt; INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2219">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2220">		data[index] |= v &gt;&gt; INT_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L2221">	}</span>
+
+	/**
+	 * Reads as {@code short} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static short readShort(int[] data, int i) {
+<span class="fc" id="L2234">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2236">		int d0 = read(data, index);</span>
+		
+<span class="fc" id="L2238">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2239" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2240">			return (short) d0;</span>
+
+<span class="fc" id="L2242">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L2244" title="All 2 branches covered.">		if (offset + Short.SIZE &lt;= INT_DATA_LINES)</span>
+<span class="fc" id="L2245">			return (short)d0;</span>
+
+<span class="fc" id="L2247">		int d1 = read(data, ++index);</span>
+<span class="fc" id="L2248">		d1 &lt;&lt;= INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2250">		return (short) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeShort(int[] data, int i, short v) {
+<span class="fc" id="L2265">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2267" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2268" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2270">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L2272">		int mask = ~(INT_DATA_MASK &lt;&lt; Short.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2274" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2275">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2276">			data[index] |= v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2279" title="All 2 branches covered.">		if (offset + Short.SIZE &lt;= INT_DATA_LINES)</span>
+<span class="fc" id="L2280">			return;</span>
+		
+<span class="fc bfc" id="L2282" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L2284">		mask = ~(INT_DATA_MASK &lt;&lt; Short.SIZE) &gt;&gt; INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2286">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2287">		data[index] |= v &gt;&gt; INT_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L2288">	}</span>
+
+	/**
+	 * Reads as {@code int} the 32 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int readInt(int[] data, int i) {
+<span class="fc" id="L2301">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+	
+<span class="fc" id="L2303">		int d0 = read(data, index);</span>
+	
+<span class="fc" id="L2305">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2306" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2307">			return d0;</span>
+		
+<span class="fc" id="L2309">		int d1 = read(data, ++index);</span>
+		
+<span class="fc" id="L2311">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L2312">		d1 &lt;&lt;= INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2314">		return d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 32 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeInt(int[] data, int i, int v) {
+<span class="fc" id="L2329">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2331" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2332" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2334">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+		
+<span class="fc bfc" id="L2336" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L2337" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L2338">				data[index] = v;</span>
+			
+<span class="fc" id="L2340">			return;</span>
+		}
+		
+<span class="fc" id="L2343">		int mask = INT_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2345" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2346">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2347">			data[index] |= v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2350" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc" id="L2351">		mask = INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2353">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2354">		data[index] |= (v &gt;&gt; (INT_DATA_LINES-offset)) &amp; mask;</span>
+<span class="fc" id="L2355">	}</span>
+
+	/**
+	 * Reads as {@code long} the 64 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static long readLong(int[] data, int i) {
+<span class="fc" id="L2368">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2370">		long d0 = readl(data, index);</span>
+<span class="fc" id="L2371">		long d1 = readl(data, ++index);</span>
+	
+<span class="fc" id="L2373">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2374" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2375">			return d1 &lt;&lt; INT_DATA_LINES | d0;</span>
+		
+<span class="fc" id="L2377">		long d2 = readl(data, ++index);</span>
+		
+<span class="fc" id="L2379">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L2380">		d1 &lt;&lt;= INT_DATA_LINES - offset;</span>
+<span class="fc" id="L2381">		d2 &lt;&lt;= 2*INT_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2383">		return d2 | d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 64 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeLong(int[] data, int i, long v) {
+<span class="fc" id="L2398">		int index = i &gt;&gt; INT_ADDRESS_LINES;</span>
+	
+<span class="fc bfc" id="L2400" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2401" title="All 2 branches covered.">		if (index &lt; -2) return;</span>
+		
+<span class="fc" id="L2403">		int offset = i &amp; INT_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2404" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L2405" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L2406">				data[index] = (int)(v &gt;&gt; 0);</span>
+	
+<span class="fc bfc" id="L2408" title="All 2 branches covered.">			if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2409" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L2410">				data[index] = (int)(v &gt;&gt; INT_DATA_LINES);</span>
+			
+<span class="fc" id="L2412">			return;</span>
+		}
+	
+<span class="fc" id="L2415">		int mask = INT_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2417" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2418">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2419">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2422" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2423" title="All 2 branches covered.">		if (index &gt;= 0)</span>
+<span class="fc" id="L2424">			data[index] = (int)(v &gt;&gt; INT_DATA_LINES - offset);</span>
+		
+<span class="fc bfc" id="L2426" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L2428">		data[index] &amp;= mask;</span>
+<span class="fc" id="L2429">		data[index] |= (int)(v &gt;&gt; 2*INT_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L2430">	}</span>
+
+	/**
+	 * Returns a string representation of the contents of the given storage. 
+	 * The string representation consists of digits '0' and '1' for all 
+	 * non-offlimits bits. The first character of the returned string 
+	 * represents the 0&lt;sup&gt;th&lt;/sup&gt; bit.
+	 * 
+	 * @param data storage array.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(int[] data) {
+<span class="fc" id="L2443">		return readBitString(data, 0, data.length * INT_DATA_LINES - 0);</span>
+	}
+	
+	/**
+	 * Returns a string representation of a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1' for 
+	 * bits ranging from {@code offset}, inclusive, to {@code offset + length}, 
+	 * exclusive. If any offlimits bit is touched, this method will throw 
+	 * {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param length number of digits returned.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(int[] data, int offset, int length) {
+<span class="fc" id="L2462">		char[] dest = new char[length];</span>
+<span class="fc" id="L2463">		return new String(readBitString(data, offset, dest, 0, length));</span>
+	}
+	
+	private static char[] readBitString(int[] src, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc" id="L2467">		Arrays.fill(dest, destPos, length, '0');</span>
+		
+<span class="fc bfc" id="L2469" title="All 2 branches covered.">		for (int i = destPos + length - 1, index = 0; i &gt;= destPos; i--, srcPos++) {</span>
+<span class="fc" id="L2470">			index += srcPos &gt;&gt; INT_ADDRESS_LINES;</span>
+<span class="fc" id="L2471">			srcPos &amp;= INT_ADDRESS_MASK;</span>
+
+<span class="fc bfc" id="L2473" title="All 2 branches covered.">			if (readBit0(src, index, srcPos))</span>
+<span class="fc" id="L2474">				dest[i] = '1';</span>
+		}
+		
+<span class="fc" id="L2477">		return dest;</span>
+	}
+
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code 0}, inclusive, to 
+	 * {@code string's length}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param v string whose contents are stored into given storage.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(int[] data, String v) {
+<span class="fc" id="L2492">		writeBitString(data, 0, v);</span>
+<span class="fc" id="L2493">	}</span>
+	
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code offset}, inclusive, to 
+	 * {@code offset + length}, exclusive. If any offlimits bit is touched, 
+	 * this method will throw {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param v string whose contents are stored into given storage.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(int[] data, int offset, String v) {
+<span class="fc" id="L2511">		writeBitString(data, offset, v.length(), v);</span>
+<span class="fc" id="L2512">	}</span>
+	
+	private static void writeBitString(int[] data, int offset, int length, String v) {
+<span class="fc" id="L2515">		writeBitString(data, offset, v.toCharArray(), 0, length);</span>
+<span class="fc" id="L2516">	}</span>
+	
+	private static void writeBitString(int[] dest, int destPos, char[] src, int srcPos, int length) {
+<span class="fc bfc" id="L2519" title="All 2 branches covered.">		for (int i = srcPos + length - 1, index = 0; i &gt;= srcPos; i--, destPos++) {</span>
+<span class="fc" id="L2520">			index += destPos &gt;&gt; INT_ADDRESS_LINES;</span>
+<span class="fc" id="L2521">			destPos &amp;= INT_ADDRESS_MASK;</span>
+			
+<span class="fc bfc" id="L2523" title="All 2 branches covered.">			writeBit0(dest, index, destPos, src[i] == '1');</span>
+		}
+<span class="fc" id="L2525">	}</span>
+
+	/********** long[] **********/
+
+	static final int LONG_ADDRESS_LINES = 6;
+	static final int LONG_DATA_LINES = 1 &lt;&lt; LONG_ADDRESS_LINES;
+	static final int LONG_ADDRESS_MASK = ~(-1 &lt;&lt; LONG_ADDRESS_LINES);
+	static final long LONG_DATA_MASK = ~0L;
+	
+	// we expect this function to be heavily inlined
+	private static long read(long[] data, int index) {
+<span class="fc bfc" id="L2536" title="All 4 branches covered.">		return index &lt; data.length &amp;&amp; index &gt;=0 ? data[index] : 0;</span>
+	}
+
+	/**
+	 * Reads the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static boolean readBit(long[] data, int i) {
+<span class="fc" id="L2548">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L2550" title="All 4 branches covered.">		if (index &gt;= data.length || index &lt; 0)</span>
+<span class="fc" id="L2551">			return false;</span>
+		
+<span class="fc" id="L2553">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+<span class="fc" id="L2554">		return readBit0(data, index, offset);</span>
+	}
+
+	private static boolean readBit0(long[] data, int index, int offset) {
+<span class="fc bfc" id="L2558" title="All 2 branches covered.">		return (data[index] &lt;&lt; ~offset) &lt; 0;</span>
+	}
+	
+	/**
+	 * Writes the {@code i}&lt;sup&gt;th&lt;/sup&gt; bit of the given storage.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBit(long[] data, int i, boolean v) {
+<span class="fc" id="L2571">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L2573" title="All 4 branches covered.">		if (index &lt; data.length &amp;&amp; index &gt;= 0)</span>
+<span class="fc" id="L2574">			writeBit0(data, index, i &amp; LONG_ADDRESS_MASK, v);</span>
+<span class="fc" id="L2575">	}</span>
+
+	private static void writeBit0(long[] data, int index, int offset, boolean v) {
+<span class="fc bfc" id="L2578" title="All 2 branches covered.">		if (v)</span>
+<span class="fc" id="L2579">			data[index] |= 1L &lt;&lt; offset;</span>
+		else
+<span class="fc" id="L2581">			data[index] &amp;= ~(1L &lt;&lt; offset);</span>
+<span class="fc" id="L2582">	}</span>
+
+	/**
+	 * Assigns the specified bit value to each bit of the specified range of 
+	 * the given storage. The range to be filled extends from offset 
+	 * {@code from}, inclusive, to offset {@code to}, exclusive. If 
+	 * {@code to &lt;= from} this method does nothing.
+	 * 
+	 * &lt;p&gt;This method behaves as the following code:
+	 * &lt;/p&gt;
+	 * &lt;pre&gt;
+	 *   for(int i = from; i &lt; to; i++)
+	 *     Store.writeBit(data, i, v);
+	 * &lt;/pre&gt;
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        filled with the specified value.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        filled with the specified value.
+	 * @param v value whose contents will be used to fill the specified region 
+	 *        into {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void fill(long[] data, int from, int to, boolean v) {
+		// clamp
+<span class="fc bfc" id="L2609" title="All 2 branches covered.">		if (from &lt; 0)</span>
+<span class="fc" id="L2610">			from = 0;</span>
+		
+<span class="fc bfc" id="L2612" title="All 2 branches covered.">		if (to &gt; data.length &lt;&lt; LONG_ADDRESS_LINES)</span>
+<span class="fc" id="L2613">			to = data.length &lt;&lt; LONG_ADDRESS_LINES;</span>
+
+<span class="fc bfc" id="L2615" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L2616">			return;</span>
+
+<span class="fc" id="L2618">		int[] index  = {from  &gt;&gt; LONG_ADDRESS_LINES, to &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L2619">		int[] offset = {from  &amp; LONG_ADDRESS_MASK,   to &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L2621" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L2624">			final long LOWEST_BITS_FROM = ~(LONG_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L2625">			final long HIGHEST_BITS_TO = LONG_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc bfc" id="L2627" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L2628">				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);</span>
+			else
+<span class="fc" id="L2630">				data[index[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+			
+<span class="fc" id="L2632">			return;</span>
+		}
+		
+<span class="fc bfc" id="L2635" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L2638">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc bfc" id="L2640" title="All 2 branches covered.">			if (v)</span>
+<span class="fc" id="L2641">				data[index[0]] |= HIGHEST_BITS;</span>
+			else
+<span class="fc" id="L2643">				data[index[0]] &amp;= ~HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L2646">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L2649" title="All 2 branches covered.">		if (index[1] &gt; index[0])</span>
+<span class="fc bfc" id="L2650" title="All 2 branches covered.">			Arrays.fill(data, index[0], index[1], v ? -1L : 0L);</span>
+
+<span class="fc bfc" id="L2652" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L2653">			final long LOWEST_BITS = ~(LONG_DATA_MASK &lt;&lt; offset[1]);</span>
+
+<span class="pc bpc" id="L2655" title="1 of 2 branches missed.">			if (v)</span>
+<span class="nc" id="L2656">				data[index[1]] |= LOWEST_BITS;</span>
+			else
+<span class="fc" id="L2658">				data[index[1]] &amp;= ~LOWEST_BITS;</span>
+		}
+<span class="fc" id="L2660">	}</span>
+
+	/**
+	 * Reads as {@code byte} the 8 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static byte readByte(long[] data, int i) {
+<span class="fc" id="L2673">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2675">		long d0 = read(data, index);</span>
+		
+<span class="fc" id="L2677">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2678" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2679">			return (byte) d0;</span>
+
+<span class="fc" id="L2681">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L2683" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2684">			return (byte)d0;</span>
+
+<span class="fc" id="L2686">		long d1 = read(data, ++index);</span>
+<span class="fc" id="L2687">		d1 &lt;&lt;= LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2689">		return (byte) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 8 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+8}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeByte(long[] data, int i, byte v) {
+<span class="fc" id="L2704">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2706" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2707" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2709">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L2711">		long mask = ~(LONG_DATA_MASK &lt;&lt; Byte.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2713" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2714">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2715">			data[index] |= (long)v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2718" title="All 2 branches covered.">		if (offset + Byte.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2719">			return;</span>
+		
+<span class="fc bfc" id="L2721" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L2723">		mask = ~(LONG_DATA_MASK &lt;&lt; Byte.SIZE) &gt;&gt;&gt; LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2725">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2726">		data[index] |= (v &gt;&gt;&gt; (LONG_DATA_LINES-offset)) &amp; mask;</span>
+<span class="fc" id="L2727">	}</span>
+
+	/**
+	 * Reads as {@code char} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static char readChar(long[] data, int i) {
+<span class="fc" id="L2740">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2742">		long d0 = read(data, index);</span>
+		
+<span class="fc" id="L2744">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2745" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2746">			return (char) d0;</span>
+
+<span class="fc" id="L2748">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L2750" title="All 2 branches covered.">		if (offset + Character.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2751">			return (char)d0;</span>
+
+<span class="fc" id="L2753">		long d1 = read(data, ++index);</span>
+<span class="fc" id="L2754">		d1 &lt;&lt;= LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2756">		return (char) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeChar(long[] data, int i, char v) {
+<span class="fc" id="L2771">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2773" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2774" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2776">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L2778">		long mask = ~(LONG_DATA_MASK &lt;&lt; Character.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2780" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2781">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2782">			data[index] |= (long)v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2785" title="All 2 branches covered.">		if (offset + Character.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2786">			return;</span>
+		
+<span class="fc bfc" id="L2788" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L2790">		mask = ~(LONG_DATA_MASK &lt;&lt; Character.SIZE) &gt;&gt;&gt; LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2792">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2793">		data[index] |= v &gt;&gt;&gt; LONG_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L2794">	}</span>
+
+	/**
+	 * Reads as {@code short} the 16 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static short readShort(long[] data, int i) {
+<span class="fc" id="L2807">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2809">		long d0 = read(data, index);</span>
+		
+<span class="fc" id="L2811">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2812" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2813">			return (short) d0;</span>
+
+<span class="fc" id="L2815">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L2817" title="All 2 branches covered.">		if (offset + Short.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2818">			return (short)d0;</span>
+
+<span class="fc" id="L2820">		long d1 = read(data, ++index);</span>
+<span class="fc" id="L2821">		d1 &lt;&lt;= LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2823">		return (short) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 16 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+16}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeShort(long[] data, int i, short v) {
+<span class="fc" id="L2838">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2840" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2841" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2843">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L2845">		long mask = ~(LONG_DATA_MASK &lt;&lt; Short.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2847" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2848">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2849">			data[index] |= (long)v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2852" title="All 2 branches covered.">		if (offset + Short.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2853">			return;</span>
+		
+<span class="fc bfc" id="L2855" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L2857">		mask = ~(LONG_DATA_MASK &lt;&lt; Short.SIZE) &gt;&gt;&gt; LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2859">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2860">		data[index] |= v &gt;&gt;&gt; LONG_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L2861">	}</span>
+
+	/**
+	 * Reads as {@code int} the 32 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int readInt(long[] data, int i) {
+<span class="fc" id="L2874">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2876">		long d0 = read(data, index);</span>
+		
+<span class="fc" id="L2878">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2879" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2880">			return (int) d0;</span>
+
+<span class="fc" id="L2882">		d0 &gt;&gt;&gt;= offset;</span>
+		
+<span class="fc bfc" id="L2884" title="All 2 branches covered.">		if (offset + Integer.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2885">			return (int)d0;</span>
+
+<span class="fc" id="L2887">		long d1 = read(data, ++index);</span>
+<span class="fc" id="L2888">		d1 &lt;&lt;= LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2890">		return (int) (d1 | d0);</span>
+	}
+
+	/**
+	 * Writes 32 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+32}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeInt(long[] data, int i, int v) {
+<span class="fc" id="L2905">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L2907" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2908" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2910">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+		
+<span class="fc" id="L2912">		long mask = ~(LONG_DATA_MASK &lt;&lt; Integer.SIZE) &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2914" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2915">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2916">			data[index] |= (long)v &lt;&lt; offset &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2919" title="All 2 branches covered.">		if (offset + Integer.SIZE &lt;= LONG_DATA_LINES)</span>
+<span class="fc" id="L2920">			return;</span>
+		
+<span class="fc bfc" id="L2922" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+
+<span class="fc" id="L2924">		mask = ~(LONG_DATA_MASK &lt;&lt; Integer.SIZE) &gt;&gt;&gt; LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2926">		data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2927">		data[index] |= v &gt;&gt;&gt; LONG_DATA_LINES - offset &amp; mask;</span>
+<span class="fc" id="L2928">	}</span>
+
+	/**
+	 * Reads as {@code long} the 64 bits of the given storage starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits read extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static long readLong(long[] data, int i) {
+<span class="fc" id="L2941">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc" id="L2943">		long d0 = read(data, index);</span>
+	
+<span class="fc" id="L2945">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2946" title="All 2 branches covered.">		if (offset == 0)</span>
+<span class="fc" id="L2947">			return d0;</span>
+		
+<span class="fc" id="L2949">		long d1 = read(data, ++index);</span>
+		
+<span class="fc" id="L2951">		d0 &gt;&gt;&gt;= offset;</span>
+<span class="fc" id="L2952">		d1 &lt;&lt;= LONG_DATA_LINES - offset;</span>
+		
+<span class="fc" id="L2954">		return d1 | d0;</span>
+	}
+
+	/**
+	 * Writes 64 bits of the given storage, starting from the 
+	 * {@code i}&lt;sup&gt;th&lt;/sup&gt; bit. The range of bits written extends from 
+	 * {@code i}, inclusive, to offset {@code i+64}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param i offset, in bits, 0-based.
+	 * @param v value whose contents will be written to {@code data}.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeLong(long[] data, int i, long v) {
+<span class="fc" id="L2969">		int index = i &gt;&gt; LONG_ADDRESS_LINES;</span>
+	
+<span class="fc bfc" id="L2971" title="All 2 branches covered.">		if (index &gt;= data.length) return;</span>
+<span class="fc bfc" id="L2972" title="All 2 branches covered.">		if (index &lt; -1) return;</span>
+		
+<span class="fc" id="L2974">		int offset = i &amp; LONG_ADDRESS_MASK;</span>
+<span class="fc bfc" id="L2975" title="All 2 branches covered.">		if (offset == 0) {</span>
+<span class="fc bfc" id="L2976" title="All 2 branches covered.">			if (index &gt;= 0)</span>
+<span class="fc" id="L2977">				data[index] = (v &gt;&gt; 0);</span>
+	
+<span class="fc" id="L2979">			return;</span>
+		}
+	
+<span class="fc" id="L2982">		long mask = LONG_DATA_MASK &lt;&lt; offset;</span>
+		
+<span class="fc bfc" id="L2984" title="All 2 branches covered.">		if (index &gt;= 0) {</span>
+<span class="fc" id="L2985">			data[index] &amp;= ~mask;</span>
+<span class="fc" id="L2986">			data[index] |= (v &lt;&lt; offset) &amp; mask;</span>
+		}
+		
+<span class="fc bfc" id="L2989" title="All 2 branches covered.">		if (++index &gt;= data.length) return;</span>
+		
+<span class="fc" id="L2991">		data[index] &amp;= mask;</span>
+<span class="fc" id="L2992">		data[index] |= (v &gt;&gt;&gt; LONG_DATA_LINES - offset) &amp; ~mask;</span>
+<span class="fc" id="L2993">	}</span>
+
+	/**
+	 * Returns a string representation of the contents of the given storage. 
+	 * The string representation consists of digits '0' and '1' for all 
+	 * non-offlimits bits. The first character of the returned string 
+	 * represents the 0&lt;sup&gt;th&lt;/sup&gt; bit.
+	 * 
+	 * @param data storage array.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(long[] data) {
+<span class="fc" id="L3006">		return readBitString(data, 0, data.length * LONG_DATA_LINES - 0);</span>
+	}
+	
+	/**
+	 * Returns a string representation of a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1' for 
+	 * bits ranging from {@code offset}, inclusive, to {@code offset + length}, 
+	 * exclusive. If any offlimits bit is touched, this method will throw 
+	 * {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param length number of digits returned.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static String readBitString(long[] data, int offset, int length) {
+<span class="fc" id="L3025">		char[] dest = new char[length];</span>
+<span class="fc" id="L3026">		return new String(readBitString(data, offset, dest, 0, length));</span>
+	}
+	
+	private static char[] readBitString(long[] src, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc" id="L3030">		Arrays.fill(dest, destPos, length, '0');</span>
+		
+<span class="fc bfc" id="L3032" title="All 2 branches covered.">		for (int i = destPos + length - 1, index = 0; i &gt;= destPos; i--, srcPos++) {</span>
+<span class="fc" id="L3033">			index += srcPos &gt;&gt; LONG_ADDRESS_LINES;</span>
+<span class="fc" id="L3034">			srcPos &amp;= LONG_ADDRESS_MASK;</span>
+
+<span class="fc bfc" id="L3036" title="All 2 branches covered.">			if (readBit0(src, index, srcPos))</span>
+<span class="fc" id="L3037">				dest[i] = '1';</span>
+		}
+		
+<span class="fc" id="L3040">		return dest;</span>
+	}
+
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code 0}, inclusive, to 
+	 * {@code string's length}, exclusive.
+	 * 
+	 * @param data storage array.
+	 * @param v string whose contents are stored into given storage.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(long[] data, String v) {
+<span class="fc" id="L3055">		writeBitString(data, 0, v);</span>
+<span class="fc" id="L3056">	}</span>
+	
+	/**
+	 * Stores a string representation into a range of the contents of the given 
+	 * storage. The string representation consists of digits '0' and '1'. The 
+	 * range of bits to be stored extends from {@code offset}, inclusive, to 
+	 * {@code offset + length}, exclusive. If any offlimits bit is touched, 
+	 * this method will throw {@code ArrayIndexOutOfBoundsException}.
+	 * 
+	 * @param data storage array.
+	 * @param offset start of range, in bits, 0-based, inclusive.
+	 * @param v string whose contents are stored into given storage.
+	 * @throws ArrayIndexOutOfBoundsException if offset is negative or if 
+	 *   {@code offset + length} is greater than the number of bits available.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static void writeBitString(long[] data, int offset, String v) {
+<span class="fc" id="L3074">		writeBitString(data, offset, v.length(), v);</span>
+<span class="fc" id="L3075">	}</span>
+	
+	private static void writeBitString(long[] data, int offset, int length, String v) {
+<span class="fc" id="L3078">		writeBitString(data, offset, v.toCharArray(), 0, length);</span>
+<span class="fc" id="L3079">	}</span>
+	
+	private static void writeBitString(long[] dest, int destPos, char[] src, int srcPos, int length) {
+<span class="fc bfc" id="L3082" title="All 2 branches covered.">		for (int i = srcPos + length - 1, index = 0; i &gt;= srcPos; i--, destPos++) {</span>
+<span class="fc" id="L3083">			index += destPos &gt;&gt; LONG_ADDRESS_LINES;</span>
+<span class="fc" id="L3084">			destPos &amp;= LONG_ADDRESS_MASK;</span>
+			
+<span class="fc bfc" id="L3086" title="All 2 branches covered.">			writeBit0(dest, index, destPos, src[i] == '1');</span>
+		}
+<span class="fc" id="L3088">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

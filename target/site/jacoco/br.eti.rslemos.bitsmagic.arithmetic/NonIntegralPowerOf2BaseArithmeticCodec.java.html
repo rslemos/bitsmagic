@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NonIntegralPowerOf2BaseArithmeticCodec.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic.arithmetic</a> &gt; <span class="el_source">NonIntegralPowerOf2BaseArithmeticCodec.java</span></div><h1>NonIntegralPowerOf2BaseArithmeticCodec.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic.arithmetic;
+
+import java.io.IOException;
+
+import br.eti.rslemos.bitsmagic.stream.IntInputStream;
+import br.eti.rslemos.bitsmagic.stream.IntOutputStream;
+
+public class NonIntegralPowerOf2BaseArithmeticCodec extends AnyBaseArithmeticCodec {
+	private NonIntegralPowerOf2BaseArithmeticCodec(int base) {
+<span class="fc" id="L37">		super(base);</span>
+<span class="fc" id="L38">	}</span>
+	
+	@Override int peek(long v) {
+<span class="fc" id="L41">		return (int) (v / SHIFT_MASK);</span>
+	}
+
+	@Override int shift() throws IOException {
+<span class="fc" id="L45">		int carry = peek(low);</span>
+<span class="fc" id="L46">		low %= SHIFT_MASK;</span>
+<span class="fc" id="L47">		low *= BASE;</span>
+<span class="fc" id="L48">		range *= BASE;</span>
+<span class="fc" id="L49">		return carry;</span>
+	}
+	
+	public static class Encoder extends NonIntegralPowerOf2BaseArithmeticCodec implements ArithmeticCodec.Encoder {
+		private final DelayedZeroIntOutputStream stream;
+
+		// more state
+		int underflowHeadValue;
+		long underflowTailCount;
+
+		public Encoder(IntOutputStream stream, int base) {
+<span class="fc" id="L60">			super(base);</span>
+<span class="fc" id="L61">			this.stream = new DelayedZeroIntOutputStream(stream);</span>
+			
+<span class="fc" id="L63">			range = SHIFT_MASK*BASE;</span>
+<span class="fc" id="L64">		}</span>
+
+		@Override public void write(int symbol, int... cumulativeCount) throws IOException {
+<span class="fc" id="L67">			advance(symbol, cumulativeCount);</span>
+<span class="fc" id="L68">		}</span>
+		
+		@Override int underflow() throws IOException {
+<span class="fc bfc" id="L71" title="All 2 branches covered.">			if (underflowTailCount == 0)</span>
+<span class="fc" id="L72">				underflowHeadValue = super.underflow();</span>
+			else
+<span class="fc" id="L74">				super.underflow();</span>
+			
+<span class="fc" id="L76">			underflowTailCount++;</span>
+			
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">			if (underflowTailCount == 0)</span>
+<span class="nc" id="L79">				throw new IllegalStateException(&quot;Too many underflows&quot;);</span>
+			
+<span class="fc" id="L81">			return underflowHeadValue;</span>
+		}
+		
+		@Override void shiftOut(int v) throws IOException {
+<span class="fc" id="L85">			stream.writeInt(v + underflowHeadValue);</span>
+<span class="fc" id="L86">			underflowHeadValue = 0;</span>
+
+<span class="fc bfc" id="L88" title="All 2 branches covered.">			for(; underflowTailCount != 0; underflowTailCount--)</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">				stream.writeInt(v == 0 ? HIGHEST_OUTPUT : 0);</span>
+<span class="fc" id="L90">		}</span>
+		
+		@Override public void flush() throws IOException {
+<span class="fc" id="L93">			low += SHIFT_MASK - 1;	</span>
+<span class="fc" id="L94">			shiftOut(shift());</span>
+<span class="fc" id="L95">		}</span>
+		
+		public String toString() {
+<span class="nc" id="L98">			return String.format(&quot;ArithmeticCodec.Encoder{%s}&quot;, super.toString());</span>
+		}
+	}
+
+	public static class Decoder extends NonIntegralPowerOf2BaseArithmeticCodec implements ArithmeticCodec.Decoder {
+		private final TrailingZeroIntInputStream stream;
+		
+		// more state
+<span class="fc" id="L106">		private long code = 0;</span>
+		
+		public Decoder(IntInputStream stream, int base) throws IOException {
+<span class="fc" id="L109">			super(base);</span>
+<span class="fc" id="L110">			this.stream = new TrailingZeroIntInputStream(stream);</span>
+<span class="fc" id="L111">			range = 1;</span>
+			
+<span class="fc bfc" id="L113" title="All 2 branches covered.">			while (range &lt;= SHIFT_MASK)</span>
+<span class="fc" id="L114">				shift();</span>
+<span class="fc" id="L115">		}</span>
+		
+		@Override public int read(int... cumulativeCount) throws IOException {
+<span class="fc" id="L118">			int symbol = getSymbol(code, cumulativeCount);</span>
+			
+<span class="fc" id="L120">			advance(symbol, cumulativeCount);</span>
+			
+<span class="fc" id="L122">			return symbol;</span>
+		}
+		
+		@Override int shift() throws IOException {
+<span class="fc" id="L126">			int carry = peek(code);</span>
+<span class="fc" id="L127">			code %= SHIFT_MASK;</span>
+<span class="fc" id="L128">			code *= BASE;</span>
+<span class="fc" id="L129">			code += shiftIn();</span>
+<span class="fc" id="L130">			return carry - super.shift();</span>
+		}
+
+		@Override int underflow() throws IOException {
+<span class="fc" id="L134">			int carry = super.underflow();</span>
+<span class="fc" id="L135">			code %= SHIFT_MASK;</span>
+<span class="fc" id="L136">			code += carry * SHIFT_MASK;</span>
+<span class="fc" id="L137">			return carry;</span>
+		}
+
+		private int shiftIn() throws IOException {
+<span class="fc" id="L141">			return stream.readInt();</span>
+		}
+
+		public String toString() {
+<span class="nc" id="L145">			return String.format(&quot;ArithmeticCodec.Decoder{code %s, %s}&quot;, Long.toString(code, BASE), super.toString());</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

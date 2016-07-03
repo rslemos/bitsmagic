@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GrayCode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic</a> &gt; <span class="el_source">GrayCode.java</span></div><h1>GrayCode.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic;
+
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
+
+/**
+ * This class consists exclusively of static methods for conversion between 
+ * &lt;a href=&quot;https://en.wikipedia.org/wiki/Binary_number#Representation&quot;&gt;binary&lt;/a&gt; 
+ * and &lt;a href=&quot;https://en.wikipedia.org/wiki/Gray_code&quot;&gt;Gray&lt;/a&gt; coding on 
+ * integral primitive types, or arrays of integral primitive types.
+ * 
+ * &lt;p&gt;For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * &lt;/p&gt;
+ * &lt;p&gt;Binary and Gray coding are the same for data that are 1-bit wide. 
+ * Therefore, methods in this class will only operate on data at least 2-bits 
+ * in width. Otherwise data will be left unchanged and no exception is thrown.
+ * &lt;/p&gt;
+ * &lt;p&gt;The behavior of offlimits bits is unspecified (yet).
+ * &lt;/p&gt;
+ * &lt;p&gt;{@code NullPointerException} is thrown if the given array is {@code null}.
+ * &lt;/p&gt;
+ * &lt;p&gt;All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * &lt;/p&gt;
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ * @see Store
+ * @see &lt;a href=&quot;https://en.wikipedia.org/wiki/Gray_code&quot;&gt;Gray&lt;/a&gt;
+ */
+<span class="nc" id="L71">public class GrayCode {</span>
+	/**
+	 * Returns, in Gray coding, the number specified in binary coding.
+	 *
+	 * @param v number in binary coding.
+	 * @return the specified number in Gray coding.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static byte toGray(byte v) {
+<span class="fc" id="L81">		int i = v &amp; 0xff;</span>
+<span class="fc" id="L82">		return (byte) (i ^ i &gt;&gt;&gt; 1);</span>
+	}
+
+	/**
+	 * Returns, in binary coding, the number specified in Gray coding.
+	 *
+	 * @param g number in Gray coding.
+	 * @return the specified number in binary coding.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static byte fromGray(byte g) {
+<span class="fc" id="L94">		int i = g &amp; 0xff;</span>
+<span class="fc" id="L95">		i ^= i &gt;&gt; 1;</span>
+<span class="fc" id="L96">		i ^= i &gt;&gt; 2;</span>
+<span class="fc" id="L97">		i ^= i &gt;&gt; 4;</span>
+		
+<span class="fc" id="L99">		return (byte)i;</span>
+	}
+
+	/**
+	 * Returns, in Gray coding, the number specified in binary coding.
+	 *
+	 * @param v number in binary coding.
+	 * @return the specified number in Gray coding.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static char toGray(char v) {
+<span class="fc" id="L111">		int i = v &amp; 0xffff;</span>
+<span class="fc" id="L112">		return (char) (i ^ i &gt;&gt;&gt; 1);</span>
+	}
+
+	/**
+	 * Returns, in binary coding, the number specified in Gray coding.
+	 *
+	 * @param g number in Gray coding.
+	 * @return the specified number in binary coding.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static char fromGray(char g) {
+<span class="fc" id="L124">		int i = g &amp; 0xffff;</span>
+<span class="fc" id="L125">		i ^= i &gt;&gt; 1;</span>
+<span class="fc" id="L126">		i ^= i &gt;&gt; 2;</span>
+<span class="fc" id="L127">		i ^= i &gt;&gt; 4;</span>
+<span class="fc" id="L128">		i ^= i &gt;&gt; 8;</span>
+		
+<span class="fc" id="L130">		return (char)i;</span>
+	}
+
+	/**
+	 * Returns, in Gray coding, the number specified in binary coding. The 
+	 * specified number is taken to be unsigned.
+	 *
+	 * @param v number in binary coding, as an unsigned quantity.
+	 * @return the specified number in Gray coding.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static short toGray(short v) {
+<span class="fc" id="L143">		int i = v &amp; 0xffff;</span>
+<span class="fc" id="L144">		return (short) (i ^ i &gt;&gt;&gt; 1);</span>
+	}
+
+	/**
+	 * Returns, in binary coding, the number specified in Gray coding. The 
+	 * returned number should be taken as an unsigned quantity.
+	 *
+	 * @param g number in Gray coding.
+	 * @return the specified number in binary coding, as an unsigned quantity.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static short fromGray(short g) {
+<span class="fc" id="L157">		int i = g &amp; 0xffff;</span>
+<span class="fc" id="L158">		i ^= i &gt;&gt; 1;</span>
+<span class="fc" id="L159">		i ^= i &gt;&gt; 2;</span>
+<span class="fc" id="L160">		i ^= i &gt;&gt; 4;</span>
+<span class="fc" id="L161">		i ^= i &gt;&gt; 8;</span>
+		
+<span class="fc" id="L163">		return (short)i;</span>
+	}
+
+	/**
+	 * Returns, in Gray coding, the number specified in binary coding. The 
+	 * specified number is taken to be unsigned.
+	 *
+	 * @param v number in binary coding, as an unsigned quantity.
+	 * @return the specified number in Gray coding.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int toGray(int v) {
+<span class="fc" id="L176">		return v ^ v &gt;&gt;&gt; 1;</span>
+	}
+
+	/**
+	 * Returns, in binary coding, the number specified in Gray coding. The 
+	 * returned number should be taken as an unsigned quantity.
+	 *
+	 * @param g number in Gray coding.
+	 * @return the specified number in binary coding, as an unsigned quantity.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int fromGray(int g) {
+<span class="fc" id="L189">		g ^= g &gt;&gt;&gt; 1;</span>
+<span class="fc" id="L190">		g ^= g &gt;&gt;&gt; 2;</span>
+<span class="fc" id="L191">		g ^= g &gt;&gt;&gt; 4;</span>
+<span class="fc" id="L192">		g ^= g &gt;&gt;&gt; 8;</span>
+<span class="fc" id="L193">		g ^= g &gt;&gt;&gt; 16;</span>
+		
+<span class="fc" id="L195">		return g;</span>
+	}
+
+	/**
+	 * Returns, in Gray coding, the number specified in binary coding. The 
+	 * specified number is taken to be unsigned.
+	 *
+	 * @param v number in binary coding, as an unsigned quantity.
+	 * @return the specified number in Gray coding.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static long toGray(long v) {
+<span class="fc" id="L208">		return v ^ v &gt;&gt;&gt; 1;</span>
+	}
+
+	/**
+	 * Returns, in binary coding, the number specified in Gray coding. The 
+	 * returned number should be taken as an unsigned quantity.
+	 *
+	 * @param g number in Gray coding.
+	 * @return the specified number in binary coding, as an unsigned quantity.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static long fromGray(long g) {
+<span class="fc" id="L221">		g ^= g &gt;&gt;&gt; 1;</span>
+<span class="fc" id="L222">		g ^= g &gt;&gt;&gt; 2;</span>
+<span class="fc" id="L223">		g ^= g &gt;&gt;&gt; 4;</span>
+<span class="fc" id="L224">		g ^= g &gt;&gt;&gt; 8;</span>
+<span class="fc" id="L225">		g ^= g &gt;&gt;&gt; 16;</span>
+<span class="fc" id="L226">		g ^= g &gt;&gt;&gt; 32;</span>
+		
+<span class="fc" id="L228">		return g;</span>
+	}
+	
+	/********** byte[] **********/
+
+	/**
+	 * Converts to Gray coding the specified region of the given storage taken 
+	 * as an unsigned binary coded quantity. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to Gray coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to Gray coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void toGray(byte[] data, int from, int to) {
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L249">			throw new NullPointerException();</span>
+
+<span class="fc bfc" id="L251" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L252">			return;</span>
+		
+<span class="fc" id="L254">		int[] index  = {from  &gt;&gt; BYTE_ADDRESS_LINES, to &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L255">		int[] offset = {from  &amp; BYTE_ADDRESS_MASK,   to &amp; BYTE_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L257" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L258">			index[1]++;</span>
+		
+<span class="fc" id="L260">		byte[] aux = new byte[index[1] - index[0]];</span>
+<span class="fc" id="L261">		System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L262">		Shifter.shr(aux, offset[0], offset[0] + to - from, 1);</span>
+<span class="fc" id="L263">		Xor.xorFrom(aux, offset[0], data, from, to - from);</span>
+<span class="fc" id="L264">	}</span>
+
+	/**
+	 * Converts to an unsigned binary coded quantity the specified region of 
+	 * the given storage taken as Gray coded. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to binary coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to binary coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void fromGray(byte[] data, int from, int to) {
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L282">			throw new NullPointerException();</span>
+		
+<span class="fc bfc" id="L284" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L285">			return;</span>
+		
+<span class="fc" id="L287">		int[] index  = {from  &gt;&gt; BYTE_ADDRESS_LINES, to &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L288">		int[] offset = {from  &amp; BYTE_ADDRESS_MASK,   to &amp; BYTE_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L290" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L291">			index[1]++;</span>
+		
+<span class="fc" id="L293">		byte[] aux = new byte[index[1] - index[0]];</span>
+		
+<span class="fc" id="L295">		int length = to - from;</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">		for(int i = 1; i &lt; length; i &lt;&lt;= 1) {</span>
+<span class="fc" id="L297">			System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L298">			Shifter.shr(aux, offset[0], offset[0] + length, i);</span>
+<span class="fc" id="L299">			Xor.xorFrom(aux, offset[0], data, from, length);</span>
+		}
+<span class="fc" id="L301">	}</span>
+	
+	/********** char[] **********/
+
+	/**
+	 * Converts to Gray coding the specified region of the given storage taken 
+	 * as an unsigned binary coded quantity. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to Gray coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to Gray coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void toGray(char[] data, int from, int to) {
+<span class="pc bpc" id="L320" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L321">			throw new NullPointerException();</span>
+
+<span class="fc bfc" id="L323" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L324">			return;</span>
+		
+<span class="fc" id="L326">		int[] index  = {from  &gt;&gt; CHAR_ADDRESS_LINES, to &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L327">		int[] offset = {from  &amp; CHAR_ADDRESS_MASK,   to &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L329" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L330">			index[1]++;</span>
+		
+<span class="fc" id="L332">		char[] aux = new char[index[1] - index[0]];</span>
+<span class="fc" id="L333">		System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L334">		Shifter.shr(aux, offset[0], offset[0] + to - from, 1);</span>
+<span class="fc" id="L335">		Xor.xorFrom(aux, offset[0], data, from, to - from);</span>
+<span class="fc" id="L336">	}</span>
+
+	/**
+	 * Converts to an unsigned binary coded quantity the specified region of 
+	 * the given storage taken as Gray coded. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to binary coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to binary coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void fromGray(char[] data, int from, int to) {
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L354">			throw new NullPointerException();</span>
+		
+<span class="fc bfc" id="L356" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L357">			return;</span>
+		
+<span class="fc" id="L359">		int[] index  = {from  &gt;&gt; CHAR_ADDRESS_LINES, to &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L360">		int[] offset = {from  &amp; CHAR_ADDRESS_MASK,   to &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L362" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L363">			index[1]++;</span>
+		
+<span class="fc" id="L365">		char[] aux = new char[index[1] - index[0]];</span>
+		
+<span class="fc" id="L367">		int length = to - from;</span>
+<span class="fc bfc" id="L368" title="All 2 branches covered.">		for(int i = 1; i &lt; length; i &lt;&lt;= 1) {</span>
+<span class="fc" id="L369">			System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L370">			Shifter.shr(aux, offset[0], offset[0] + length, i);</span>
+<span class="fc" id="L371">			Xor.xorFrom(aux, offset[0], data, from, length);</span>
+		}
+<span class="fc" id="L373">	}</span>
+	
+	/********** short[] **********/
+
+	/**
+	 * Converts to Gray coding the specified region of the given storage taken 
+	 * as an unsigned binary coded quantity. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to Gray coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to Gray coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void toGray(short[] data, int from, int to) {
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L393">			throw new NullPointerException();</span>
+
+<span class="fc bfc" id="L395" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L396">			return;</span>
+		
+<span class="fc" id="L398">		int[] index  = {from  &gt;&gt; SHORT_ADDRESS_LINES, to &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L399">		int[] offset = {from  &amp; SHORT_ADDRESS_MASK,   to &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L401" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L402">			index[1]++;</span>
+		
+<span class="fc" id="L404">		short[] aux = new short[index[1] - index[0]];</span>
+<span class="fc" id="L405">		System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L406">		Shifter.shr(aux, offset[0], offset[0] + to - from, 1);</span>
+<span class="fc" id="L407">		Xor.xorFrom(aux, offset[0], data, from, to - from);</span>
+<span class="fc" id="L408">	}</span>
+
+	/**
+	 * Converts to an unsigned binary coded quantity the specified region of 
+	 * the given storage taken as Gray coded. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to binary coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to binary coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void fromGray(short[] data, int from, int to) {
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L426">			throw new NullPointerException();</span>
+		
+<span class="fc bfc" id="L428" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L429">			return;</span>
+		
+<span class="fc" id="L431">		int[] index  = {from  &gt;&gt; SHORT_ADDRESS_LINES, to &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L432">		int[] offset = {from  &amp; SHORT_ADDRESS_MASK,   to &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L434" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L435">			index[1]++;</span>
+		
+<span class="fc" id="L437">		short[] aux = new short[index[1] - index[0]];</span>
+		
+<span class="fc" id="L439">		int length = to - from;</span>
+<span class="fc bfc" id="L440" title="All 2 branches covered.">		for(int i = 1; i &lt; length; i &lt;&lt;= 1) {</span>
+<span class="fc" id="L441">			System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L442">			Shifter.shr(aux, offset[0], offset[0] + length, i);</span>
+<span class="fc" id="L443">			Xor.xorFrom(aux, offset[0], data, from, length);</span>
+		}
+<span class="fc" id="L445">	}</span>
+	
+	/********** int[] **********/
+
+	/**
+	 * Converts to Gray coding the specified region of the given storage taken 
+	 * as an unsigned binary coded quantity. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to Gray coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to Gray coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void toGray(int[] data, int from, int to) {
+<span class="pc bpc" id="L464" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L465">			throw new NullPointerException();</span>
+
+<span class="fc bfc" id="L467" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L468">			return;</span>
+		
+<span class="fc" id="L470">		int[] index  = {from  &gt;&gt; INT_ADDRESS_LINES, to &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L471">		int[] offset = {from  &amp; INT_ADDRESS_MASK,   to &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L473" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L474">			index[1]++;</span>
+		
+<span class="fc" id="L476">		int[] aux = new int[index[1] - index[0]];</span>
+<span class="fc" id="L477">		System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L478">		Shifter.shr(aux, offset[0], offset[0] + to - from, 1);</span>
+<span class="fc" id="L479">		Xor.xorFrom(aux, offset[0], data, from, to - from);</span>
+<span class="fc" id="L480">	}</span>
+
+	/**
+	 * Converts to an unsigned binary coded quantity the specified region of 
+	 * the given storage taken as Gray coded. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to binary coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to binary coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void fromGray(int[] data, int from, int to) {
+<span class="pc bpc" id="L497" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L498">			throw new NullPointerException();</span>
+		
+<span class="fc bfc" id="L500" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L501">			return;</span>
+		
+<span class="fc" id="L503">		int[] index  = {from  &gt;&gt; INT_ADDRESS_LINES, to &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L504">		int[] offset = {from  &amp; INT_ADDRESS_MASK,   to &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L506" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L507">			index[1]++;</span>
+		
+<span class="fc" id="L509">		int[] aux = new int[index[1] - index[0]];</span>
+		
+<span class="fc" id="L511">		int length = to - from;</span>
+<span class="fc bfc" id="L512" title="All 2 branches covered.">		for(int i = 1; i &lt; length; i &lt;&lt;= 1) {</span>
+<span class="fc" id="L513">			System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L514">			Shifter.shr(aux, offset[0], offset[0] + length, i);</span>
+<span class="fc" id="L515">			Xor.xorFrom(aux, offset[0], data, from, length);</span>
+		}
+<span class="fc" id="L517">	}</span>
+	
+	/********** long[] **********/
+
+	/**
+	 * Converts to Gray coding the specified region of the given storage taken 
+	 * as an unsigned binary coded quantity. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to Gray coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to Gray coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void toGray(long[] data, int from, int to) {
+<span class="pc bpc" id="L536" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L537">			throw new NullPointerException();</span>
+
+<span class="fc bfc" id="L539" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L540">			return;</span>
+		
+<span class="fc" id="L542">		int[] index  = {from  &gt;&gt; LONG_ADDRESS_LINES, to &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L543">		int[] offset = {from  &amp; LONG_ADDRESS_MASK,   to &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L545" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L546">			index[1]++;</span>
+		
+<span class="fc" id="L548">		long[] aux = new long[index[1] - index[0]];</span>
+<span class="fc" id="L549">		System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L550">		Shifter.shr(aux, offset[0], offset[0] + to - from, 1);</span>
+<span class="fc" id="L551">		Xor.xorFrom(aux, offset[0], data, from, to - from);</span>
+<span class="fc" id="L552">	}</span>
+
+	/**
+	 * Converts to an unsigned binary coded quantity the specified region of 
+	 * the given storage taken as Gray coded. The range considered extends from 
+	 * offset {@code from}, inclusive, to offset {@code to}, exclusive. If the
+	 * region contains less than 2 bits, the storage is left unchanged.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        converted to binary coding.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        converted to binary coding.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void fromGray(long[] data, int from, int to) {
+<span class="pc bpc" id="L569" title="1 of 2 branches missed.">		if (data == null)</span>
+<span class="nc" id="L570">			throw new NullPointerException();</span>
+		
+<span class="fc bfc" id="L572" title="All 2 branches covered.">		if (to - from &lt; 2)</span>
+<span class="fc" id="L573">			return;</span>
+		
+<span class="fc" id="L575">		int[] index  = {from  &gt;&gt; LONG_ADDRESS_LINES, to &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L576">		int[] offset = {from  &amp; LONG_ADDRESS_MASK,   to &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L578" title="All 2 branches covered.">		if (offset[1] &gt; 0)</span>
+<span class="fc" id="L579">			index[1]++;</span>
+		
+<span class="fc" id="L581">		long[] aux = new long[index[1] - index[0]];</span>
+		
+<span class="fc" id="L583">		int length = to - from;</span>
+<span class="fc bfc" id="L584" title="All 2 branches covered.">		for(int i = 1; i &lt; length; i &lt;&lt;= 1) {</span>
+<span class="fc" id="L585">			System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);</span>
+<span class="fc" id="L586">			Shifter.shr(aux, offset[0], offset[0] + length, i);</span>
+<span class="fc" id="L587">			Xor.xorFrom(aux, offset[0], data, from, length);</span>
+		}
+<span class="fc" id="L589">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

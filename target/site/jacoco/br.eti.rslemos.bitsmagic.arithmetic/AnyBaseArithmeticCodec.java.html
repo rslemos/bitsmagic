@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnyBaseArithmeticCodec.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic.arithmetic</a> &gt; <span class="el_source">AnyBaseArithmeticCodec.java</span></div><h1>AnyBaseArithmeticCodec.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic.arithmetic;
+
+import java.io.IOException;
+
+public abstract class AnyBaseArithmeticCodec {
+
+	// parameters
+	final int BASE;
+	
+	// computed constants (functions of base, itself constant)
+	final int HIGHEST_OUTPUT;
+	final long SHIFT_MASK;
+	final long UNDERFLOW_MASK;
+	final long UNDERFLOW_LOWEST;
+	
+	long low;
+	long range;
+	
+<span class="fc" id="L46">	AnyBaseArithmeticCodec(int base) {</span>
+<span class="fc" id="L47">		BASE = base;</span>
+<span class="fc" id="L48">		HIGHEST_OUTPUT = BASE - 1;</span>
+		
+<span class="fc" id="L50">		long shiftMask = 1;</span>
+		
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		while (shiftMask &lt; Long.MAX_VALUE/BASE)</span>
+<span class="fc" id="L53">			shiftMask *= BASE;</span>
+		
+<span class="fc" id="L55">		SHIFT_MASK = shiftMask/BASE;</span>
+<span class="fc" id="L56">		UNDERFLOW_MASK = shiftMask/BASE/BASE;</span>
+<span class="fc" id="L57">		UNDERFLOW_LOWEST = HIGHEST_OUTPUT*UNDERFLOW_MASK;</span>
+<span class="fc" id="L58">	}</span>
+
+	void advance(int symbol, int... cumulativeCount) throws IOException {
+<span class="fc bfc" id="L61" title="All 2 branches covered.">		int start = symbol == 0 ? 0 : cumulativeCount[symbol - 1];</span>
+<span class="fc" id="L62">		int size = cumulativeCount[symbol] - start;</span>
+<span class="fc" id="L63">		int total = cumulativeCount[cumulativeCount.length - 1];</span>
+		
+<span class="fc" id="L65">		scale(start, size, total);</span>
+		
+<span class="fc bfc" id="L67" title="All 2 branches covered.">		while (peek(low) == peek(low + range - 1))</span>
+<span class="fc" id="L68">			shiftOut(shift());</span>
+		
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		while (range &lt; UNDERFLOW_MASK)</span>
+<span class="fc" id="L71">			underflow();</span>
+<span class="fc" id="L72">	}</span>
+	
+	abstract int peek(long v);
+	
+	abstract int shift() throws IOException;
+
+	private void scale(int start, int size, int total) {
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">		if (size == 0)</span>
+<span class="nc" id="L80">			throw new IllegalArgumentException(&quot;Unexpected symbol&quot;);</span>
+		
+<span class="fc" id="L82">		range /= total;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">		if (range == 0)</span>
+<span class="nc" id="L84">			throw new IllegalStateException(&quot;Irrecoverable underflow: range is zero&quot;);</span>
+		
+<span class="fc" id="L86">		low += start * range;</span>
+<span class="fc" id="L87">		range *= size;</span>
+<span class="fc" id="L88">	}</span>
+
+	int getSymbol(long code, int... cumulativeCount) {
+<span class="fc" id="L91">		int total = cumulativeCount[cumulativeCount.length - 1];</span>
+<span class="fc" id="L92">		int count = (int) ((code - low)/(range / total));</span>
+		
+		int symbol;
+<span class="fc bfc" id="L95" title="All 2 branches covered.">		for(symbol = 0; cumulativeCount[symbol] &lt;= count; symbol++);</span>
+		
+<span class="fc" id="L97">		return symbol;</span>
+	}
+	
+	void shiftOut(int v) throws IOException {
+<span class="fc" id="L101">	}</span>
+
+	int underflow() throws IOException {
+<span class="fc" id="L104">		low -= UNDERFLOW_LOWEST;</span>
+<span class="fc" id="L105">		return shift();</span>
+	}
+
+	public String toString() {
+<span class="nc" id="L109">		return String.format(&quot;range = [%s, %s)&quot;, Long.toString(low, BASE), Long.toString(low + range - 1, BASE));</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

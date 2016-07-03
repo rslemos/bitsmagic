@@ -1,0 +1,1465 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Xor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic</a> &gt; <span class="el_source">Xor.java</span></div><h1>Xor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic;
+
+import static br.eti.rslemos.bitsmagic.Copy.checkSafeIndices;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.INT_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.INT_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
+
+/**
+ * This class consists exclusively of static methods that xor bits over arrays 
+ * of integral primitive type.
+ * 
+ * &lt;p&gt;For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * &lt;/p&gt;
+ * &lt;p&gt;The general syntax for methods in this class conforms to that of 
+ * {@link System#arraycopy}.
+ * &lt;/p&gt;
+ * &lt;p&gt;Access to offlimits bits, either for reading or for writing, will throw 
+ * {@code ArrayIndexOutOfBoundsException}. In this case destination will be 
+ * left unchanged.
+ * &lt;/p&gt;
+ * &lt;p&gt;In case of using the same underlying storage for both source and 
+ * destination, all methods of this class behave as if copying the bits first 
+ * to a temporary location, then xor'ing them over the destination.
+ * &lt;/p&gt;
+ * &lt;p&gt;{@code NullPointerException} is thrown if either given array is 
+ * {@code null}.
+ * &lt;/p&gt;
+ * &lt;p&gt;All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * &lt;/p&gt;
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ */
+public class Xor {
+<span class="nc" id="L85">	private Xor() { /* non-instantiable */ }</span>
+
+	/********** byte[] **********/
+	
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void xorFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+<span class="fc bfc" id="L108" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; BYTE_ADDRESS_LINES, dest.length &lt;&lt; BYTE_ADDRESS_LINES))</span>
+<span class="fc" id="L109">			return;</span>
+		
+<span class="fc" id="L111">		int[] sIndex  = {srcPos  &gt;&gt; BYTE_ADDRESS_LINES, (srcPos  + length) &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L112">		int[] sOffset = {srcPos  &amp; BYTE_ADDRESS_MASK,   (srcPos  + length) &amp; BYTE_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L114">		int[] dIndex  = {destPos &gt;&gt; BYTE_ADDRESS_LINES, (destPos + length) &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L115">		int[] dOffset = {destPos &amp; BYTE_ADDRESS_MASK,   (destPos + length) &amp; BYTE_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L117" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, xor middle unchanged
+<span class="fc" id="L119">			xorParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L121">			xorHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L123">			xorLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L124">	}</span>
+
+	private static void xorParallelFrom0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L127" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword xor within word and neither offset is zero
+			
+<span class="fc" id="L130">			final int LOWEST_BITS_FROM = ~(BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L131">			final int HIGHEST_BITS_TO = BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L133">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);;</span>
+
+<span class="fc" id="L135">			return;</span>
+		}
+		
+<span class="fc bfc" id="L138" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L139">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L141">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L143">			xorParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L144">	}</span>
+
+	private static void xorParallelFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L147" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L150">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L152">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L155">			sIndex[0]++;</span>
+<span class="fc" id="L156">			dIndex[0]++;</span>
+		}
+
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L161" title="All 2 branches covered.">		for(int i = dIndex[0], j = sIndex[0]; i &lt; dIndex[1]; i++, j++)</span>
+<span class="fc" id="L162">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L164" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L166">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L167">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L169">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+<span class="fc" id="L171">	}</span>
+
+	private static void xorParallelFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L174" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L176">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L177">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L179">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+
+<span class="fc bfc" id="L182" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't xor the first index if partial
+<span class="fc" id="L184">			dIndex[0]++;</span>
+<span class="fc" id="L185">			sIndex[0]++;</span>
+		}
+		
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L190" title="All 2 branches covered.">		for(int i = dIndex[1] - 1, j = sIndex[1] - 1; i &gt;= dIndex[0]; i--, j--)</span>
+<span class="fc" id="L191">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L193" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L195">			sIndex[0]--;</span>
+<span class="fc" id="L196">			dIndex[0]--;</span>
+			
+<span class="fc" id="L198">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L200">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+		}
+<span class="fc" id="L202">	}</span>
+
+	private static void xorHigherFrom0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L205" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L206">			int d = dIndex[0];</span>
+<span class="fc" id="L207">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L212">			dest[d] ^= (source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(BYTE_DATA_MASK &lt;&lt; dOffset[1]) &amp; BYTE_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L213">			return;</span>
+		}
+		
+<span class="fc bfc" id="L216" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L217">			xorHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L219">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L221">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L222">	}</span>
+
+	private static void xorHigherFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L225">		int d = dIndex[0];</span>
+<span class="fc" id="L226">		int s = sIndex[0];</span>
+				
+<span class="fc" id="L228">		dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+
+<span class="fc bfc" id="L230" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L231">			dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+
+<span class="fc" id="L233">			++s;</span>
+
+<span class="fc" id="L235">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+		}
+
+<span class="fc bfc" id="L238" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L241">				dest[d] ^= (source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L243">				dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+				
+<span class="fc bfc" id="L245" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L246">					s++;</span>
+					
+<span class="fc" id="L248">					dest[d] ^= (source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+			}
+		}
+<span class="fc" id="L252">	}</span>
+
+	private static void xorHigherFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L255">		int d = dIndex[1];</span>
+<span class="fc" id="L256">		int s = sIndex[1];</span>
+				
+<span class="fc bfc" id="L258" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L260">				dest[d] ^= (source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L262" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L263">					dest[d] ^= (source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+				
+<span class="fc" id="L266">				s--;</span>
+				
+<span class="fc" id="L268">				dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L272" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L273">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+
+<span class="fc" id="L275">			--s;</span>
+
+<span class="fc" id="L277">			dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+		}
+
+<span class="fc" id="L280">		dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+<span class="fc" id="L281">	}</span>
+
+	private static void xorLowerFrom0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L284" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L285">			int d = dIndex[0];</span>
+<span class="fc" id="L286">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L291">			dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(BYTE_DATA_MASK &lt;&lt; dOffset[1]) &amp; BYTE_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L292">			return;</span>
+		}
+		
+<span class="fc bfc" id="L295" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L296">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L297" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L298">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L300">			xorLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L301">	}</span>
+
+	private static void xorLowerFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L304">		int d = dIndex[0];</span>
+<span class="fc" id="L305">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L307">		dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+
+<span class="fc bfc" id="L309" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L310">			dest[d] ^= source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+
+<span class="fc" id="L312">			++d;</span>
+
+<span class="fc" id="L314">			dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+		}
+		
+<span class="fc bfc" id="L317" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L320">				dest[d] ^= (source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L322">				dest[d] ^= source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+
+<span class="fc bfc" id="L324" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L325">					d++;</span>
+					
+<span class="fc" id="L327">					dest[d] ^= (source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+			}
+		}
+<span class="fc" id="L331">	}</span>
+
+	private static void xorLowerFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L334">		int d = dIndex[1];</span>
+<span class="fc" id="L335">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L337" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L338" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L340">				dest[d] ^= (source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L342" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L343">					dest[d] ^= (source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+				
+<span class="fc" id="L346">				d--;</span>
+				
+<span class="fc" id="L348">				dest[d] ^= source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L352" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L353">			dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+
+<span class="fc" id="L355">			--d;</span>
+
+<span class="fc" id="L357">			dest[d] ^= source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+		}
+		
+<span class="fc" id="L360">		dest[d] ^= (source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L361">	}</span>
+
+	/********** char[] **********/
+
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void xorFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc bfc" id="L384" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; CHAR_ADDRESS_LINES, dest.length &lt;&lt; CHAR_ADDRESS_LINES))</span>
+<span class="fc" id="L385">			return;</span>
+		
+<span class="fc" id="L387">		int[] sIndex  = {srcPos  &gt;&gt; CHAR_ADDRESS_LINES, (srcPos  + length) &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L388">		int[] sOffset = {srcPos  &amp; CHAR_ADDRESS_MASK,   (srcPos  + length) &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L390">		int[] dIndex  = {destPos &gt;&gt; CHAR_ADDRESS_LINES, (destPos + length) &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L391">		int[] dOffset = {destPos &amp; CHAR_ADDRESS_MASK,   (destPos + length) &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L393" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, xor middle unchanged
+<span class="fc" id="L395">			xorParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L396" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L397">			xorHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L399">			xorLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L400">	}</span>
+
+	private static void xorParallelFrom0(char[] source, char[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L403" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword xor within word and neither offset is zero
+			
+<span class="fc" id="L406">			final int LOWEST_BITS_FROM = ~(CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L407">			final int HIGHEST_BITS_TO = CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L409">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);;</span>
+
+<span class="fc" id="L411">			return;</span>
+		}
+		
+<span class="fc bfc" id="L414" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L415">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L416" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L417">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L419">			xorParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L420">	}</span>
+
+	private static void xorParallelFromForwards0(char[] source, char[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L423" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L426">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L428">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L431">			sIndex[0]++;</span>
+<span class="fc" id="L432">			dIndex[0]++;</span>
+		}
+
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L437" title="All 2 branches covered.">		for(int i = dIndex[0], j = sIndex[0]; i &lt; dIndex[1]; i++, j++)</span>
+<span class="fc" id="L438">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L440" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L442">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L443">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L445">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+<span class="fc" id="L447">	}</span>
+
+	private static void xorParallelFromBackwards0(char[] source, char[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L450" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L452">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L453">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L455">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+
+<span class="fc bfc" id="L458" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't xor the first index if partial
+<span class="fc" id="L460">			dIndex[0]++;</span>
+<span class="fc" id="L461">			sIndex[0]++;</span>
+		}
+		
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L466" title="All 2 branches covered.">		for(int i = dIndex[1] - 1, j = sIndex[1] - 1; i &gt;= dIndex[0]; i--, j--)</span>
+<span class="fc" id="L467">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L469" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L471">			sIndex[0]--;</span>
+<span class="fc" id="L472">			dIndex[0]--;</span>
+			
+<span class="fc" id="L474">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L476">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+		}
+<span class="fc" id="L478">	}</span>
+
+	private static void xorHigherFrom0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L481" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L482">			int d = dIndex[0];</span>
+<span class="fc" id="L483">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L488">			dest[d] ^= (source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(CHAR_DATA_MASK &lt;&lt; dOffset[1]) &amp; CHAR_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L489">			return;</span>
+		}
+		
+<span class="fc bfc" id="L492" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L493">			xorHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L494" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L495">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L497">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L498">	}</span>
+
+	private static void xorHigherFromForwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L501">		int d = dIndex[0];</span>
+<span class="fc" id="L502">		int s = sIndex[0];</span>
+				
+<span class="fc" id="L504">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+
+<span class="fc bfc" id="L506" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L507">			dest[d] ^= source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+
+<span class="fc" id="L509">			++s;</span>
+
+<span class="fc" id="L511">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+		}
+
+<span class="fc bfc" id="L514" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L515" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L517">				dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L519">				dest[d] ^= source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+				
+<span class="fc bfc" id="L521" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L522">					s++;</span>
+					
+<span class="fc" id="L524">					dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+			}
+		}
+<span class="fc" id="L528">	}</span>
+
+	private static void xorHigherFromBackwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L531">		int d = dIndex[1];</span>
+<span class="fc" id="L532">		int s = sIndex[1];</span>
+				
+<span class="fc bfc" id="L534" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L535" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L537">				dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L539" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L540">					dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+				
+<span class="fc" id="L543">				s--;</span>
+				
+<span class="fc" id="L545">				dest[d] ^= source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L549" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L550">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+
+<span class="fc" id="L552">			--s;</span>
+
+<span class="fc" id="L554">			dest[d] ^= source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+		}
+
+<span class="fc" id="L557">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+<span class="fc" id="L558">	}</span>
+
+	private static void xorLowerFrom0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L561" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L562">			int d = dIndex[0];</span>
+<span class="fc" id="L563">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L568">			dest[d] ^= source[s] &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(CHAR_DATA_MASK &lt;&lt; dOffset[1]) &amp; CHAR_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L569">			return;</span>
+		}
+		
+<span class="fc bfc" id="L572" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L573">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L574" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L575">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L577">			xorLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L578">	}</span>
+
+	private static void xorLowerFromForwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L581">		int d = dIndex[0];</span>
+<span class="fc" id="L582">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L584">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+
+<span class="fc bfc" id="L586" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L587">			dest[d] ^= source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+
+<span class="fc" id="L589">			++d;</span>
+
+<span class="fc" id="L591">			dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+		}
+		
+<span class="fc bfc" id="L594" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L595" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L597">				dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L599">				dest[d] ^= source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+				
+<span class="fc bfc" id="L601" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L602">					d++;</span>
+					
+<span class="fc" id="L604">					dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+			}
+		}
+<span class="fc" id="L608">	}</span>
+
+	private static void xorLowerFromBackwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L611">		int d = dIndex[1];</span>
+<span class="fc" id="L612">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L614" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L615" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L617">				dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L619" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L620">					dest[d] ^= (source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+				
+<span class="fc" id="L623">				d--;</span>
+				
+<span class="fc" id="L625">				dest[d] ^= source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L629" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L630">			dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+
+<span class="fc" id="L632">			--d;</span>
+
+<span class="fc" id="L634">			dest[d] ^= source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+		}
+		
+<span class="fc" id="L637">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L638">	}</span>
+
+	/********** short[] **********/
+	
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void xorFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+<span class="fc bfc" id="L661" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; SHORT_ADDRESS_LINES, dest.length &lt;&lt; SHORT_ADDRESS_LINES))</span>
+<span class="fc" id="L662">			return;</span>
+		
+<span class="fc" id="L664">		int[] sIndex  = {srcPos  &gt;&gt; SHORT_ADDRESS_LINES, (srcPos  + length) &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L665">		int[] sOffset = {srcPos  &amp; SHORT_ADDRESS_MASK,   (srcPos  + length) &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L667">		int[] dIndex  = {destPos &gt;&gt; SHORT_ADDRESS_LINES, (destPos + length) &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L668">		int[] dOffset = {destPos &amp; SHORT_ADDRESS_MASK,   (destPos + length) &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L670" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, xor middle unchanged
+<span class="fc" id="L672">			xorParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L673" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L674">			xorHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L676">			xorLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L677">	}</span>
+
+	private static void xorParallelFrom0(short[] source, short[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L680" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword xor within word and neither offset is zero
+			
+<span class="fc" id="L683">			final int LOWEST_BITS_FROM = ~(SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L684">			final int HIGHEST_BITS_TO = SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L686">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);;</span>
+
+<span class="fc" id="L688">			return;</span>
+		}
+		
+<span class="fc bfc" id="L691" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L692">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L693" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L694">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L696">			xorParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L697">	}</span>
+
+	private static void xorParallelFromForwards0(short[] source, short[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L700" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L703">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L705">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L708">			sIndex[0]++;</span>
+<span class="fc" id="L709">			dIndex[0]++;</span>
+		}
+
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L714" title="All 2 branches covered.">		for(int i = dIndex[0], j = sIndex[0]; i &lt; dIndex[1]; i++, j++)</span>
+<span class="fc" id="L715">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L717" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L719">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L720">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L722">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+<span class="fc" id="L724">	}</span>
+
+	private static void xorParallelFromBackwards0(short[] source, short[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L727" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L729">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L730">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L732">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+
+<span class="fc bfc" id="L735" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't xor the first index if partial
+<span class="fc" id="L737">			dIndex[0]++;</span>
+<span class="fc" id="L738">			sIndex[0]++;</span>
+		}
+		
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L743" title="All 2 branches covered.">		for(int i = dIndex[1] - 1, j = sIndex[1] - 1; i &gt;= dIndex[0]; i--, j--)</span>
+<span class="fc" id="L744">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L746" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L748">			sIndex[0]--;</span>
+<span class="fc" id="L749">			dIndex[0]--;</span>
+			
+<span class="fc" id="L751">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L753">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+		}
+<span class="fc" id="L755">	}</span>
+
+	private static void xorHigherFrom0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L758" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L759">			int d = dIndex[0];</span>
+<span class="fc" id="L760">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L765">			dest[d] ^= (source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(SHORT_DATA_MASK &lt;&lt; dOffset[1]) &amp; SHORT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L766">			return;</span>
+		}
+		
+<span class="fc bfc" id="L769" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L770">			xorHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L771" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L772">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L774">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L775">	}</span>
+
+	private static void xorHigherFromForwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L778">		int d = dIndex[0];</span>
+<span class="fc" id="L779">		int s = sIndex[0];</span>
+				
+<span class="fc" id="L781">		dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+
+<span class="fc bfc" id="L783" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L784">			dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+
+<span class="fc" id="L786">			++s;</span>
+
+<span class="fc" id="L788">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+		}
+
+<span class="fc bfc" id="L791" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L792" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L794">				dest[d] ^= (source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L796">				dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+				
+<span class="fc bfc" id="L798" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L799">					s++;</span>
+					
+<span class="fc" id="L801">					dest[d] ^= (source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+			}
+		}
+<span class="fc" id="L805">	}</span>
+
+	private static void xorHigherFromBackwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L808">		int d = dIndex[1];</span>
+<span class="fc" id="L809">		int s = sIndex[1];</span>
+				
+<span class="fc bfc" id="L811" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L812" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L813">				dest[d] ^= (source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L815" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L816">					dest[d] ^= (source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+				
+<span class="fc" id="L819">				s--;</span>
+				
+<span class="fc" id="L821">				dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L825" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L826">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+
+<span class="fc" id="L828">			--s;</span>
+
+<span class="fc" id="L830">			dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+		}
+
+<span class="fc" id="L833">		dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+<span class="fc" id="L834">	}</span>
+
+	private static void xorLowerFrom0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L837" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L838">			int d = dIndex[0];</span>
+<span class="fc" id="L839">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L844">			dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(SHORT_DATA_MASK &lt;&lt; dOffset[1]) &amp; SHORT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L845">			return;</span>
+		}
+		
+<span class="fc bfc" id="L848" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L849">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L850" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L851">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L853">			xorLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L854">	}</span>
+
+	private static void xorLowerFromForwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L857">		int d = dIndex[0];</span>
+<span class="fc" id="L858">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L860">		dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+
+<span class="fc bfc" id="L862" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L863">			dest[d] ^= source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+
+<span class="fc" id="L865">			++d;</span>
+
+<span class="fc" id="L867">			dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+		}
+		
+<span class="fc bfc" id="L870" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L871" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L873">				dest[d] ^= (source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L875">				dest[d] ^= source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+				
+<span class="fc bfc" id="L877" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L878">					d++;</span>
+					
+<span class="fc" id="L880">					dest[d] ^= (source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+			}
+		}
+<span class="fc" id="L884">	}</span>
+
+	private static void xorLowerFromBackwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L887">		int d = dIndex[1];</span>
+<span class="fc" id="L888">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L890" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L891" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L892">				dest[d] ^= (source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L894" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L895">					dest[d] ^= (source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+				
+<span class="fc" id="L898">				d--;</span>
+				
+<span class="fc" id="L900">				dest[d] ^= source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L904" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L905">			dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+
+<span class="fc" id="L907">			--d;</span>
+
+<span class="fc" id="L909">			dest[d] ^= source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+		}
+		
+<span class="fc" id="L912">		dest[d] ^= (source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L913">	}</span>
+
+	/********** int[] **********/
+
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void xorFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
+<span class="fc bfc" id="L936" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; INT_ADDRESS_LINES, dest.length &lt;&lt; INT_ADDRESS_LINES))</span>
+<span class="fc" id="L937">			return;</span>
+		
+<span class="fc" id="L939">		int[] sIndex  = {srcPos  &gt;&gt; INT_ADDRESS_LINES, (srcPos  + length) &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L940">		int[] sOffset = {srcPos  &amp; INT_ADDRESS_MASK,   (srcPos  + length) &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L942">		int[] dIndex  = {destPos &gt;&gt; INT_ADDRESS_LINES, (destPos + length) &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L943">		int[] dOffset = {destPos &amp; INT_ADDRESS_MASK,   (destPos + length) &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L945" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, xor middle unchanged
+<span class="fc" id="L947">			xorParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L948" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L949">			xorHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L951">			xorLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L952">	}</span>
+
+	private static void xorParallelFrom0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L955" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword xor within word and neither offset is zero
+			
+<span class="fc" id="L958">			final int LOWEST_BITS_FROM = ~(INT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L959">			final int HIGHEST_BITS_TO = INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L961">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);;</span>
+
+<span class="fc" id="L963">			return;</span>
+		}
+		
+<span class="fc bfc" id="L966" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L967">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L968" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L969">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L971">			xorParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L972">	}</span>
+
+	private static void xorParallelFromForwards0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L975" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L978">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L980">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L983">			sIndex[0]++;</span>
+<span class="fc" id="L984">			dIndex[0]++;</span>
+		}
+
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L989" title="All 2 branches covered.">		for(int i = dIndex[0], j = sIndex[0]; i &lt; dIndex[1]; i++, j++)</span>
+<span class="fc" id="L990">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L992" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L994">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L995">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L997">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+<span class="fc" id="L999">	}</span>
+
+	private static void xorParallelFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1002" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1004">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1005">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1007">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+
+<span class="fc bfc" id="L1010" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't xor the first index if partial
+<span class="fc" id="L1012">			dIndex[0]++;</span>
+<span class="fc" id="L1013">			sIndex[0]++;</span>
+		}
+		
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L1018" title="All 2 branches covered.">		for(int i = dIndex[1] - 1, j = sIndex[1] - 1; i &gt;= dIndex[0]; i--, j--)</span>
+<span class="fc" id="L1019">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L1021" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L1023">			sIndex[0]--;</span>
+<span class="fc" id="L1024">			dIndex[0]--;</span>
+			
+<span class="fc" id="L1026">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L1028">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+		}
+<span class="fc" id="L1030">	}</span>
+
+	private static void xorHigherFrom0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1033" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L1034">			int d = dIndex[0];</span>
+<span class="fc" id="L1035">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1040">			dest[d] ^= (source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(INT_DATA_MASK &lt;&lt; dOffset[1]) &amp; INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1041">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1044" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1045">			xorHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1046" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1047">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1049">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1050">	}</span>
+
+	private static void xorHigherFromForwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1053">		int d = dIndex[0];</span>
+<span class="fc" id="L1054">		int s = sIndex[0];</span>
+				
+<span class="fc" id="L1056">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+
+<span class="fc bfc" id="L1058" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L1059">			dest[d] ^= source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+
+<span class="fc" id="L1061">			++s;</span>
+
+<span class="fc" id="L1063">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+		}
+
+<span class="fc bfc" id="L1066" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1067" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L1069">				dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L1071">				dest[d] ^= source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+				
+<span class="fc bfc" id="L1073" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1074">					s++;</span>
+					
+<span class="fc" id="L1076">					dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+			}
+		}
+<span class="fc" id="L1080">	}</span>
+
+	private static void xorHigherFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1083">		int d = dIndex[1];</span>
+<span class="fc" id="L1084">		int s = sIndex[1];</span>
+				
+<span class="fc bfc" id="L1086" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1087" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L1088">				dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L1090" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1091">					dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+				
+<span class="fc" id="L1094">				s--;</span>
+				
+<span class="fc" id="L1096">				dest[d] ^= source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L1100" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L1101">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+
+<span class="fc" id="L1103">			--s;</span>
+
+<span class="fc" id="L1105">			dest[d] ^= source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+		}
+
+<span class="fc" id="L1108">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+<span class="fc" id="L1109">	}</span>
+
+	private static void xorLowerFrom0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1112" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L1113">			int d = dIndex[0];</span>
+<span class="fc" id="L1114">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1119">			dest[d] ^= source[s] &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(INT_DATA_MASK &lt;&lt; dOffset[1]) &amp; INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1120">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1123" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1124">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1125" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1126">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1128">			xorLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1129">	}</span>
+
+	private static void xorLowerFromForwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1132">		int d = dIndex[0];</span>
+<span class="fc" id="L1133">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L1135">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+
+<span class="fc bfc" id="L1137" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L1138">			dest[d] ^= source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+
+<span class="fc" id="L1140">			++d;</span>
+
+<span class="fc" id="L1142">			dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+		}
+		
+<span class="fc bfc" id="L1145" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1146" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L1148">				dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L1150">				dest[d] ^= source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+				
+<span class="fc bfc" id="L1152" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1153">					d++;</span>
+					
+<span class="fc" id="L1155">					dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+			}
+		}
+<span class="fc" id="L1159">	}</span>
+
+	private static void xorLowerFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1162">		int d = dIndex[1];</span>
+<span class="fc" id="L1163">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L1165" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1166" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L1167">				dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L1169" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1170">					dest[d] ^= (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+				
+<span class="fc" id="L1173">				d--;</span>
+				
+<span class="fc" id="L1175">				dest[d] ^= source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L1179" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L1180">			dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+
+<span class="fc" id="L1182">			--d;</span>
+
+<span class="fc" id="L1184">			dest[d] ^= source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+		}
+		
+<span class="fc" id="L1187">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1188">	}</span>
+
+	/********** long[] **********/
+
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void xorFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+<span class="fc bfc" id="L1211" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; LONG_ADDRESS_LINES, dest.length &lt;&lt; LONG_ADDRESS_LINES))</span>
+<span class="fc" id="L1212">			return;</span>
+		
+<span class="fc" id="L1214">		int[] sIndex  = {srcPos  &gt;&gt; LONG_ADDRESS_LINES, (srcPos  + length) &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L1215">		int[] sOffset = {srcPos  &amp; LONG_ADDRESS_MASK,   (srcPos  + length) &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L1217">		int[] dIndex  = {destPos &gt;&gt; LONG_ADDRESS_LINES, (destPos + length) &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L1218">		int[] dOffset = {destPos &amp; LONG_ADDRESS_MASK,   (destPos + length) &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L1220" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, xor middle unchanged
+<span class="fc" id="L1222">			xorParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1223" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L1224">			xorHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L1226">			xorLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1227">	}</span>
+
+	private static void xorParallelFrom0(long[] source, long[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1230" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword xor within word and neither offset is zero
+			
+<span class="fc" id="L1233">			final long LOWEST_BITS_FROM = ~(LONG_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1234">			final long HIGHEST_BITS_TO = LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L1236">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);;</span>
+
+<span class="fc" id="L1238">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1241" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1242">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1243" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1244">			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1246">			xorParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L1247">	}</span>
+
+	private static void xorParallelFromForwards0(long[] source, long[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1250" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L1253">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L1255">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L1258">			sIndex[0]++;</span>
+<span class="fc" id="L1259">			dIndex[0]++;</span>
+		}
+
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L1264" title="All 2 branches covered.">		for(int i = dIndex[0], j = sIndex[0]; i &lt; dIndex[1]; i++, j++)</span>
+<span class="fc" id="L1265">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L1267" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1269">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1270">			final long LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1272">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+<span class="fc" id="L1274">	}</span>
+
+	private static void xorParallelFromBackwards0(long[] source, long[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1277" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1279">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1280">			final long LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1282">			dest[dIndex[1]] ^= source[sIndex[1]] &amp; LOWEST_BITS;</span>
+		}
+
+<span class="fc bfc" id="L1285" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't xor the first index if partial
+<span class="fc" id="L1287">			dIndex[0]++;</span>
+<span class="fc" id="L1288">			sIndex[0]++;</span>
+		}
+		
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+<span class="fc bfc" id="L1293" title="All 2 branches covered.">		for(int i = dIndex[1] - 1, j = sIndex[1] - 1; i &gt;= dIndex[0]; i--, j--)</span>
+<span class="fc" id="L1294">			dest[i] ^= source[j];</span>
+
+<span class="fc bfc" id="L1296" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L1298">			sIndex[0]--;</span>
+<span class="fc" id="L1299">			dIndex[0]--;</span>
+			
+<span class="fc" id="L1301">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+			
+<span class="fc" id="L1303">			dest[dIndex[0]] ^= source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+		}
+<span class="fc" id="L1305">	}</span>
+
+	private static void xorHigherFrom0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1308" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L1309">			int d = dIndex[0];</span>
+<span class="fc" id="L1310">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1315">			dest[d] ^= (source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(LONG_DATA_MASK &lt;&lt; dOffset[1]) &amp; LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1316">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1319" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1320">			xorHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1321" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1322">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1324">			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1325">	}</span>
+
+	private static void xorHigherFromForwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1328">		int d = dIndex[0];</span>
+<span class="fc" id="L1329">		int s = sIndex[0];</span>
+				
+<span class="fc" id="L1331">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+
+<span class="fc bfc" id="L1333" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L1334">			dest[d] ^= source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+
+<span class="fc" id="L1336">			++s;</span>
+
+<span class="fc" id="L1338">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+		}
+
+<span class="fc bfc" id="L1341" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1342" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L1344">				dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L1346">				dest[d] ^= source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+				
+<span class="fc bfc" id="L1348" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1349">					s++;</span>
+					
+<span class="fc" id="L1351">					dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+			}
+		}
+<span class="fc" id="L1355">	}</span>
+
+	private static void xorHigherFromBackwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1358">		int d = dIndex[1];</span>
+<span class="fc" id="L1359">		int s = sIndex[1];</span>
+				
+<span class="fc bfc" id="L1361" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1362" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L1363">				dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L1365" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1366">					dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+				}
+				
+<span class="fc" id="L1369">				s--;</span>
+				
+<span class="fc" id="L1371">				dest[d] ^= source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L1375" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L1376">			dest[d] ^= source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+
+<span class="fc" id="L1378">			--s;</span>
+
+<span class="fc" id="L1380">			dest[d] ^= source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+		}
+
+<span class="fc" id="L1383">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]; </span>
+<span class="fc" id="L1384">	}</span>
+
+	private static void xorLowerFrom0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1387" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L1388">			int d = dIndex[0];</span>
+<span class="fc" id="L1389">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to xor more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1394">			dest[d] ^= source[s] &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(LONG_DATA_MASK &lt;&lt; dOffset[1]) &amp; LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1395">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1398" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1399">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1400" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1401">			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1403">			xorLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1404">	}</span>
+
+	private static void xorLowerFromForwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1407">		int d = dIndex[0];</span>
+<span class="fc" id="L1408">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L1410">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+
+<span class="fc bfc" id="L1412" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L1413">			dest[d] ^= source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+
+<span class="fc" id="L1415">			++d;</span>
+
+<span class="fc" id="L1417">			dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+		}
+		
+<span class="fc bfc" id="L1420" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1421" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L1423">				dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L1425">				dest[d] ^= source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+				
+<span class="fc bfc" id="L1427" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1428">					d++;</span>
+					
+<span class="fc" id="L1430">					dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+			}
+		}
+<span class="fc" id="L1434">	}</span>
+
+	private static void xorLowerFromBackwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc" id="L1437">		int d = dIndex[1];</span>
+<span class="fc" id="L1438">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L1440" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1441" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L1442">				dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L1444" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1445">					dest[d] ^= (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+				}
+				
+<span class="fc" id="L1448">				d--;</span>
+				
+<span class="fc" id="L1450">				dest[d] ^= source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+			}
+		}
+
+<span class="fc bfc" id="L1454" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L1455">			dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+
+<span class="fc" id="L1457">			--d;</span>
+
+<span class="fc" id="L1459">			dest[d] ^= source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+		}
+		
+<span class="fc" id="L1462">		dest[d] ^= source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1463">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

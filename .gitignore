@@ -1,0 +1,27 @@
+# maven ignores
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# eclipse ignores
+.project
+.classpath
+.settings/
+
+# main branch ignores
+pom.xml
+src/
+target/classes
+target/generated-sources
+target/generated-test-sources
+target/jacoco.exec
+target/javadoc-bundle-options
+target/maven-status
+# target/site
+target/surefire-reports
+target/test-classes

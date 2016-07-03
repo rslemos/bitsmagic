@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Ones.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic</a> &gt; <span class="el_source">Ones.java</span></div><h1>Ones.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic;
+
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.INT_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
+
+/**
+ * This class consists exclusively of static methods that count set bits on 
+ * integral primitive types, or arrays of integral primitive types.
+ * 
+ * &lt;p&gt;For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * &lt;/p&gt;
+ * &lt;p&gt;Offlimits bits are hardwired to 0: they never increment the count of set 
+ * bits. Methods in this class should never throw 
+ * {@code ArrayIndexOutOfBoundsException}.
+ * &lt;/p&gt;
+ * &lt;p&gt;{@code NullPointerException} is thrown if the given array is {@code null}.
+ * &lt;/p&gt;
+ * &lt;p&gt;All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * &lt;/p&gt;
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ * @see Store
+ */
+public class Ones {
+<span class="nc" id="L72">	private Ones() { /* non-instantiable */ }</span>
+
+	/**
+	 * Returns the count of bits set in specified byte.
+	 * 
+	 * @param x byte whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(byte x) {
+<span class="fc" id="L82">		return ones(x &amp; BYTE_DATA_MASK);</span>
+	}
+
+	/**
+	 * Returns the count of bits set in specified char.
+	 * 
+	 * @param x char whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(char x) {
+<span class="fc" id="L93">		return ones(x &amp; CHAR_DATA_MASK);</span>
+	}
+
+	/**
+	 * Returns the count of bits set in specified short.
+	 * 
+	 * @param x short whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(short x) {
+<span class="fc" id="L104">		return ones(x &amp; SHORT_DATA_MASK);</span>
+	}
+
+	/**
+	 * Returns the count of bits set in specified int.
+	 * 
+	 * @param x int whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(int x) {
+		/*
+		 * 32-bit recursive reduction using SWAR... but first step is mapping
+		 * 2-bit values into sum of 2 1-bit values in sneaky way
+		 */
+<span class="fc" id="L119">		x -= ((x &gt;&gt; 1) &amp; 0x55555555);</span>
+<span class="fc" id="L120">		x = (((x &gt;&gt; 2) &amp; 0x33333333) + (x &amp; 0x33333333));</span>
+<span class="fc" id="L121">		x = (((x &gt;&gt; 4) + x) &amp; 0x0f0f0f0f);</span>
+<span class="fc" id="L122">		x += (x &gt;&gt; 8);</span>
+<span class="fc" id="L123">		x += (x &gt;&gt; 16);</span>
+<span class="fc" id="L124">		return (x &amp; 0x0000003f);</span>
+	}
+
+	/**
+	 * Returns the count of bits set in specified long.
+	 * 
+	 * @param x long whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(long x) {
+		/*
+		 * 64-bit recursive reduction using SWAR... but first step is mapping
+		 * 2-bit values into sum of 2 1-bit values in sneaky way
+		 */
+<span class="fc" id="L139">		x -= ((x &gt;&gt; 1) &amp; 0x5555555555555555L);</span>
+<span class="fc" id="L140">		x = (((x &gt;&gt; 2) &amp; 0x3333333333333333L) + (x &amp; 0x3333333333333333L));</span>
+<span class="fc" id="L141">		x = (((x &gt;&gt; 4) + x) &amp; 0x0f0f0f0f0f0f0f0fL);</span>
+<span class="fc" id="L142">		x += (x &gt;&gt; 8);</span>
+<span class="fc" id="L143">		x += (x &gt;&gt; 16);</span>
+<span class="fc" id="L144">		x += (x &gt;&gt; 32);</span>
+<span class="fc" id="L145">		return (int) (x &amp; 0x0000007f);</span>
+	}
+
+	/********** byte[] **********/
+	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to &lt;= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(byte[] data, int from, int to) {
+		// clamp
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">		if (from &lt; 0)</span>
+<span class="nc" id="L167">			from = 0;</span>
+		
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">		if (to &gt; data.length &lt;&lt; BYTE_ADDRESS_LINES)</span>
+<span class="nc" id="L170">			to = data.length &lt;&lt; BYTE_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L172" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L173">			return 0;</span>
+
+<span class="fc" id="L175">		int[] index  = {from  &gt;&gt; BYTE_ADDRESS_LINES, to &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L176">		int[] offset = {from  &amp; BYTE_ADDRESS_MASK,   to &amp; BYTE_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L178" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L181">			final int LOWEST_BITS_FROM = ~(BYTE_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L182">			final int HIGHEST_BITS_TO = BYTE_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc" id="L184">			return ones((byte)(data[index[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO)));</span>
+		}
+		
+<span class="fc" id="L187">		int count = 0;</span>
+		
+<span class="fc bfc" id="L189" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L192">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc" id="L194">			count += ones((byte)(data[index[0]] &amp; HIGHEST_BITS));</span>
+			
+			// first index already taken care of
+<span class="fc" id="L197">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L200" title="All 2 branches covered.">		for (int j = index[0]; j &lt; index[1]; j++)</span>
+<span class="fc" id="L201">			count += ones(data[j]);</span>
+
+<span class="fc bfc" id="L203" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L204">			final int LOWEST_BITS = ~(BYTE_DATA_MASK &lt;&lt; offset[1]);</span>
+			
+<span class="fc" id="L206">			count += ones((byte)(data[index[1]] &amp; LOWEST_BITS));</span>
+		}
+		
+<span class="fc" id="L209">		return count;</span>
+	}
+
+	/********** char[] **********/
+	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to &lt;= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(char[] data, int from, int to) {
+		// clamp
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">		if (from &lt; 0)</span>
+<span class="nc" id="L231">			from = 0;</span>
+		
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">		if (to &gt; data.length &lt;&lt; CHAR_ADDRESS_LINES)</span>
+<span class="nc" id="L234">			to = data.length &lt;&lt; CHAR_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L236" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L237">			return 0;</span>
+
+<span class="fc" id="L239">		int[] index  = {from  &gt;&gt; CHAR_ADDRESS_LINES, to &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L240">		int[] offset = {from  &amp; CHAR_ADDRESS_MASK,   to &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L242" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L245">			final int LOWEST_BITS_FROM = ~(CHAR_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L246">			final int HIGHEST_BITS_TO = CHAR_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc" id="L248">			return ones((char)(data[index[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO)));</span>
+		}
+		
+<span class="fc" id="L251">		int count = 0;</span>
+		
+<span class="fc bfc" id="L253" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L256">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc" id="L258">			count += ones((char)(data[index[0]] &amp; HIGHEST_BITS));</span>
+			
+			// first index already taken care of
+<span class="fc" id="L261">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L264" title="All 2 branches covered.">		for (int j = index[0]; j &lt; index[1]; j++)</span>
+<span class="fc" id="L265">			count += ones(data[j]);</span>
+
+<span class="fc bfc" id="L267" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L268">			final int LOWEST_BITS = ~(CHAR_DATA_MASK &lt;&lt; offset[1]);</span>
+			
+<span class="fc" id="L270">			count += ones((char)(data[index[1]] &amp; LOWEST_BITS));</span>
+		}
+		
+<span class="fc" id="L273">		return count;</span>
+	}
+
+	/********** short[] **********/
+	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to &lt;= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(short[] data, int from, int to) {
+		// clamp
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">		if (from &lt; 0)</span>
+<span class="nc" id="L295">			from = 0;</span>
+		
+<span class="pc bpc" id="L297" title="1 of 2 branches missed.">		if (to &gt; data.length &lt;&lt; SHORT_ADDRESS_LINES)</span>
+<span class="nc" id="L298">			to = data.length &lt;&lt; SHORT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L300" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L301">			return 0;</span>
+
+<span class="fc" id="L303">		int[] index  = {from  &gt;&gt; SHORT_ADDRESS_LINES, to &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L304">		int[] offset = {from  &amp; SHORT_ADDRESS_MASK,   to &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L306" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L309">			final int LOWEST_BITS_FROM = ~(SHORT_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L310">			final int HIGHEST_BITS_TO = SHORT_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc" id="L312">			return ones((short)(data[index[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO)));</span>
+		}
+		
+<span class="fc" id="L315">		int count = 0;</span>
+		
+<span class="fc bfc" id="L317" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L320">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc" id="L322">			count += ones((short)(data[index[0]] &amp; HIGHEST_BITS));</span>
+			
+			// first index already taken care of
+<span class="fc" id="L325">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L328" title="All 2 branches covered.">		for (int j = index[0]; j &lt; index[1]; j++)</span>
+<span class="fc" id="L329">			count += ones(data[j]);</span>
+
+<span class="fc bfc" id="L331" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L332">			final int LOWEST_BITS = ~(SHORT_DATA_MASK &lt;&lt; offset[1]);</span>
+			
+<span class="fc" id="L334">			count += ones((short)(data[index[1]] &amp; LOWEST_BITS));</span>
+		}
+		
+<span class="fc" id="L337">		return count;</span>
+	}
+
+	/********** int[] **********/
+	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to &lt;= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(int[] data, int from, int to) {
+		// clamp
+<span class="pc bpc" id="L358" title="1 of 2 branches missed.">		if (from &lt; 0)</span>
+<span class="nc" id="L359">			from = 0;</span>
+		
+<span class="pc bpc" id="L361" title="1 of 2 branches missed.">		if (to &gt; data.length &lt;&lt; INT_ADDRESS_LINES)</span>
+<span class="nc" id="L362">			to = data.length &lt;&lt; INT_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L364" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L365">			return 0;</span>
+
+<span class="fc" id="L367">		int[] index  = {from  &gt;&gt; INT_ADDRESS_LINES, to &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L368">		int[] offset = {from  &amp; INT_ADDRESS_MASK,   to &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L370" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L373">			final int LOWEST_BITS_FROM = ~(INT_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L374">			final int HIGHEST_BITS_TO = INT_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc" id="L376">			return ones(data[index[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO));</span>
+		}
+		
+<span class="fc" id="L379">		int count = 0;</span>
+		
+<span class="fc bfc" id="L381" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L384">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc" id="L386">			count += ones(data[index[0]] &amp; HIGHEST_BITS);</span>
+			
+			// first index already taken care of
+<span class="fc" id="L389">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L392" title="All 2 branches covered.">		for (int j = index[0]; j &lt; index[1]; j++)</span>
+<span class="fc" id="L393">			count += ones(data[j]);</span>
+
+<span class="fc bfc" id="L395" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L396">			final int LOWEST_BITS = ~(INT_DATA_MASK &lt;&lt; offset[1]);</span>
+			
+<span class="fc" id="L398">			count += ones(data[index[1]] &amp; LOWEST_BITS);</span>
+		}
+		
+<span class="fc" id="L401">		return count;</span>
+	}
+
+	/********** long[] **********/
+	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to &lt;= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
+	public static int ones(long[] data, int from, int to) {
+		// clamp
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">		if (from &lt; 0)</span>
+<span class="nc" id="L423">			from = 0;</span>
+		
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">		if (to &gt; data.length &lt;&lt; LONG_ADDRESS_LINES)</span>
+<span class="nc" id="L426">			to = data.length &lt;&lt; LONG_ADDRESS_LINES;</span>
+		
+<span class="fc bfc" id="L428" title="All 2 branches covered.">		if (!(to &gt; from))</span>
+<span class="fc" id="L429">			return 0;</span>
+
+<span class="fc" id="L431">		int[] index  = {from  &gt;&gt; LONG_ADDRESS_LINES, to &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L432">		int[] offset = {from  &amp; LONG_ADDRESS_MASK,   to &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L434" title="All 2 branches covered.">		if (index[1] == index[0]) {</span>
+			// special case: subword count
+			
+<span class="fc" id="L437">			final long LOWEST_BITS_FROM = ~(LONG_DATA_MASK &lt;&lt; offset[0]);</span>
+<span class="fc" id="L438">			final long HIGHEST_BITS_TO = LONG_DATA_MASK &lt;&lt; offset[1];</span>
+
+<span class="fc" id="L440">			return ones(data[index[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO));</span>
+		}
+		
+<span class="fc" id="L443">		int count = 0;</span>
+		
+<span class="fc bfc" id="L445" title="All 2 branches covered.">		if (offset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L448">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; offset[0];</span>
+
+<span class="fc" id="L450">			count += ones(data[index[0]] &amp; HIGHEST_BITS);</span>
+			
+			// first index already taken care of
+<span class="fc" id="L453">			index[0]++;</span>
+		}
+
+<span class="fc bfc" id="L456" title="All 2 branches covered.">		for (int j = index[0]; j &lt; index[1]; j++)</span>
+<span class="fc" id="L457">			count += ones(data[j]);</span>
+
+<span class="fc bfc" id="L459" title="All 2 branches covered.">		if (offset[1] != 0) {</span>
+<span class="fc" id="L460">			final long LOWEST_BITS = ~(LONG_DATA_MASK &lt;&lt; offset[1]);</span>
+			
+<span class="fc" id="L462">			count += ones(data[index[1]] &amp; LOWEST_BITS);</span>
+		}
+		
+<span class="fc" id="L465">		return count;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>

@@ -1,0 +1,599 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+<title>ArithmeticCodecUnitTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<pre>
+
+<a name="1" href="#1">1</a>   <em class="jxr_javadoccomment">/**</em><em class="jxr_javadoccomment">*****************************************************************************</em>
+<a name="2" href="#2">2</a>   <em class="jxr_javadoccomment"> * BEGIN COPYRIGHT NOTICE</em>
+<a name="3" href="#3">3</a>   <em class="jxr_javadoccomment"> * </em>
+<a name="4" href="#4">4</a>   <em class="jxr_javadoccomment"> * The MIT License (MIT)</em>
+<a name="5" href="#5">5</a>   <em class="jxr_javadoccomment"> * </em>
+<a name="6" href="#6">6</a>   <em class="jxr_javadoccomment"> * Copyright (c) 2016 Rodrigo Lemos</em>
+<a name="7" href="#7">7</a>   <em class="jxr_javadoccomment"> * </em>
+<a name="8" href="#8">8</a>   <em class="jxr_javadoccomment"> * Permission is hereby granted, free of charge, to any person obtaining a copy</em>
+<a name="9" href="#9">9</a>   <em class="jxr_javadoccomment"> * of this software and associated documentation files (the "Software"), to deal</em>
+<a name="10" href="#10">10</a>  <em class="jxr_javadoccomment"> * in the Software without restriction, including without limitation the rights</em>
+<a name="11" href="#11">11</a>  <em class="jxr_javadoccomment"> * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</em>
+<a name="12" href="#12">12</a>  <em class="jxr_javadoccomment"> * copies of the Software, and to permit persons to whom the Software is</em>
+<a name="13" href="#13">13</a>  <em class="jxr_javadoccomment"> * furnished to do so, subject to the following conditions:</em>
+<a name="14" href="#14">14</a>  <em class="jxr_javadoccomment"> * </em>
+<a name="15" href="#15">15</a>  <em class="jxr_javadoccomment"> * The above copyright notice and this permission notice shall be included in all</em>
+<a name="16" href="#16">16</a>  <em class="jxr_javadoccomment"> * copies or substantial portions of the Software.</em>
+<a name="17" href="#17">17</a>  <em class="jxr_javadoccomment"> * </em>
+<a name="18" href="#18">18</a>  <em class="jxr_javadoccomment"> * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</em>
+<a name="19" href="#19">19</a>  <em class="jxr_javadoccomment"> * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</em>
+<a name="20" href="#20">20</a>  <em class="jxr_javadoccomment"> * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</em>
+<a name="21" href="#21">21</a>  <em class="jxr_javadoccomment"> * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</em>
+<a name="22" href="#22">22</a>  <em class="jxr_javadoccomment"> * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</em>
+<a name="23" href="#23">23</a>  <em class="jxr_javadoccomment"> * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</em>
+<a name="24" href="#24">24</a>  <em class="jxr_javadoccomment"> * SOFTWARE.</em>
+<a name="25" href="#25">25</a>  <em class="jxr_javadoccomment"> * </em>
+<a name="26" href="#26">26</a>  <em class="jxr_javadoccomment"> * END COPYRIGHT NOTICE</em>
+<a name="27" href="#27">27</a>  <em class="jxr_javadoccomment"> *******************************************************************************/</em>
+<a name="28" href="#28">28</a>  <strong class="jxr_keyword">package</strong> br.eti.rslemos.bitsmagic.arithmetic;
+<a name="29" href="#29">29</a>  
+<a name="30" href="#30">30</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> br.eti.rslemos.bitsmagic.arithmetic.Distribution.even;
+<a name="31" href="#31">31</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> br.eti.rslemos.bitsmagic.arithmetic.Distribution.toCumulative;
+<a name="32" href="#32">32</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.util.Arrays.sort;
+<a name="33" href="#33">33</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.hamcrest.CoreMatchers.equalTo;
+<a name="34" href="#34">34</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.hamcrest.CoreMatchers.is;
+<a name="35" href="#35">35</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.hamcrest.Matchers.greaterThan;
+<a name="36" href="#36">36</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertThat;
+<a name="37" href="#37">37</a>  
+<a name="38" href="#38">38</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a name="39" href="#39">39</a>  
+<a name="40" href="#40">40</a>  <strong class="jxr_keyword">import</strong> org.junit.Ignore;
+<a name="41" href="#41">41</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a name="42" href="#42">42</a>  
+<a name="43" href="#43">43</a>  <strong class="jxr_keyword">import</strong> br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodec.Decoder;
+<a name="44" href="#44">44</a>  <strong class="jxr_keyword">import</strong> br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodec.Encoder;
+<a name="45" href="#45">45</a>  
+<a name="46" href="#46">46</a>  @Ignore
+<a name="47" href="#47">47</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ArithmeticCodecUnitTest</a> {
+<a name="48" href="#48">48</a>  	<strong class="jxr_keyword">final</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory;
+<a name="49" href="#49">49</a>  	ArithmeticCodecUnitTest(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory) { <strong class="jxr_keyword">this</strong>.factory = factory; }
+<a name="50" href="#50">50</a>  	
+<a name="51" href="#51">51</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">LiteratureCases</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ArithmeticCodecUnitTest</a> {
+<a name="52" href="#52">52</a>  		LiteratureCases(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory) { <strong class="jxr_keyword">super</strong>(factory); }
+<a name="53" href="#53">53</a>  
+<a name="54" href="#54">54</a>  		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> wikipediaEncode() {
+<a name="55" href="#55">55</a>  			<strong class="jxr_keyword">int</strong> base = 10;
+<a name="56" href="#56">56</a>  			<strong class="jxr_keyword">int</strong>[] cumulativeCount = {6, 8, 10};
+<a name="57" href="#57">57</a>  			<strong class="jxr_keyword">int</strong>[] input = {0, 0, 1, 0, 2};
+<a name="58" href="#58">58</a>  			<strong class="jxr_keyword">int</strong>[] expected = {2, 5, 1};
+<a name="59" href="#59">59</a>  			
+<a name="60" href="#60">60</a>  			assertThat(encode(base, input, cumulativeCount), is(equalTo(expected)));
+<a name="61" href="#61">61</a>  		}
+<a name="62" href="#62">62</a>  		
+<a name="63" href="#63">63</a>  		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> wikipediaDecode() {
+<a name="64" href="#64">64</a>  			<strong class="jxr_keyword">int</strong> base = 10;
+<a name="65" href="#65">65</a>  			<strong class="jxr_keyword">int</strong>[] cumulativeCount = {6, 8, 10};
+<a name="66" href="#66">66</a>  			<strong class="jxr_keyword">int</strong>[] input = {2, 5, 1};
+<a name="67" href="#67">67</a>  			<strong class="jxr_keyword">int</strong>[] expected = {0, 0, 1, 0, 2};
+<a name="68" href="#68">68</a>  			
+<a name="69" href="#69">69</a>  			assertThat(decode(base, input, expected.length, cumulativeCount), is(equalTo(expected)));
+<a name="70" href="#70">70</a>  		}
+<a name="71" href="#71">71</a>  		
+<a name="72" href="#72">72</a>  		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> paperEncode() {
+<a name="73" href="#73">73</a>  			<strong class="jxr_keyword">int</strong> base = 10;
+<a name="74" href="#74">74</a>  			<strong class="jxr_keyword">int</strong>[] cumulativeCount = {10, 31, 58, 100};
+<a name="75" href="#75">75</a>  			<strong class="jxr_keyword">int</strong>[] input = {3, 2, 1, 3, 3, 3, 0, 0, 3, 2, 1};
+<a name="76" href="#76">76</a>  			<strong class="jxr_keyword">int</strong>[] expected = {7, 4, 3, 6, 0, 2, 4};
+<a name="77" href="#77">77</a>  			
+<a name="78" href="#78">78</a>  			assertThat(encode(base, input, cumulativeCount), is(equalTo(expected)));
+<a name="79" href="#79">79</a>  		}
+<a name="80" href="#80">80</a>  		
+<a name="81" href="#81">81</a>  		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> paperDecode() {
+<a name="82" href="#82">82</a>  			<strong class="jxr_keyword">int</strong> base = 10;
+<a name="83" href="#83">83</a>  			<strong class="jxr_keyword">int</strong>[] cumulativeCount = {10, 31, 58, 100};
+<a name="84" href="#84">84</a>  			<strong class="jxr_keyword">int</strong>[] input = {7, 4, 3, 6, 0, 2, 4};
+<a name="85" href="#85">85</a>  			<strong class="jxr_keyword">int</strong>[] expected = {3, 2, 1, 3, 3, 3, 0, 0, 3, 2, 1};
+<a name="86" href="#86">86</a>  			
+<a name="87" href="#87">87</a>  			assertThat(decode(base, input, expected.length, cumulativeCount), is(equalTo(expected)));
+<a name="88" href="#88">88</a>  		}
+<a name="89" href="#89">89</a>  
+<a name="90" href="#90">90</a>  		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong>[] encode(<strong class="jxr_keyword">int</strong> outbase, <strong class="jxr_keyword">int</strong>[] input, <strong class="jxr_keyword">int</strong>[] cumulativeCount) {
+<a name="91" href="#91">91</a>  			<strong class="jxr_keyword">try</strong> {
+<a name="92" href="#92">92</a>  				IntegerListOutputStream stream = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/IntegerListOutputStream.html">IntegerListOutputStream</a>();
+<a name="93" href="#93">93</a>  				Encoder encoder = factory.encoder(stream, outbase);
+<a name="94" href="#94">94</a>  				
+<a name="95" href="#95">95</a>  				<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; input.length; i++)
+<a name="96" href="#96">96</a>  					encoder.write(input[i], cumulativeCount);
+<a name="97" href="#97">97</a>  				
+<a name="98" href="#98">98</a>  				encoder.flush();
+<a name="99" href="#99">99</a>  				<strong class="jxr_keyword">return</strong> stream.toIntArray();
+<a name="100" href="#100">100</a> 			} <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a name="101" href="#101">101</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
+<a name="102" href="#102">102</a> 			}
+<a name="103" href="#103">103</a> 		}
+<a name="104" href="#104">104</a> 
+<a name="105" href="#105">105</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong>[] decode(<strong class="jxr_keyword">int</strong> inbase, <strong class="jxr_keyword">int</strong>[] input, <strong class="jxr_keyword">int</strong> n, <strong class="jxr_keyword">int</strong>[] cumulativeCount) {
+<a name="106" href="#106">106</a> 			<strong class="jxr_keyword">try</strong> {
+<a name="107" href="#107">107</a> 				IntArrayInputStream stream = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/IntArrayInputStream.html">IntArrayInputStream</a>(input);
+<a name="108" href="#108">108</a> 				Decoder decoder = factory.decoder(stream, inbase);
+<a name="109" href="#109">109</a> 				
+<a name="110" href="#110">110</a> 				<strong class="jxr_keyword">int</strong>[] result = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[n];
+<a name="111" href="#111">111</a> 				
+<a name="112" href="#112">112</a> 				<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; result.length; i++)
+<a name="113" href="#113">113</a> 					result[i] = decoder.read(cumulativeCount);
+<a name="114" href="#114">114</a> 				
+<a name="115" href="#115">115</a> 				<strong class="jxr_keyword">return</strong> result;
+<a name="116" href="#116">116</a> 			} <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a name="117" href="#117">117</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
+<a name="118" href="#118">118</a> 			}
+<a name="119" href="#119">119</a> 		}
+<a name="120" href="#120">120</a> 	}
+<a name="121" href="#121">121</a> 	
+<a name="122" href="#122">122</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">Permutation</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ArithmeticCodecUnitTest</a> {
+<a name="123" href="#123">123</a> 
+<a name="124" href="#124">124</a> 		Permutation(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory) { <strong class="jxr_keyword">super</strong>(factory); }
+<a name="125" href="#125">125</a> 		
+<a name="126" href="#126">126</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf2()  { permutationOf( 2); }
+<a name="127" href="#127">127</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf3()  { permutationOf( 3); }
+<a name="128" href="#128">128</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf4()  { permutationOf( 4); }
+<a name="129" href="#129">129</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf5()  { permutationOf( 5); }
+<a name="130" href="#130">130</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf6()  { permutationOf( 6); }
+<a name="131" href="#131">131</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf7()  { permutationOf( 7); }
+<a name="132" href="#132">132</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf8()  { permutationOf( 8); }
+<a name="133" href="#133">133</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf9()  { permutationOf( 9); }
+<a name="134" href="#134">134</a> 		
+<a name="135" href="#135">135</a> 		@Ignore(<span class="jxr_string">"ETA: ~40 seconds"</span>)
+<a name="136" href="#136">136</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf10() { permutationOf(10); }
+<a name="137" href="#137">137</a> 		
+<a name="138" href="#138">138</a> 		@Ignore(<span class="jxr_string">"ETA: ~15 minutes"</span>)
+<a name="139" href="#139">139</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf11() { permutationOf(11); }
+<a name="140" href="#140">140</a> 		
+<a name="141" href="#141">141</a> 		@Ignore(<span class="jxr_string">"ETA: ~2.5 hours"</span>)
+<a name="142" href="#142">142</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf12() { permutationOf(12); }
+<a name="143" href="#143">143</a> 		
+<a name="144" href="#144">144</a> 		@Ignore(<span class="jxr_string">"ETA: ~1.3 day"</span>)
+<a name="145" href="#145">145</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf13() { permutationOf(13); }
+<a name="146" href="#146">146</a> 		
+<a name="147" href="#147">147</a> 		@Ignore(<span class="jxr_string">"ETA: ~19 days"</span>)
+<a name="148" href="#148">148</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf14() { permutationOf(14); }
+<a name="149" href="#149">149</a> 		
+<a name="150" href="#150">150</a> 		@Ignore(<span class="jxr_string">"ETA: ~9 months"</span>)
+<a name="151" href="#151">151</a> 		@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> permutationOf15() { permutationOf(15); }
+<a name="152" href="#152">152</a> 		
+<a name="153" href="#153">153</a> 		<em class="jxr_comment">// for more than 15, n^n would not fit 64-bit longs (let alone the ETA of 12 years)</em>
+<a name="154" href="#154">154</a> 		<em class="jxr_comment">// needed for the fast encoding function used to test if a permutation was already seen</em>
+<a name="155" href="#155">155</a> 	
+<a name="156" href="#156">156</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> permutationOf(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> n) {
+<a name="157" href="#157">157</a> 			<strong class="jxr_keyword">try</strong> {
+<a name="158" href="#158">158</a> 				<strong class="jxr_keyword">int</strong> base = 1;
+<a name="159" href="#159">159</a> 				
+<a name="160" href="#160">160</a> 				<strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> i = 1; i &lt;= n; i++)
+<a name="161" href="#161">161</a> 					base *= i;
+<a name="162" href="#162">162</a> 		
+<a name="163" href="#163">163</a> 				<strong class="jxr_keyword">int</strong>[] sorted;
+<a name="164" href="#164">164</a> 				
+<a name="165" href="#165">165</a> 				<em class="jxr_comment">// this will produce 0, 1, 2 ... n-1</em>
+<a name="166" href="#166">166</a> 				{
+<a name="167" href="#167">167</a> 					sorted = even(n);
+<a name="168" href="#168">168</a> 					sorted[0]--;
+<a name="169" href="#169">169</a> 					sorted = toCumulative(sorted);
+<a name="170" href="#170">170</a> 				}
+<a name="171" href="#171">171</a> 		
+<a name="172" href="#172">172</a> 				<strong class="jxr_keyword">long</strong> prev = 0;
+<a name="173" href="#173">173</a> 				<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; base; i++) {
+<a name="174" href="#174">174</a> 					IntArrayInputStream stream = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/IntArrayInputStream.html">IntArrayInputStream</a>(i);
+<a name="175" href="#175">175</a> 					
+<a name="176" href="#176">176</a> 					Decoder decoder = factory.decoder(stream, base);
+<a name="177" href="#177">177</a> 					<strong class="jxr_keyword">int</strong>[] count = even(n);
+<a name="178" href="#178">178</a> 							
+<a name="179" href="#179">179</a> 					<strong class="jxr_keyword">int</strong>[] x = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[n];
+<a name="180" href="#180">180</a> 					<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> j = 0; j &lt; n; j++) {
+<a name="181" href="#181">181</a> 						<strong class="jxr_keyword">int</strong> m = decoder.read(toCumulative(count));
+<a name="182" href="#182">182</a> 						count[m]--;
+<a name="183" href="#183">183</a> 						x[j] = m;
+<a name="184" href="#184">184</a> 					}
+<a name="185" href="#185">185</a> 					
+<a name="186" href="#186">186</a> 					<em class="jxr_comment">// assert that "x" is a new permutation not previously seen</em>
+<a name="187" href="#187">187</a> 					{
+<a name="188" href="#188">188</a> 						<em class="jxr_comment">// fast, holey encoding of "x" in base n... </em>
+<a name="189" href="#189">189</a> 						<strong class="jxr_keyword">long</strong> result = 0;
+<a name="190" href="#190">190</a> 						<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> j = 0; j &lt; n; j++) {
+<a name="191" href="#191">191</a> 							result *= n;
+<a name="192" href="#192">192</a> 							result += x[j];
+<a name="193" href="#193">193</a> 						}
+<a name="194" href="#194">194</a> 						
+<a name="195" href="#195">195</a> 						<em class="jxr_comment">// ...which nonetheless is guaranteed to be monotonically increasing function of "i"</em>
+<a name="196" href="#196">196</a> 						assertThat(result, is(greaterThan(prev)));
+<a name="197" href="#197">197</a> 						prev = result;
+<a name="198" href="#198">198</a> 					}
+<a name="199" href="#199">199</a> 					
+<a name="200" href="#200">200</a> 					<em class="jxr_comment">// assert that "x" is a permutation</em>
+<a name="201" href="#201">201</a> 					{
+<a name="202" href="#202">202</a> 						<strong class="jxr_keyword">if</strong> (i == 0) {
+<a name="203" href="#203">203</a> 							<em class="jxr_comment">// the very first MUST BE sorted already (if not, the test will fail ON PURPOSE)</em>
+<a name="204" href="#204">204</a> 						} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (i == base - 1) {
+<a name="205" href="#205">205</a> 							<em class="jxr_comment">// the very last MUST BE reverse sorted (if not, the test will fail ON PURPOSE)</em>
+<a name="206" href="#206">206</a> 							<em class="jxr_comment">// since this is the last time using "sorted" we will reverse it mercilessly</em>
+<a name="207" href="#207">207</a> 							reverse(sorted);
+<a name="208" href="#208">208</a> 						} <strong class="jxr_keyword">else</strong>
+<a name="209" href="#209">209</a> 							sort(x);
+<a name="210" href="#210">210</a> 						
+<a name="211" href="#211">211</a> 						assertThat(x, is(equalTo(sorted)));
+<a name="212" href="#212">212</a> 					}
+<a name="213" href="#213">213</a> 					
+<a name="214" href="#214">214</a> 					<em class="jxr_comment">// this also asserts that "x" is a permutation</em>
+<a name="215" href="#215">215</a> 					<em class="jxr_comment">// since no element was returned more than once </em>
+<a name="216" href="#216">216</a> 					assertThat(count, is(equalTo(<strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[n])));
+<a name="217" href="#217">217</a> 				}
+<a name="218" href="#218">218</a> 			} <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a name="219" href="#219">219</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
+<a name="220" href="#220">220</a> 			}
+<a name="221" href="#221">221</a> 		}
+<a name="222" href="#222">222</a> 		
+<a name="223" href="#223">223</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> reverse(<strong class="jxr_keyword">int</strong>... is) {
+<a name="224" href="#224">224</a> 			<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; is.length/2; i++) {
+<a name="225" href="#225">225</a> 				<strong class="jxr_keyword">int</strong> t = is[i];
+<a name="226" href="#226">226</a> 				is[i] = is[is.length - i - 1];
+<a name="227" href="#227">227</a> 				is[is.length - i - 1] = t;
+<a name="228" href="#228">228</a> 			}
+<a name="229" href="#229">229</a> 		}
+<a name="230" href="#230">230</a> 	}
+<a name="231" href="#231">231</a> 	
+<a name="232" href="#232">232</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticCases</a> {
+<a name="233" href="#233">233</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> MAX_SAMPLES = 1 &lt;&lt; 9;
+<a name="234" href="#234">234</a> 		
+<a name="235" href="#235">235</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticOp</a> op;
+<a name="236" href="#236">236</a> 		
+<a name="237" href="#237">237</a> 		AutomaticCases(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticOp</a> op) { <strong class="jxr_keyword">this</strong>.op = op; }
+<a name="238" href="#238">238</a> 		
+<a name="239" href="#239">239</a> 		<strong class="jxr_keyword">void</strong> runSingle(<strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong>... externalData) {
+<a name="240" href="#240">240</a> 			<strong class="jxr_keyword">try</strong> { runSingle0(externalBase, internalBase, externalData); }
+<a name="241" href="#241">241</a> 			<strong class="jxr_keyword">catch</strong> (IOException e) { <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e); }
+<a name="242" href="#242">242</a> 		}
+<a name="243" href="#243">243</a> 
+<a name="244" href="#244">244</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> runSingle0(<strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong>... externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="245" href="#245">245</a> 			op.run(internalBase, externalBase, externalData);
+<a name="246" href="#246">246</a> 		}
+<a name="247" href="#247">247</a> 		
+<a name="248" href="#248">248</a> 		<strong class="jxr_keyword">void</strong> runMultiple(<strong class="jxr_keyword">int</strong> externalDigitCount, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong> internalBase) {
+<a name="249" href="#249">249</a> 			<strong class="jxr_keyword">try</strong> { runMultiple0(externalDigitCount, externalBase, internalBase); }
+<a name="250" href="#250">250</a> 			<strong class="jxr_keyword">catch</strong> (IOException e) { <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e); }
+<a name="251" href="#251">251</a> 		}
+<a name="252" href="#252">252</a> 
+<a name="253" href="#253">253</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> runMultiple0(<strong class="jxr_keyword">int</strong> externalDigitCount, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong> internalBase) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="254" href="#254">254</a> 			<strong class="jxr_keyword">int</strong>[] externalData = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[externalDigitCount];
+<a name="255" href="#255">255</a> 			
+<a name="256" href="#256">256</a> 			<strong class="jxr_keyword">double</strong> fullRange = Math.pow(externalBase, externalData.length);
+<a name="257" href="#257">257</a> 			
+<a name="258" href="#258">258</a> 			<strong class="jxr_keyword">if</strong> (fullRange &lt;= MAX_SAMPLES)
+<a name="259" href="#259">259</a> 				<strong class="jxr_keyword">do</strong> op.run(internalBase, externalBase, externalData);
+<a name="260" href="#260">260</a> 				<strong class="jxr_keyword">while</strong> (inc(externalData, externalBase) == 0);
+<a name="261" href="#261">261</a> 			<strong class="jxr_keyword">else</strong> {
+<a name="262" href="#262">262</a> 				<strong class="jxr_keyword">int</strong> amount = (<strong class="jxr_keyword">int</strong>)((fullRange / MAX_SAMPLES)) | 7;
+<a name="263" href="#263">263</a> 				
+<a name="264" href="#264">264</a> 				<strong class="jxr_keyword">if</strong> (amount &lt;= Integer.MAX_VALUE / 2) {
+<a name="265" href="#265">265</a> 					<strong class="jxr_keyword">do</strong> op.run(internalBase, externalBase, externalData);
+<a name="266" href="#266">266</a> 					<strong class="jxr_keyword">while</strong> (add(externalData, externalBase, amount) == 0);
+<a name="267" href="#267">267</a> 				}
+<a name="268" href="#268">268</a> 			}
+<a name="269" href="#269">269</a> 		}
+<a name="270" href="#270">270</a> 		
+<a name="271" href="#271">271</a> 		<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> Base2 <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticCases</a> {
+<a name="272" href="#272">272</a> 			Base2(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticOp</a> op) { <strong class="jxr_keyword">super</strong>(op); }
+<a name="273" href="#273">273</a> 			
+<a name="274" href="#274">274</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1M_to_20x_base2_0b00000000000000000000() { runSingle(1 &lt;&lt; 20, 2, 0b00000000000000000000); }
+<a name="275" href="#275">275</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1M_to_20x_base2_0b10011100001111100000() { runSingle(1 &lt;&lt; 20, 2, 0b10011100001111100000); }
+<a name="276" href="#276">276</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1M_to_20x_base2_0b10011100001111100001() { runSingle(1 &lt;&lt; 20, 2, 0b10011100001111100001); }
+<a name="277" href="#277">277</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1M_to_20x_base2_0b11111111111111111111() { runSingle(1 &lt;&lt; 20, 2, 0b11111111111111111111); }
+<a name="278" href="#278">278</a> 			
+<a name="279" href="#279">279</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_4x_base1M_to_80x_base2_0b00000000000000000000_0b10011100001111100000_0b10011100001111100001_0b11111111111111111111() { 
+<a name="280" href="#280">280</a> 				runSingle(1 &lt;&lt; 20, 2, 0b00000000000000000000, 0b10011100001111100000, 0b10011100001111100001, 0b11111111111111111111);
+<a name="281" href="#281">281</a> 			}
+<a name="282" href="#282">282</a> 			
+<a name="283" href="#283">283</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_4x_base1M_to_80x_base2_0b10011100001111100000_0b10011100001111100001_0b11111111111111111111_0b00000000000000000000() { 
+<a name="284" href="#284">284</a> 				runSingle(1 &lt;&lt; 20, 2, 0b10011100001111100000, 0b10011100001111100001, 0b11111111111111111111, 0b00000000000000000000);
+<a name="285" href="#285">285</a> 			}
+<a name="286" href="#286">286</a> 			
+<a name="287" href="#287">287</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_4x_base1M_to_80x_base2_0b10011100001111100001_0b11111111111111111111_0b00000000000000000000_0b10011100001111100000() { 
+<a name="288" href="#288">288</a> 				runSingle(1 &lt;&lt; 20, 2, 0b10011100001111100001, 0b11111111111111111111, 0b00000000000000000000, 0b10011100001111100000);
+<a name="289" href="#289">289</a> 			}
+<a name="290" href="#290">290</a> 			
+<a name="291" href="#291">291</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_4x_base1M_to_80x_base2_0b11111111111111111111_0b00000000000000000000_0b10011100001111100000_0b10011100001111100001() { 
+<a name="292" href="#292">292</a> 				runSingle(1 &lt;&lt; 20, 2, 0b11111111111111111111, 0b00000000000000000000, 0b10011100001111100000, 0b10011100001111100001);
+<a name="293" href="#293">293</a> 			}
+<a name="294" href="#294">294</a> 			
+<a name="295" href="#295">295</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_48x_base2_to_48x_base2_010101010011001100001111101010101100110011110000() { 
+<a name="296" href="#296">296</a> 				runSingle(2, 2, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0); 
+<a name="297" href="#297">297</a> 			}
+<a name="298" href="#298">298</a> 		
+<a name="299" href="#299">299</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base16_to_4x_base2() { runMultiple(1, 16, 2); }
+<a name="300" href="#300">300</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base8_to_3x_base2()  { runMultiple(1, 8, 2); }
+<a name="301" href="#301">301</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base4_to_2x_base2()  { runMultiple(1, 4, 2); }
+<a name="302" href="#302">302</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base2_to_1x_base2()  { runMultiple(1, 2, 2); }
+<a name="303" href="#303">303</a> 		}
+<a name="304" href="#304">304</a> 	
+<a name="305" href="#305">305</a> 		<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> IntegralPowerOf2 <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticCases</a> {
+<a name="306" href="#306">306</a> 			IntegralPowerOf2(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticOp</a> op) { <strong class="jxr_keyword">super</strong>(op); }
+<a name="307" href="#307">307</a> 			
+<a name="308" href="#308">308</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base64k_to_4x_base16_0b1100001111000001()    { runSingle(1 &lt;&lt; 16, 16, 0b1100001111000001); }
+<a name="309" href="#309">309</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base256k_to_6x_base8_0b011100001101100100()  { runSingle(1 &lt;&lt; 18, 8, 0b011100001101100100); }
+<a name="310" href="#310">310</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1M_to_10x_base4_0b10011100000111110000() { runSingle(1 &lt;&lt; 20, 4, 0b10011100000111110000); }
+<a name="311" href="#311">311</a> 	
+<a name="312" href="#312">312</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base64_to_2x_base8() { runMultiple(1, 64, 8); }
+<a name="313" href="#313">313</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base16_to_2x_base4() { runMultiple(1, 16, 4); }
+<a name="314" href="#314">314</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base8_to_3x_base4()  { runMultiple(2, 8, 4); }
+<a name="315" href="#315">315</a> 			
+<a name="316" href="#316">316</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base2_to_1x_base4()  { runMultiple(2, 2,  4); }
+<a name="317" href="#317">317</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_3x_base2_to_1x_base8()  { runMultiple(3, 2,  8); }
+<a name="318" href="#318">318</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_3x_base4_to_2x_base8()  { runMultiple(3, 4,  8); }
+<a name="319" href="#319">319</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_4x_base2_to_1x_base16() { runMultiple(4, 2, 16); }
+<a name="320" href="#320">320</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base4_to_1x_base16() { runMultiple(2, 4, 16); }
+<a name="321" href="#321">321</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base8_to_1x_base64() { runMultiple(2, 8, 64); }
+<a name="322" href="#322">322</a> 	
+<a name="323" href="#323">323</a> 			
+<a name="324" href="#324">324</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base256_to_4x_base4() { runMultiple(1, 256, 4); }
+<a name="325" href="#325">325</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base64k_to_8x_base4() { runMultiple(1, 1 &lt;&lt; 16, 4); }
+<a name="326" href="#326">326</a> 	
+<a name="327" href="#327">327</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base512_to_3x_base8() { runMultiple(1, 512, 8); }
+<a name="328" href="#328">328</a> 	
+<a name="329" href="#329">329</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base256_to_2x_base16() { runMultiple(1, 256, 16); }
+<a name="330" href="#330">330</a> 			
+<a name="331" href="#331">331</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1k_to_2x_base32() { runMultiple(1, 1 &lt;&lt; 10, 1 &lt;&lt; 5); }
+<a name="332" href="#332">332</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base32k_to_3x_base32() { runMultiple(1, 1 &lt;&lt; 15, 1 &lt;&lt; 5); }
+<a name="333" href="#333">333</a> 			
+<a name="334" href="#334">334</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base4k_to_2x_base64() { runMultiple(1, 1 &lt;&lt; 12, 1 &lt;&lt; 6); }
+<a name="335" href="#335">335</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base256k_to_3x_base64() { runMultiple(1, 1 &lt;&lt; 18, 1 &lt;&lt; 6); }
+<a name="336" href="#336">336</a> 			
+<a name="337" href="#337">337</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base16k_to_2x_base128() { runMultiple(1, 1 &lt;&lt; 14, 1 &lt;&lt; 7); }
+<a name="338" href="#338">338</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base2M_to_3x_base128() { runMultiple(1, 1 &lt;&lt; 21, 1 &lt;&lt; 7); }
+<a name="339" href="#339">339</a> 			
+<a name="340" href="#340">340</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base64k_to_2x_base256() { runMultiple(1, 1 &lt;&lt; 16, 1 &lt;&lt; 8); }
+<a name="341" href="#341">341</a> 			
+<a name="342" href="#342">342</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base256k_to_2x_base512() { runMultiple(1, 1 &lt;&lt; 18, 1 &lt;&lt; 9); }
+<a name="343" href="#343">343</a> 			
+<a name="344" href="#344">344</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1M_to_2x_base1024() { runMultiple(1, 1 &lt;&lt; 20, 1 &lt;&lt; 10); }
+<a name="345" href="#345">345</a> 		}
+<a name="346" href="#346">346</a> 		
+<a name="347" href="#347">347</a> 		<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> NonIntegralPowerOf2 <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticCases</a> {
+<a name="348" href="#348">348</a> 			NonIntegralPowerOf2(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticOp</a> op) { <strong class="jxr_keyword">super</strong>(op); }
+<a name="349" href="#349">349</a> 			
+<a name="350" href="#350">350</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1000_to_3x_base10_762()         { runSingle(   1000,  10,    762); }
+<a name="351" href="#351">351</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1000000_to_3x_base100_348921()  { runSingle(1000000, 100, 348921); }
+<a name="352" href="#352">352</a> 	
+<a name="353" href="#353">353</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base100_to_2x_base10() { runMultiple(1, 100, 10); }
+<a name="354" href="#354">354</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base81_to_2x_base9()   { runMultiple(1, 81, 9); }
+<a name="355" href="#355">355</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base49_to_2x_base7()   { runMultiple(1, 49, 7); }
+<a name="356" href="#356">356</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base36_to_2x_base6()   { runMultiple(1, 36, 6); }
+<a name="357" href="#357">357</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base25_to_2x_base5()   { runMultiple(1, 25, 5); }
+<a name="358" href="#358">358</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base9_to_2x_base3()    { runMultiple(1, 9, 3); }
+<a name="359" href="#359">359</a> 			
+<a name="360" href="#360">360</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base3_to_1x_base9()    { runMultiple(2,   3,   9); }
+<a name="361" href="#361">361</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base5_to_1x_base25()   { runMultiple(2,   5,  25); }
+<a name="362" href="#362">362</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base6_to_1x_base36()   { runMultiple(2,   6,  36); }
+<a name="363" href="#363">363</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base7_to_1x_base49()   { runMultiple(2,   7,  49); }
+<a name="364" href="#364">364</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base9_to_1x_base81()   { runMultiple(2,   9,  81); }
+<a name="365" href="#365">365</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base10_to_1x_base100() { runMultiple(2,  10, 100); }
+<a name="366" href="#366">366</a> 	
+<a name="367" href="#367">367</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base1000_to_3x_base10()  { runMultiple(1, 1000, 10); }
+<a name="368" href="#368">368</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_3x_base10_to_1x_base1000()  { runMultiple(3,   10, 1000); }
+<a name="369" href="#369">369</a> 			
+<a name="370" href="#370">370</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_1x_base100_to_2x_base10_42()  { runSingle(100, 10, 42); }
+<a name="371" href="#371">371</a> 			
+<a name="372" href="#372">372</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_2x_base13_to_4x_base_5() { runMultiple(2, 13, 5); }
+<a name="373" href="#373">373</a> 			@Test <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> from_3x_base17_to_8x_base_3() { runMultiple(3, 17, 3); }
+<a name="374" href="#374">374</a> 		}
+<a name="375" href="#375">375</a> 		
+<a name="376" href="#376">376</a> 		<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> inc(<strong class="jxr_keyword">int</strong>[] digits, <strong class="jxr_keyword">int</strong> base) {
+<a name="377" href="#377">377</a> 			<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; digits.length; i++) {
+<a name="378" href="#378">378</a> 				<strong class="jxr_keyword">if</strong> (++digits[i] &lt; base) <strong class="jxr_keyword">return</strong> 0;
+<a name="379" href="#379">379</a> 				digits[i] = 0;
+<a name="380" href="#380">380</a> 			}
+<a name="381" href="#381">381</a> 			
+<a name="382" href="#382">382</a> 			<strong class="jxr_keyword">return</strong> 1;
+<a name="383" href="#383">383</a> 		}
+<a name="384" href="#384">384</a> 		
+<a name="385" href="#385">385</a> 		<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> add(<strong class="jxr_keyword">int</strong>[] digits, <strong class="jxr_keyword">int</strong> base, <strong class="jxr_keyword">int</strong> amount) {
+<a name="386" href="#386">386</a> 			<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; digits.length; i++) {
+<a name="387" href="#387">387</a> 				digits[i] += amount;
+<a name="388" href="#388">388</a> 				amount = digits[i] / base;
+<a name="389" href="#389">389</a> 				<strong class="jxr_keyword">if</strong> (amount == 0) <strong class="jxr_keyword">return</strong> 0;
+<a name="390" href="#390">390</a> 				digits[i] %= base;
+<a name="391" href="#391">391</a> 			}
+<a name="392" href="#392">392</a> 			
+<a name="393" href="#393">393</a> 			<strong class="jxr_keyword">return</strong> amount;
+<a name="394" href="#394">394</a> 		}
+<a name="395" href="#395">395</a> 	}
+<a name="396" href="#396">396</a> 
+<a name="397" href="#397">397</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticOp</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ArithmeticCodecUnitTest</a> {
+<a name="398" href="#398">398</a> 		AutomaticOp(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory) { <strong class="jxr_keyword">super</strong>(factory); }
+<a name="399" href="#399">399</a> 
+<a name="400" href="#400">400</a> 		<strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">void</strong> run(<strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException;
+<a name="401" href="#401">401</a> 	}
+<a name="402" href="#402">402</a> 	
+<a name="403" href="#403">403</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">Roundtrip</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">AutomaticOp</a> {
+<a name="404" href="#404">404</a> 		<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Operation</a> op;
+<a name="405" href="#405">405</a> 
+<a name="406" href="#406">406</a> 		Roundtrip(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory, <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Operation</a> op) {
+<a name="407" href="#407">407</a> 			<strong class="jxr_keyword">super</strong>(factory);
+<a name="408" href="#408">408</a> 			<strong class="jxr_keyword">this</strong>.op = op;
+<a name="409" href="#409">409</a> 		}
+<a name="410" href="#410">410</a> 
+<a name="411" href="#411">411</a> 		@Override <strong class="jxr_keyword">void</strong> run(<strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="412" href="#412">412</a> 			<strong class="jxr_keyword">if</strong> (externalData[externalData.length - 1] == 0)
+<a name="413" href="#413">413</a> 				<strong class="jxr_keyword">return</strong>;
+<a name="414" href="#414">414</a> 			
+<a name="415" href="#415">415</a> 			<strong class="jxr_keyword">int</strong>[] internalData = op.encode(factory, internalBase, externalBase, externalData);
+<a name="416" href="#416">416</a> 			<strong class="jxr_keyword">int</strong>[] result = op.decode(factory, internalBase, externalData.length, externalBase, internalData);
+<a name="417" href="#417">417</a> 			
+<a name="418" href="#418">418</a> 			assertThat(result, is(equalTo(externalData)));
+<a name="419" href="#419">419</a> 		}
+<a name="420" href="#420">420</a> 		
+<a name="421" href="#421">421</a> 		<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Operation</a> {
+<a name="422" href="#422">422</a> 			<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">NoUnderflow</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Operation</a> {
+<a name="423" href="#423">423</a> 				<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">NoUnderflow</a> NO_UNDERFLOW = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">NoUnderflow</a>();
+<a name="424" href="#424">424</a> 				
+<a name="425" href="#425">425</a> 				@Override <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong>[] encode(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="426" href="#426">426</a> 					IntArrayOutputStream sink = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/IntArrayOutputStream.html">IntArrayOutputStream</a>(internalDigits(internalBase, externalBase, externalData.length));
+<a name="427" href="#427">427</a> 					Encoder encoder = factory.encoder(sink, internalBase);
+<a name="428" href="#428">428</a> 					<strong class="jxr_keyword">int</strong>[] cumulativeCount = toCumulative(even(externalBase));
+<a name="429" href="#429">429</a> 					<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> d : externalData)
+<a name="430" href="#430">430</a> 						encoder.write(d, cumulativeCount);
+<a name="431" href="#431">431</a> 					encoder.flush();
+<a name="432" href="#432">432</a> 					<strong class="jxr_keyword">return</strong> sink.toIntArray();
+<a name="433" href="#433">433</a> 				}
+<a name="434" href="#434">434</a> 
+<a name="435" href="#435">435</a> 				@Override <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong>[] decode(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalDigits, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] internalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="436" href="#436">436</a> 					<strong class="jxr_keyword">int</strong>[] externalData = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[externalDigits];
+<a name="437" href="#437">437</a> 					IntArrayInputStream source = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/IntArrayInputStream.html">IntArrayInputStream</a>(internalData);
+<a name="438" href="#438">438</a> 					Decoder decoder = factory.decoder(source, internalBase);
+<a name="439" href="#439">439</a> 					<strong class="jxr_keyword">int</strong>[] cumulativeCount = toCumulative(even(externalBase));
+<a name="440" href="#440">440</a> 					<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; externalData.length; i++) {
+<a name="441" href="#441">441</a> 						externalData[i] = decoder.read(cumulativeCount);
+<a name="442" href="#442">442</a> 					}
+<a name="443" href="#443">443</a> 					<strong class="jxr_keyword">return</strong> externalData;
+<a name="444" href="#444">444</a> 				}
+<a name="445" href="#445">445</a> 				
+<a name="446" href="#446">446</a> 				<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> internalDigits(<strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong> externalDigits) {
+<a name="447" href="#447">447</a> 					<strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) Math.ceil(externalDigits*Math.log(externalBase)/Math.log(internalBase));
+<a name="448" href="#448">448</a> 				}
+<a name="449" href="#449">449</a> 			}
+<a name="450" href="#450">450</a> 			
+<a name="451" href="#451">451</a> 			<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">Underflow</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Operation</a> {
+<a name="452" href="#452">452</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong>[] CUMULATIVE_COUNT_RESOLVE = toCumulative(1, 1);
+<a name="453" href="#453">453</a> 				
+<a name="454" href="#454">454</a> 				<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> enum <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Resolve</a> {
+<a name="455" href="#455">455</a> 					LOW(0), HIGH(1);
+<a name="456" href="#456">456</a> 					
+<a name="457" href="#457">457</a> 					<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> resolve;
+<a name="458" href="#458">458</a> 
+<a name="459" href="#459">459</a> 					<strong class="jxr_keyword">private</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Resolve</a>(<strong class="jxr_keyword">int</strong> resolve) { <strong class="jxr_keyword">this</strong>.resolve = resolve; }
+<a name="460" href="#460">460</a> 				}
+<a name="461" href="#461">461</a> 
+<a name="462" href="#462">462</a> 				<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> enum <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ForceUnderflow</a> {
+<a name="463" href="#463">463</a> 					MILD(1, 1000),
+<a name="464" href="#464">464</a> 					SEVERE(29, 1L &lt;&lt; 8),
+<a name="465" href="#465">465</a> 					EXTREME(29, 1L &lt;&lt; 32),
+<a name="466" href="#466">466</a> 					;
+<a name="467" href="#467">467</a> 					
+<a name="468" href="#468">468</a> 					<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> underflowLength;
+<a name="469" href="#469">469</a> 					<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong>[] underflowCumulativeCount;
+<a name="470" href="#470">470</a> 					
+<a name="471" href="#471">471</a> 					<strong class="jxr_keyword">private</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ForceUnderflow</a>(<strong class="jxr_keyword">int</strong> underflowScale, <strong class="jxr_keyword">long</strong> underflowLength) {
+<a name="472" href="#472">472</a> 						<strong class="jxr_keyword">this</strong>.underflowLength = underflowLength;
+<a name="473" href="#473">473</a> 						<strong class="jxr_keyword">this</strong>.underflowCumulativeCount = toCumulative((1 &lt;&lt; underflowScale) - 1, 2, (1 &lt;&lt; underflowScale) - 1);
+<a name="474" href="#474">474</a> 					}
+<a name="475" href="#475">475</a> 					
+<a name="476" href="#476">476</a> 					<strong class="jxr_keyword">public</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">Underflow</a> resolve(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Resolve</a> resolve) { <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Underflow(<strong class="jxr_keyword">this</strong>, resolve); }
+<a name="477" href="#477">477</a> 				}
+<a name="478" href="#478">478</a> 				
+<a name="479" href="#479">479</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ForceUnderflow</a> underflow;
+<a name="480" href="#480">480</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Resolve</a> resolve;
+<a name="481" href="#481">481</a> 				
+<a name="482" href="#482">482</a> 				<strong class="jxr_keyword">private</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/NonIntegralPowerOf2BaseArithmeticCodecUnitTest.html">Underflow</a>(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">ForceUnderflow</a> underflow, <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecUnitTest.html">Resolve</a> resolve) {
+<a name="483" href="#483">483</a> 					<strong class="jxr_keyword">this</strong>.underflow = underflow;
+<a name="484" href="#484">484</a> 					<strong class="jxr_keyword">this</strong>.resolve = resolve;
+<a name="485" href="#485">485</a> 				}
+<a name="486" href="#486">486</a> 				
+<a name="487" href="#487">487</a> 				@Override <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong>[] encode(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="488" href="#488">488</a> 					IntArrayOutputStream sink = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/IntArrayOutputStream.html">IntArrayOutputStream</a>(internalDigits(internalBase, externalBase, externalData.length));
+<a name="489" href="#489">489</a> 					Encoder encoder = factory.encoder(sink, internalBase);
+<a name="490" href="#490">490</a> 
+<a name="491" href="#491">491</a> 					encodeHeadPrefix(encoder, externalBase, externalData);
+<a name="492" href="#492">492</a> 					encodeHeadLastSymbol(encoder, externalBase, externalData);
+<a name="493" href="#493">493</a> 					encodeTailPrefix(encoder);
+<a name="494" href="#494">494</a> 					encodeTailLastSymbol(encoder);
+<a name="495" href="#495">495</a> 					
+<a name="496" href="#496">496</a> 					encoder.flush();
+<a name="497" href="#497">497</a> 					<strong class="jxr_keyword">return</strong> sink.toIntArray();
+<a name="498" href="#498">498</a> 				}
+<a name="499" href="#499">499</a> 
+<a name="500" href="#500">500</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeHeadPrefix(Encoder encoder, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="501" href="#501">501</a> 					<strong class="jxr_keyword">int</strong>[] cumulativeCount = toCumulative(even(externalBase));
+<a name="502" href="#502">502</a> 					<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; externalData.length - 1; i++)
+<a name="503" href="#503">503</a> 						encoder.write(externalData[i], cumulativeCount);
+<a name="504" href="#504">504</a> 				}
+<a name="505" href="#505">505</a> 
+<a name="506" href="#506">506</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeHeadLastSymbol(Encoder encoder, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="507" href="#507">507</a> 					<strong class="jxr_keyword">int</strong>[] cumulativeSplitCount = splitCountOver(externalBase);
+<a name="508" href="#508">508</a> 					encoder.write(externalData[externalData.length - 1], cumulativeSplitCount);
+<a name="509" href="#509">509</a> 				}
+<a name="510" href="#510">510</a> 
+<a name="511" href="#511">511</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeTailPrefix(Encoder encoder) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="512" href="#512">512</a> 					<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">long</strong> l = 0; l &lt; underflow.underflowLength; l++)
+<a name="513" href="#513">513</a> 						encoder.write(1, underflow.underflowCumulativeCount);
+<a name="514" href="#514">514</a> 				}
+<a name="515" href="#515">515</a> 
+<a name="516" href="#516">516</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeTailLastSymbol(Encoder encoder) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="517" href="#517">517</a> 					encoder.write(resolve.resolve, CUMULATIVE_COUNT_RESOLVE);
+<a name="518" href="#518">518</a> 				}
+<a name="519" href="#519">519</a> 
+<a name="520" href="#520">520</a> 				@Override <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong>[] decode(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalDigits, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] internalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="521" href="#521">521</a> 					<strong class="jxr_keyword">int</strong>[] externalData = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[externalDigits];
+<a name="522" href="#522">522</a> 					
+<a name="523" href="#523">523</a> 					IntArrayInputStream source = <strong class="jxr_keyword">new</strong> <a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/IntArrayInputStream.html">IntArrayInputStream</a>(internalData);
+<a name="524" href="#524">524</a> 					Decoder decoder = factory.decoder(source, internalBase);
+<a name="525" href="#525">525</a> 					
+<a name="526" href="#526">526</a> 					decodeHeadPrefix(decoder, externalBase, externalData);
+<a name="527" href="#527">527</a> 					decodeHeadLastSymbol(decoder, externalBase, externalData);
+<a name="528" href="#528">528</a> 					decodeTailPrefix(decoder);
+<a name="529" href="#529">529</a> 					decodeTailLastSymbol(decoder);
+<a name="530" href="#530">530</a> 					
+<a name="531" href="#531">531</a> 					<strong class="jxr_keyword">return</strong> externalData;
+<a name="532" href="#532">532</a> 				}
+<a name="533" href="#533">533</a> 
+<a name="534" href="#534">534</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> decodeHeadPrefix(Decoder decoder, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="535" href="#535">535</a> 					<strong class="jxr_keyword">int</strong>[] cumulativeCount = toCumulative(even(externalBase));
+<a name="536" href="#536">536</a> 					<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; externalData.length - 1; i++)
+<a name="537" href="#537">537</a> 						externalData[i] = decoder.read(cumulativeCount);
+<a name="538" href="#538">538</a> 				}
+<a name="539" href="#539">539</a> 
+<a name="540" href="#540">540</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> decodeHeadLastSymbol(Decoder decoder, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="541" href="#541">541</a> 					<strong class="jxr_keyword">int</strong>[] cumulativeSplitCount = splitCountOver(externalBase);
+<a name="542" href="#542">542</a> 					externalData[externalData.length - 1] = decoder.read(cumulativeSplitCount);
+<a name="543" href="#543">543</a> 				}
+<a name="544" href="#544">544</a> 
+<a name="545" href="#545">545</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> decodeTailPrefix(Decoder decoder) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="546" href="#546">546</a> 					<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">long</strong> l = 0; l &lt; underflow.underflowLength; l++)
+<a name="547" href="#547">547</a> 						assertThat(decoder.read(underflow.underflowCumulativeCount), is(equalTo(1)));
+<a name="548" href="#548">548</a> 				}
+<a name="549" href="#549">549</a> 
+<a name="550" href="#550">550</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> decodeTailLastSymbol(Decoder decoder) <strong class="jxr_keyword">throws</strong> IOException {
+<a name="551" href="#551">551</a> 					assertThat(decoder.read(CUMULATIVE_COUNT_RESOLVE), is(equalTo(resolve.resolve)));
+<a name="552" href="#552">552</a> 				}
+<a name="553" href="#553">553</a> 				
+<a name="554" href="#554">554</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong>[] splitCountOver(<strong class="jxr_keyword">int</strong> base) {
+<a name="555" href="#555">555</a> 					<strong class="jxr_keyword">int</strong>[] count = even(base + 1, 2);
+<a name="556" href="#556">556</a> 					count[0] = count[count.length - 1] = 1;
+<a name="557" href="#557">557</a> 					<strong class="jxr_keyword">return</strong> toCumulative(count);
+<a name="558" href="#558">558</a> 				}
+<a name="559" href="#559">559</a> 				
+<a name="560" href="#560">560</a> 				<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> internalDigits(<strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong> externalDigits) {
+<a name="561" href="#561">561</a> 					<em class="jxr_comment">// https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition</em>
+<a name="562" href="#562">562</a> 					
+<a name="563" href="#563">563</a> 					<strong class="jxr_keyword">double</strong> digits = 0;
+<a name="564" href="#564">564</a> 					
+<a name="565" href="#565">565</a> 					<em class="jxr_comment">// head prefix</em>
+<a name="566" href="#566">566</a> 					digits += (externalDigits - 1)*(Math.log(externalBase));
+<a name="567" href="#567">567</a> 					<em class="jxr_comment">// head last symbol</em>
+<a name="568" href="#568">568</a> 					digits += 1*(Math.log(externalBase+1));
+<a name="569" href="#569">569</a> 					<em class="jxr_comment">// tail prefix</em>
+<a name="570" href="#570">570</a> 					<strong class="jxr_keyword">int</strong> p_1 = underflow.underflowCumulativeCount[2]/(underflow.underflowCumulativeCount[1] - underflow.underflowCumulativeCount[0]);
+<a name="571" href="#571">571</a> 					digits += underflow.underflowLength*(Math.log(p_1));
+<a name="572" href="#572">572</a> 					<em class="jxr_comment">// tail last symbol</em>
+<a name="573" href="#573">573</a> 					digits += 1*(Math.log(2));
+<a name="574" href="#574">574</a> 					
+<a name="575" href="#575">575</a> 					digits /= Math.log(internalBase);
+<a name="576" href="#576">576</a> 					
+<a name="577" href="#577">577</a> 					<strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) Math.ceil(digits);
+<a name="578" href="#578">578</a> 				}
+<a name="579" href="#579">579</a> 			}
+<a name="580" href="#580">580</a> 			
+<a name="581" href="#581">581</a> 			<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">int</strong>[] encode(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] externalData) <strong class="jxr_keyword">throws</strong> IOException;
+<a name="582" href="#582">582</a> 			<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">int</strong>[] decode(<a href="../../../../../br/eti/rslemos/bitsmagic/arithmetic/ArithmeticCodecFactory.html">ArithmeticCodecFactory</a> factory, <strong class="jxr_keyword">int</strong> internalBase, <strong class="jxr_keyword">int</strong> externalDigits, <strong class="jxr_keyword">int</strong> externalBase, <strong class="jxr_keyword">int</strong>[] internalData) <strong class="jxr_keyword">throws</strong> IOException;
+<a name="583" href="#583">583</a> 		}
+<a name="584" href="#584">584</a> 	}
+<a name="585" href="#585">585</a> }
+</pre>
+<hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
+</html>
+

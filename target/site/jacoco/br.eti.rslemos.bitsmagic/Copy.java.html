@@ -1,0 +1,2114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Copy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bitsmagic</a> &gt; <a href="index.source.html" class="el_package">br.eti.rslemos.bitsmagic</a> &gt; <span class="el_source">Copy.java</span></div><h1>Copy.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * BEGIN COPYRIGHT NOTICE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2016 Rodrigo Lemos
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * END COPYRIGHT NOTICE
+ *******************************************************************************/
+package br.eti.rslemos.bitsmagic;
+
+import static br.eti.rslemos.bitsmagic.IntRef.byRef;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.INT_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.INT_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_LINES;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
+
+/**
+ * This class consists exclusively of static methods that copy bits over arrays 
+ * of integral primitive type.
+ * 
+ * &lt;p&gt;For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * &lt;/p&gt;
+ * &lt;p&gt;The general syntax for methods in this class conforms to that of 
+ * {@link System#arraycopy}.
+ * &lt;/p&gt;
+ * &lt;p&gt;For {@link #copyFrom} methods, touching any offlimits bits throws 
+ * {@code ArrayIndexOutOfBoundsException}, destination being left unchanged.
+ * &lt;/p&gt;
+ * &lt;p&gt;For {@link #safeCopyFrom} methods, offlimits bits are hardwired to 0: 
+ * they always read as 0, and any value written to them is discarded. Those 
+ * methods should never throw {@code ArrayIndexOutOfBoundsException}.
+ * &lt;/p&gt;
+ * &lt;p&gt;In case of using the same underlying storage for both source and 
+ * destination, all methods of this class behave as if copying the bits first 
+ * to a temporary location, then writing them to the destination.
+ * &lt;/p&gt;
+ * &lt;p&gt;{@code NullPointerException} is thrown if either given array is 
+ * {@code null}.
+ * &lt;/p&gt;
+ * &lt;p&gt;All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * &lt;/p&gt;
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ */
+public class Copy {
+<span class="nc" id="L88">	private Copy() { /* non-instantiable */ }</span>
+
+	static boolean checkSafeIndices(int srcPos, int destPos, int length, int maxSrc, int maxDest) {
+<span class="fc bfc" id="L91" title="All 4 branches covered.">		if (srcPos &lt; 0 || srcPos &gt; maxSrc)</span>
+<span class="fc" id="L92">			throw new ArrayIndexOutOfBoundsException(srcPos);</span>
+		
+<span class="pc bpc" id="L94" title="1 of 4 branches missed.">		if (srcPos + length &lt; 0 || srcPos + length &gt; maxSrc)</span>
+<span class="fc" id="L95">			throw new ArrayIndexOutOfBoundsException(srcPos + length);</span>
+		
+<span class="fc bfc" id="L97" title="All 4 branches covered.">		if (destPos &lt; 0 || destPos &gt; maxDest)</span>
+<span class="fc" id="L98">			throw new ArrayIndexOutOfBoundsException(destPos);</span>
+		
+<span class="pc bpc" id="L100" title="1 of 4 branches missed.">		if (destPos + length &lt; 0 || destPos + length &gt; maxDest)</span>
+<span class="fc" id="L101">			throw new ArrayIndexOutOfBoundsException(destPos + length);</span>
+		
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">		if (length &lt; 0)</span>
+<span class="nc" id="L104">			throw new ArrayIndexOutOfBoundsException(length);</span>
+		
+<span class="fc bfc" id="L106" title="All 2 branches covered.">		return length &gt; 0;</span>
+	}
+	
+	private static boolean prepareSafeCopy(IntRef srcPos, IntRef destPos, IntRef length, IntRef fillLow, IntRef fillHigh, final int maxDest, final int maxSource) {
+<span class="fc bfc" id="L110" title="All 2 branches covered.">		if (length.i == 0)</span>
+<span class="fc" id="L111">			return false;</span>
+		
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">		if (length.i &lt; 0)</span>
+<span class="nc" id="L114">			throw new IllegalArgumentException();</span>
+		
+<span class="fc bfc" id="L116" title="All 4 branches covered.">		if (!(destPos.i &lt; maxDest &amp;&amp; destPos.i + length.i &gt; 0))</span>
+<span class="fc" id="L117">			return false;</span>
+
+		// fix destination starting point out of range 
+<span class="fc bfc" id="L120" title="All 2 branches covered.">		if (destPos.i &lt; 0) {</span>
+<span class="fc" id="L121">			length.i -= -destPos.i;</span>
+<span class="fc" id="L122">			srcPos.i += -destPos.i;</span>
+<span class="fc" id="L123">			destPos.i += -destPos.i;</span>
+		}
+		
+		// fix destination ending point out of range
+<span class="fc bfc" id="L127" title="All 2 branches covered.">		if (destPos.i + length.i &gt; maxDest) {</span>
+<span class="fc" id="L128">			length.i -= (destPos.i + length.i) - maxDest;</span>
+		}
+		
+<span class="fc bfc" id="L131" title="All 4 branches covered.">		if (!(srcPos.i &lt; maxSource &amp;&amp; srcPos.i + length.i &gt; 0)) {</span>
+<span class="fc" id="L132">			fillHigh.i = length.i;</span>
+<span class="fc" id="L133">			length.i = 0;</span>
+<span class="fc" id="L134">			srcPos.i = 0;</span>
+			
+<span class="fc" id="L136">			return true;</span>
+		}
+		
+		// fix source starting point out of range
+<span class="fc bfc" id="L140" title="All 2 branches covered.">		if (srcPos.i &lt; 0) {</span>
+<span class="fc" id="L141">			fillLow.i = -srcPos.i;</span>
+			
+<span class="fc" id="L143">			length.i -= -srcPos.i;</span>
+<span class="fc" id="L144">			destPos.i += -srcPos.i;</span>
+<span class="fc" id="L145">			srcPos.i += -srcPos.i;</span>
+		}
+		
+		// fix source ending point out of range
+<span class="fc bfc" id="L149" title="All 2 branches covered.">		if (srcPos.i + length.i &gt; maxSource) {</span>
+<span class="fc" id="L150">			fillHigh.i = (srcPos.i + length.i) - maxSource;</span>
+<span class="fc" id="L151">			length.i -= (srcPos.i + length.i) - maxSource;</span>
+		}
+		
+<span class="fc" id="L154">		return true;</span>
+	}
+
+	/********** byte[] **********/
+	
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * &lt;p&gt;Offlimits bits are read as 0, and discarded when written to.
+	 * &lt;/p&gt;
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void safeCopyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+<span class="fc" id="L181">		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));</span>
+<span class="fc" id="L182">	}</span>
+
+	private static void safeCopyFrom0(byte[] source, IntRef srcPos, byte[] dest, IntRef destPos, IntRef length) {
+<span class="fc" id="L185">		IntRef fillLow = byRef(0);</span>
+<span class="fc" id="L186">		IntRef fillHigh = byRef(0);</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length &lt;&lt; BYTE_ADDRESS_LINES, source.length &lt;&lt; BYTE_ADDRESS_LINES))</span>
+<span class="fc" id="L188">			return;</span>
+		
+<span class="fc" id="L190">		copyFrom(source, srcPos.i, dest, destPos.i, length.i);</span>
+<span class="fc" id="L191">		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);</span>
+<span class="fc" id="L192">		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);</span>
+<span class="fc" id="L193">	}</span>
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+<span class="fc bfc" id="L214" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; BYTE_ADDRESS_LINES, dest.length &lt;&lt; BYTE_ADDRESS_LINES))</span>
+<span class="fc" id="L215">			return;</span>
+		
+<span class="fc" id="L217">		int[] sIndex  = {srcPos  &gt;&gt; BYTE_ADDRESS_LINES, (srcPos  + length) &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L218">		int[] sOffset = {srcPos  &amp; BYTE_ADDRESS_MASK,   (srcPos  + length) &amp; BYTE_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L220">		int[] dIndex  = {destPos &gt;&gt; BYTE_ADDRESS_LINES, (destPos + length) &gt;&gt; BYTE_ADDRESS_LINES};</span>
+<span class="fc" id="L221">		int[] dOffset = {destPos &amp; BYTE_ADDRESS_MASK,   (destPos + length) &amp; BYTE_ADDRESS_MASK  };</span>
+
+<span class="fc bfc" id="L223" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, copy middle unchanged
+<span class="fc" id="L225">			copyParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L227">			copyHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L229">			copyLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L230">	}</span>
+
+	private static void copyParallelFrom0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L233" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword copy within word and neither offset is zero
+			
+<span class="fc" id="L236">			final int LOWEST_BITS_FROM = ~(BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L237">			final int HIGHEST_BITS_TO = BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L239">			byte save = (byte) (source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO));</span>
+<span class="fc" id="L240">			dest[dIndex[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+<span class="fc" id="L241">			dest[dIndex[0]] |= save;</span>
+
+<span class="fc" id="L243">			return;</span>
+		}
+		
+<span class="fc bfc" id="L246" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L247">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L249">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L251">			copyParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L252">	}</span>
+
+	private static void copyParallelFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		byte save;
+		
+<span class="fc bfc" id="L258" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L261">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L262">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L264">			save = (byte) (source[sIndex[0]] &amp; HIGHEST_BITS);</span>
+<span class="fc" id="L265">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L266">			dest[dIndex[0]] |= save;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L269">			sIndex[0]++;</span>
+<span class="fc" id="L270">			dIndex[0]++;</span>
+		}
+
+<span class="fc bfc" id="L273" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L275">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L277" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L279">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L280">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L282">			save = (byte) (source[sIndex[1]] &amp; LOWEST_BITS);</span>
+<span class="fc" id="L283">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L284">			dest[dIndex[1]] |= save;</span>
+		}
+<span class="fc" id="L286">	}</span>
+
+	private static void copyParallelFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		byte save;
+		
+<span class="fc bfc" id="L292" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L294">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L295">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L297">			save = (byte) (source[sIndex[1]] &amp; LOWEST_BITS);</span>
+<span class="fc" id="L298">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L299">			dest[dIndex[1]] |= save;</span>
+			
+		}
+
+<span class="fc bfc" id="L303" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't copy the first index if partial
+<span class="fc" id="L305">			dIndex[0]++;</span>
+<span class="fc" id="L306">			sIndex[0]++;</span>
+		}
+		
+<span class="fc bfc" id="L309" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L311">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L313" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L315">			dIndex[0]--;</span>
+<span class="fc" id="L316">			sIndex[0]--;</span>
+			
+<span class="fc" id="L318">			final int HIGHEST_BITS = BYTE_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L319">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L321">			save = (byte) (source[sIndex[0]] &amp; HIGHEST_BITS);</span>
+<span class="fc" id="L322">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L323">			dest[dIndex[0]] |= save;</span>
+		}
+<span class="fc" id="L325">	}</span>
+
+	private static void copyHigherFrom0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L328" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L329">			int d = dIndex[0];</span>
+<span class="fc" id="L330">			int s = sIndex[0];</span>
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L334">			byte save = (byte) ((source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(BYTE_DATA_MASK &lt;&lt; dOffset[1]) &amp; BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L335">			dest[d] &amp;= BYTE_DATA_MASK &lt;&lt; dOffset[1] | ~(BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L336">			dest[d] |= save;</span>
+<span class="fc" id="L337">			return;</span>
+		}
+		
+<span class="fc bfc" id="L340" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L341">			copyHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L342" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L343">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L345">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L346">	}</span>
+	
+	private static void copyHigherFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		byte save;
+		
+<span class="fc" id="L352">		int d = dIndex[0];</span>
+<span class="fc" id="L353">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L355">		save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L356">		dest[d] &amp;= ~(BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L357">		dest[d] |= save; </span>
+
+<span class="fc bfc" id="L359" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L360">			save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L361">			dest[d] &amp;= ~(BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L362">			dest[d] |= save;</span>
+
+<span class="fc" id="L364">			++s;</span>
+
+<span class="fc" id="L366">			save = (byte) (source[s] &lt;&lt; dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L367">			dest[d] &amp;= BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L368">			dest[d] |= save;</span>
+		}
+
+<span class="fc bfc" id="L371" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L372" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L374">				save = (byte) ((source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L375">				dest[d] &amp;= BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L376">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L378">				save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L379">				dest[d] &amp;= ~(BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L380">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L382" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L383">					s++;</span>
+					
+<span class="fc" id="L385">					save = (byte) ((source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L386">					dest[d] &amp;= BYTE_DATA_MASK &lt;&lt; dOffset[1] | BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L387">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L391">	}</span>
+
+	private static void copyHigherFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		byte save;
+		
+<span class="fc" id="L397">		int d = dIndex[1];</span>
+<span class="fc" id="L398">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L400" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L401" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L402">				save = (byte) ((source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L403">				dest[d] &amp;= BYTE_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L404">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L406" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L407">					save = (byte) ((source[s] &amp; BYTE_DATA_MASK &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L408">					dest[d] &amp;= BYTE_DATA_MASK &lt;&lt; dOffset[1] | BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L409">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L412">				s--;</span>
+				
+<span class="fc" id="L414">				save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L415">				dest[d] &amp;= ~(BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L416">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L420" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L421">			save = (byte) (source[s] &lt;&lt; dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L422">			dest[d] &amp;= BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L423">			dest[d] |= save;</span>
+
+<span class="fc" id="L425">			--s;</span>
+
+<span class="fc" id="L427">			save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L428">			dest[d] &amp;= ~(BYTE_DATA_MASK &gt;&gt;&gt; BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L429">			dest[d] |= save;</span>
+		}
+
+<span class="fc" id="L432">		save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L433">		dest[d] &amp;= ~(BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L434">		dest[d] |= save; </span>
+<span class="fc" id="L435">	}</span>
+	
+	private static void copyLowerFrom0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L438" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L439">			int d = dIndex[0];</span>
+<span class="fc" id="L440">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L445">			byte save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(BYTE_DATA_MASK &lt;&lt; dOffset[1]) &amp; BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L446">			dest[d] &amp;= BYTE_DATA_MASK &lt;&lt; dOffset[1] | ~(BYTE_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L447">			dest[d] |= save;</span>
+<span class="fc" id="L448">			return;</span>
+		}
+		
+<span class="fc bfc" id="L451" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L452">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L453" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L454">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L456">			copyLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L457">	}</span>
+	
+	private static void copyLowerFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		byte save;
+		
+<span class="fc" id="L463">		int d = dIndex[0];</span>
+<span class="fc" id="L464">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L466">		save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L467">		dest[d] &amp;= ~((BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L468">		dest[d] |= save;</span>
+
+<span class="fc bfc" id="L470" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L471">			save = (byte) (source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L472">			dest[d] &amp;= BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L473">			dest[d] |= save;</span>
+
+<span class="fc" id="L475">			++d;</span>
+
+<span class="fc" id="L477">			save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L478">			dest[d] &amp;= ~(BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L479">			dest[d] |= save;</span>
+		}
+		
+<span class="fc bfc" id="L482" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L483" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L485">				save = (byte) ((source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L486">				dest[d] &amp;= ~(~(BYTE_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L487">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L489">				save = (byte) (source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L490">				dest[d] &amp;= BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L491">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L493" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L494">					d++;</span>
+					
+<span class="fc" id="L496">					save = (byte) ((source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L497">					dest[d] &amp;= ~(~(BYTE_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L498">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L502">	}</span>
+
+	private static void copyLowerFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		byte save;
+		
+<span class="fc" id="L508">		int d = dIndex[1];</span>
+<span class="fc" id="L509">		int s = sIndex[1];</span>
+
+<span class="fc bfc" id="L511" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L512" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L513">				save = (byte) ((source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L514">				dest[d] &amp;= ~(~(BYTE_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L515">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L517" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L518">					save = (byte) ((source[s] &amp; ~(BYTE_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L519">					dest[d] &amp;= ~(~(BYTE_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L520">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L523">				d--;</span>
+				
+<span class="fc" id="L525">				save = (byte) (source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L526">				dest[d] &amp;= BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L527">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L531" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L532">			save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L533">			dest[d] &amp;= ~(BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L534">			dest[d] |= save;</span>
+
+<span class="fc" id="L536">			--d;</span>
+
+<span class="fc" id="L538">			save = (byte) (source[s] &lt;&lt; BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L539">			dest[d] &amp;= BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L540">			dest[d] |= save;</span>
+		}
+		
+<span class="fc" id="L543">		save = (byte) ((source[s] &amp; BYTE_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L544">		dest[d] &amp;= ~((BYTE_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L545">		dest[d] |= save;</span>
+<span class="fc" id="L546">	}</span>
+
+	/********** char[] **********/
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * &lt;p&gt;Offlimits bits are read as 0, and discarded when written to.
+	 * &lt;/p&gt;
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void safeCopyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc" id="L572">		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));</span>
+<span class="fc" id="L573">	}</span>
+
+	private static void safeCopyFrom0(char[] source, IntRef srcPos, char[] dest, IntRef destPos, IntRef length) {
+<span class="fc" id="L576">		IntRef fillLow = byRef(0);</span>
+<span class="fc" id="L577">		IntRef fillHigh = byRef(0);</span>
+<span class="fc bfc" id="L578" title="All 2 branches covered.">		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length &lt;&lt; CHAR_ADDRESS_LINES, source.length &lt;&lt; CHAR_ADDRESS_LINES))</span>
+<span class="fc" id="L579">			return;</span>
+		
+<span class="fc" id="L581">		copyFrom(source, srcPos.i, dest, destPos.i, length.i);</span>
+<span class="fc" id="L582">		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);</span>
+<span class="fc" id="L583">		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);</span>
+<span class="fc" id="L584">	}</span>
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+<span class="fc bfc" id="L605" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; CHAR_ADDRESS_LINES, dest.length &lt;&lt; CHAR_ADDRESS_LINES))</span>
+<span class="fc" id="L606">			return;</span>
+		
+<span class="fc" id="L608">		int[] sIndex  = {srcPos  &gt;&gt; CHAR_ADDRESS_LINES, (srcPos  + length) &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L609">		int[] sOffset = {srcPos  &amp; CHAR_ADDRESS_MASK,   (srcPos  + length) &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L611">		int[] dIndex  = {destPos &gt;&gt; CHAR_ADDRESS_LINES, (destPos + length) &gt;&gt; CHAR_ADDRESS_LINES};</span>
+<span class="fc" id="L612">		int[] dOffset = {destPos &amp; CHAR_ADDRESS_MASK,   (destPos + length) &amp; CHAR_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L614" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, copy middle unchanged
+<span class="fc" id="L616">			copyParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L617" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L618">			copyHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L620">			copyLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L621">	}</span>
+
+	private static void copyParallelFrom0(char[] source, char[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L624" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword copy within word and neither offset is zero
+			
+<span class="fc" id="L627">			final int LOWEST_BITS_FROM = ~(CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L628">			final int HIGHEST_BITS_TO = CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L630">			char save = (char) (source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO));</span>
+<span class="fc" id="L631">			dest[dIndex[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+<span class="fc" id="L632">			dest[dIndex[0]] |= save;</span>
+
+<span class="fc" id="L634">			return;</span>
+		}
+		
+<span class="fc bfc" id="L637" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L638">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L639" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L640">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L642">			copyParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L643">	}</span>
+
+	private static void copyParallelFromForwards0(char[] source, char[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		char save;
+		
+<span class="fc bfc" id="L649" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L652">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L653">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L655">			save = (char) (source[sIndex[0]] &amp; HIGHEST_BITS);</span>
+<span class="fc" id="L656">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L657">			dest[dIndex[0]] |= save;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L660">			sIndex[0]++;</span>
+<span class="fc" id="L661">			dIndex[0]++;</span>
+		}
+
+<span class="fc bfc" id="L664" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L666">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L668" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L670">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L671">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L673">			save = (char) (source[sIndex[1]] &amp; LOWEST_BITS);</span>
+<span class="fc" id="L674">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L675">			dest[dIndex[1]] |= save;</span>
+		}
+<span class="fc" id="L677">	}</span>
+
+	private static void copyParallelFromBackwards0(char[] source, char[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		char save;
+		
+<span class="fc bfc" id="L683" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L685">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L686">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L688">			save = (char) (source[sIndex[1]] &amp; LOWEST_BITS);</span>
+<span class="fc" id="L689">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L690">			dest[dIndex[1]] |= save;</span>
+		}
+		
+<span class="fc bfc" id="L693" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't copy the first index if partial
+<span class="fc" id="L695">			dIndex[0]++;</span>
+<span class="fc" id="L696">			sIndex[0]++;</span>
+		}
+		
+<span class="fc bfc" id="L699" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L701">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L703" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L705">			sIndex[0]--;</span>
+<span class="fc" id="L706">			dIndex[0]--;</span>
+			
+<span class="fc" id="L708">			final int HIGHEST_BITS = CHAR_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L709">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L711">			save = (char) (source[sIndex[0]] &amp; HIGHEST_BITS);</span>
+<span class="fc" id="L712">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L713">			dest[dIndex[0]] |= save;</span>
+		}
+
+<span class="fc" id="L716">	}</span>
+
+	private static void copyHigherFrom0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L719" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L720">			int d = dIndex[0];</span>
+<span class="fc" id="L721">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L726">			char save = (char) ((source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(CHAR_DATA_MASK &lt;&lt; dOffset[1]) &amp; CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L727">			dest[d] &amp;= CHAR_DATA_MASK &lt;&lt; dOffset[1] | ~(CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L728">			dest[d] |= save;</span>
+<span class="fc" id="L729">			return;</span>
+		}
+		
+<span class="fc bfc" id="L732" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L733">			copyHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L734" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L735">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L737">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L738">	}</span>
+
+	private static void copyHigherFromForwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		char save;
+		
+<span class="fc" id="L744">		int d = dIndex[0];</span>
+<span class="fc" id="L745">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L747">		save = (char) (source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L748">		dest[d] &amp;= ~(CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L749">		dest[d] |= save; </span>
+
+<span class="fc bfc" id="L751" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L752">			save = (char) (source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L753">			dest[d] &amp;= ~(CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L754">			dest[d] |= save;</span>
+
+<span class="fc" id="L756">			++s;</span>
+
+<span class="fc" id="L758">			save = (char) (source[s] &lt;&lt; dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L759">			dest[d] &amp;= CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L760">			dest[d] |= save;</span>
+		}
+
+<span class="fc bfc" id="L763" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L764" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L766">				save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L767">				dest[d] &amp;= CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L768">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L770">				save = (char) (source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L771">				dest[d] &amp;= ~(CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L772">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L774" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L775">					s++;</span>
+					
+<span class="fc" id="L777">					save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L778">					dest[d] &amp;= CHAR_DATA_MASK &lt;&lt; dOffset[1] | CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L779">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L783">	}</span>
+
+	private static void copyHigherFromBackwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		char save;
+		
+<span class="fc" id="L789">		int d = dIndex[1];</span>
+<span class="fc" id="L790">		int s = sIndex[1];</span>
+
+<span class="fc bfc" id="L792" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L793" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L794">				save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L795">				dest[d] &amp;= CHAR_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L796">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L798" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L799">					save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L800">					dest[d] &amp;= CHAR_DATA_MASK &lt;&lt; dOffset[1] | CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L801">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L804">				s--;</span>
+				
+<span class="fc" id="L806">				save = (char) (source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L807">				dest[d] &amp;= ~(CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L808">				dest[d] |= save;</span>
+			}
+		}
+		
+<span class="fc bfc" id="L812" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L813">			save = (char) (source[s] &lt;&lt; dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L814">			dest[d] &amp;= CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L815">			dest[d] |= save;</span>
+
+<span class="fc" id="L817">			--s;</span>
+
+<span class="fc" id="L819">			save = (char) (source[s] &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L820">			dest[d] &amp;= ~(CHAR_DATA_MASK &gt;&gt;&gt; CHAR_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L821">			dest[d] |= save;</span>
+		}
+
+<span class="fc" id="L824">		save = (char) (source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L825">		dest[d] &amp;= ~(CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L826">		dest[d] |= save; </span>
+<span class="fc" id="L827">	}</span>
+
+	private static void copyLowerFrom0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L830" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L831">			int d = dIndex[0];</span>
+<span class="fc" id="L832">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L837">			char save = (char) (source[s] &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(CHAR_DATA_MASK &lt;&lt; dOffset[1]) &amp; CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L838">			dest[d] &amp;= CHAR_DATA_MASK &lt;&lt; dOffset[1] | ~(CHAR_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L839">			dest[d] |= save;</span>
+<span class="fc" id="L840">			return;</span>
+		}
+		
+<span class="fc bfc" id="L843" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L844">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L845" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L846">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L848">			copyLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L849">	}</span>
+
+	private static void copyLowerFromForwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		char save;
+		
+<span class="fc" id="L855">		int d = dIndex[0];</span>
+<span class="fc" id="L856">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L858">		save = (char) (source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L859">		dest[d] &amp;= ~((CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L860">		dest[d] |= save;</span>
+
+<span class="fc bfc" id="L862" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L863">			save = (char) (source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L864">			dest[d] &amp;= CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L865">			dest[d] |= save;</span>
+
+<span class="fc" id="L867">			++d;</span>
+
+<span class="fc" id="L869">			save = (char) (source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L870">			dest[d] &amp;= ~(CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L871">			dest[d] |= save;</span>
+		}
+		
+<span class="fc bfc" id="L874" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L875" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L877">				save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L878">				dest[d] &amp;= ~(~(CHAR_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L879">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L881">				save = (char) (source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L882">				dest[d] &amp;= CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L883">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L885" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L886">					d++;</span>
+					
+<span class="fc" id="L888">					save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L889">					dest[d] &amp;= ~(~(CHAR_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L890">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L894">	}</span>
+
+	private static void copyLowerFromBackwards0(char[] source, char[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		char save;
+		
+<span class="fc" id="L900">		int d = dIndex[1];</span>
+<span class="fc" id="L901">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L903" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L904" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L905">				save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L906">				dest[d] &amp;= ~(~(CHAR_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L907">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L909" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L910">					save = (char) ((source[s] &amp; ~(CHAR_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L911">					dest[d] &amp;= ~(~(CHAR_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L912">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L915">				d--;</span>
+				
+<span class="fc" id="L917">				save = (char) (source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L918">				dest[d] &amp;= CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L919">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L923" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L924">			save = (char) (source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L925">			dest[d] &amp;= ~(CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L926">			dest[d] |= save;</span>
+
+<span class="fc" id="L928">			--d;</span>
+
+<span class="fc" id="L930">			save = (char) (source[s] &lt;&lt; CHAR_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L931">			dest[d] &amp;= CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L932">			dest[d] |= save;</span>
+		}
+		
+<span class="fc" id="L935">		save = (char) (source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L936">		dest[d] &amp;= ~((CHAR_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L937">		dest[d] |= save;</span>
+<span class="fc" id="L938">	}</span>
+
+	/********** short[] **********/
+	
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * &lt;p&gt;Offlimits bits are read as 0, and discarded when written to.
+	 * &lt;/p&gt;
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void safeCopyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+<span class="fc" id="L964">		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));</span>
+<span class="fc" id="L965">	}</span>
+
+	private static void safeCopyFrom0(short[] source, IntRef srcPos, short[] dest, IntRef destPos, IntRef length) {
+<span class="fc" id="L968">		IntRef fillLow = byRef(0);</span>
+<span class="fc" id="L969">		IntRef fillHigh = byRef(0);</span>
+<span class="fc bfc" id="L970" title="All 2 branches covered.">		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length &lt;&lt; SHORT_ADDRESS_LINES, source.length &lt;&lt; SHORT_ADDRESS_LINES))</span>
+<span class="fc" id="L971">			return;</span>
+		
+<span class="fc" id="L973">		copyFrom(source, srcPos.i, dest, destPos.i, length.i);</span>
+<span class="fc" id="L974">		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);</span>
+<span class="fc" id="L975">		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);</span>
+<span class="fc" id="L976">	}</span>
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void copyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+<span class="fc bfc" id="L997" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; SHORT_ADDRESS_LINES, dest.length &lt;&lt; SHORT_ADDRESS_LINES))</span>
+<span class="fc" id="L998">			return;</span>
+		
+<span class="fc" id="L1000">		int[] sIndex  = {srcPos  &gt;&gt; SHORT_ADDRESS_LINES, (srcPos  + length) &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L1001">		int[] sOffset = {srcPos  &amp; SHORT_ADDRESS_MASK,   (srcPos  + length) &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L1003">		int[] dIndex  = {destPos &gt;&gt; SHORT_ADDRESS_LINES, (destPos + length) &gt;&gt; SHORT_ADDRESS_LINES};</span>
+<span class="fc" id="L1004">		int[] dOffset = {destPos &amp; SHORT_ADDRESS_MASK,   (destPos + length) &amp; SHORT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L1006" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, copy middle unchanged
+<span class="fc" id="L1008">			copyParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1009" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L1010">			copyHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L1012">			copyLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1013">	}</span>
+
+	private static void copyParallelFrom0(short[] source, short[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1016" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword copy within word and neither offset is zero
+			
+<span class="fc" id="L1019">			final int LOWEST_BITS_FROM = ~(SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1020">			final int HIGHEST_BITS_TO = SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L1022">			short save = (short) (source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO));</span>
+<span class="fc" id="L1023">			dest[dIndex[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+<span class="fc" id="L1024">			dest[dIndex[0]] |= save;</span>
+
+<span class="fc" id="L1026">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1029" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1030">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1031" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1032">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1034">			copyParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L1035">	}</span>
+
+	private static void copyParallelFromForwards0(short[] source, short[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		short save;
+		
+<span class="fc bfc" id="L1041" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L1044">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1045">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1047">			save = (short) (source[sIndex[0]] &amp; HIGHEST_BITS);</span>
+<span class="fc" id="L1048">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L1049">			dest[dIndex[0]] |= save;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L1052">			sIndex[0]++;</span>
+<span class="fc" id="L1053">			dIndex[0]++;</span>
+		}
+
+<span class="fc bfc" id="L1056" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L1058">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L1060" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1062">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1063">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1065">			save = (short) (source[sIndex[1]] &amp; LOWEST_BITS);</span>
+<span class="fc" id="L1066">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L1067">			dest[dIndex[1]] |= save;</span>
+		}
+<span class="fc" id="L1069">	}</span>
+
+	private static void copyParallelFromBackwards0(short[] source, short[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		short save;
+		
+<span class="fc bfc" id="L1075" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1077">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1078">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1080">			save = (short) (source[sIndex[1]] &amp; LOWEST_BITS);</span>
+<span class="fc" id="L1081">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L1082">			dest[dIndex[1]] |= save;</span>
+		}
+		
+<span class="fc bfc" id="L1085" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't copy the first index if partial
+<span class="fc" id="L1087">			dIndex[0]++;</span>
+<span class="fc" id="L1088">			sIndex[0]++;</span>
+		}
+				
+<span class="fc bfc" id="L1091" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L1093">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L1095" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L1097">			sIndex[0]--;</span>
+<span class="fc" id="L1098">			dIndex[0]--;</span>
+			
+<span class="fc" id="L1100">			final int HIGHEST_BITS = SHORT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1101">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1103">			save = (short) (source[sIndex[0]] &amp; HIGHEST_BITS);</span>
+<span class="fc" id="L1104">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L1105">			dest[dIndex[0]] |= save;</span>
+			
+		}
+<span class="fc" id="L1108">	}</span>
+
+	private static void copyHigherFrom0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1111" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L1112">			int d = dIndex[0];</span>
+<span class="fc" id="L1113">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1118">			short save = (short) ((source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(SHORT_DATA_MASK &lt;&lt; dOffset[1]) &amp; SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1119">			dest[d] &amp;= SHORT_DATA_MASK &lt;&lt; dOffset[1] | ~(SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1120">			dest[d] |= save;</span>
+<span class="fc" id="L1121">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1124" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1125">			copyHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1126" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1127">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1129">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1130">	}</span>
+
+	private static void copyHigherFromForwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		short save;
+		
+<span class="fc" id="L1136">		int d = dIndex[0];</span>
+<span class="fc" id="L1137">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L1139">		save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1140">		dest[d] &amp;= ~(SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1141">		dest[d] |= save;</span>
+
+<span class="fc bfc" id="L1143" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L1144">			save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1145">			dest[d] &amp;= ~(SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1146">			dest[d] |= save;</span>
+
+<span class="fc" id="L1148">			++s;</span>
+
+<span class="fc" id="L1150">			save = (short) (source[s] &lt;&lt; dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1151">			dest[d] &amp;= SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1152">			dest[d] |= save;</span>
+		}
+
+<span class="fc bfc" id="L1155" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1156" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L1158">				save = (short) ((source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1159">				dest[d] &amp;= SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1160">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L1162">				save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1163">				dest[d] &amp;= ~(SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1164">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L1166" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1167">					s++;</span>
+					
+<span class="fc" id="L1169">					save = (short) ((source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1170">					dest[d] &amp;= SHORT_DATA_MASK &lt;&lt; dOffset[1] | SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1171">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L1175">	}</span>
+
+	private static void copyHigherFromBackwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		short save;
+		
+<span class="fc" id="L1181">		int d = dIndex[1];</span>
+<span class="fc" id="L1182">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L1184" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1185" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L1186">				save = (short) ((source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1187">				dest[d] &amp;= SHORT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1188">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L1190" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1191">					save = (short) ((source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1192">					dest[d] &amp;= SHORT_DATA_MASK &lt;&lt; dOffset[1] | SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1193">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L1196">				s--;</span>
+				
+<span class="fc" id="L1198">				save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1199">				dest[d] &amp;= ~(SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1200">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L1204" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L1205">			save = (short) (source[s] &lt;&lt; dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1206">			dest[d] &amp;= SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1207">			dest[d] |= save;</span>
+
+<span class="fc" id="L1209">			--s;</span>
+
+<span class="fc" id="L1211">			save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1212">			dest[d] &amp;= ~(SHORT_DATA_MASK &gt;&gt;&gt; SHORT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1213">			dest[d] |= save;</span>
+		}
+
+<span class="fc" id="L1216">		save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1217">		dest[d] &amp;= ~(SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1218">		dest[d] |= save;</span>
+<span class="fc" id="L1219">	}</span>
+
+	private static void copyLowerFrom0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1222" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L1223">			int d = dIndex[0];</span>
+<span class="fc" id="L1224">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1229">			short save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(SHORT_DATA_MASK &lt;&lt; dOffset[1]) &amp; SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1230">			dest[d] &amp;= SHORT_DATA_MASK &lt;&lt; dOffset[1] | ~(SHORT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1231">			dest[d] |= save;</span>
+<span class="fc" id="L1232">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1235" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1236">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1237" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1238">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1240">			copyLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1241">	}</span>
+
+	private static void copyLowerFromForwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		short save;
+		
+<span class="fc" id="L1247">		int d = dIndex[0];</span>
+<span class="fc" id="L1248">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L1250">		save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1251">		dest[d] &amp;= ~((SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1252">		dest[d] |= save;</span>
+
+<span class="fc bfc" id="L1254" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L1255">			save = (short) (source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L1256">			dest[d] &amp;= SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1257">			dest[d] |= save;</span>
+
+<span class="fc" id="L1259">			++d;</span>
+
+<span class="fc" id="L1261">			save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1262">			dest[d] &amp;= ~(SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1263">			dest[d] |= save;</span>
+		}
+		
+<span class="fc bfc" id="L1266" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1267" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L1269">				save = (short) ((source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1270">				dest[d] &amp;= ~(~(SHORT_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1271">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L1273">				save = (short) (source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L1274">				dest[d] &amp;= SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1275">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L1277" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1278">					d++;</span>
+					
+<span class="fc" id="L1280">					save = (short) ((source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1281">					dest[d] &amp;= ~(~(SHORT_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1282">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L1286">	}</span>
+
+	private static void copyLowerFromBackwards0(short[] source, short[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		short save;
+		
+<span class="fc" id="L1292">		int d = dIndex[1];</span>
+<span class="fc" id="L1293">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L1295" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1296" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L1297">				save = (short) ((source[s] &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1298">				dest[d] &amp;= ~(~(SHORT_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1299">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L1301" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1302">					save = (short) ((source[s] &amp; SHORT_DATA_MASK &amp; ~(SHORT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1303">					dest[d] &amp;= ~(~(SHORT_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1304">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L1307">				d--;</span>
+				
+<span class="fc" id="L1309">				save = (short) (source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L1310">				dest[d] &amp;= SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1311">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L1315" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L1316">			save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1317">			dest[d] &amp;= ~(SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1318">			dest[d] |= save;</span>
+
+<span class="fc" id="L1320">			--d;</span>
+
+<span class="fc" id="L1322">			save = (short) (source[s] &lt;&lt; SHORT_DATA_LINES - (sOffset[0] - dOffset[0]));</span>
+<span class="fc" id="L1323">			dest[d] &amp;= SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1324">			dest[d] |= save;</span>
+		}
+		
+<span class="fc" id="L1327">		save = (short) ((source[s] &amp; SHORT_DATA_MASK) &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1328">		dest[d] &amp;= ~((SHORT_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1329">		dest[d] |= save;</span>
+<span class="fc" id="L1330">	}</span>
+
+	/********** int[] **********/
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * &lt;p&gt;Offlimits bits are read as 0, and discarded when written to.
+	 * &lt;/p&gt;
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void safeCopyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
+<span class="fc" id="L1356">		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));</span>
+<span class="fc" id="L1357">	}</span>
+
+	private static void safeCopyFrom0(int[] source, IntRef srcPos, int[] dest, IntRef destPos, IntRef length) {
+<span class="fc" id="L1360">		IntRef fillLow = byRef(0);</span>
+<span class="fc" id="L1361">		IntRef fillHigh = byRef(0);</span>
+<span class="fc bfc" id="L1362" title="All 2 branches covered.">		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length &lt;&lt; INT_ADDRESS_LINES, source.length &lt;&lt; INT_ADDRESS_LINES))</span>
+<span class="fc" id="L1363">			return;</span>
+		
+<span class="fc" id="L1365">		copyFrom(source, srcPos.i, dest, destPos.i, length.i);</span>
+<span class="fc" id="L1366">		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);</span>
+<span class="fc" id="L1367">		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);</span>
+<span class="fc" id="L1368">	}</span>
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void copyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
+<span class="fc bfc" id="L1389" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; INT_ADDRESS_LINES, dest.length &lt;&lt; INT_ADDRESS_LINES))</span>
+<span class="fc" id="L1390">			return;</span>
+		
+<span class="fc" id="L1392">		int[] sIndex  = {srcPos  &gt;&gt; INT_ADDRESS_LINES, (srcPos  + length) &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L1393">		int[] sOffset = {srcPos  &amp; INT_ADDRESS_MASK,   (srcPos  + length) &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L1395">		int[] dIndex  = {destPos &gt;&gt; INT_ADDRESS_LINES, (destPos + length) &gt;&gt; INT_ADDRESS_LINES};</span>
+<span class="fc" id="L1396">		int[] dOffset = {destPos &amp; INT_ADDRESS_MASK,   (destPos + length) &amp; INT_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L1398" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, copy middle unchanged
+<span class="fc" id="L1400">			copyParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1401" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L1402">			copyHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L1404">			copyLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1405">	}</span>
+
+	private static void copyParallelFrom0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1408" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword copy within word and neither offset is zero
+			
+<span class="fc" id="L1411">			final int LOWEST_BITS_FROM = ~(INT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1412">			final int HIGHEST_BITS_TO = INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L1414">			int save = source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);</span>
+<span class="fc" id="L1415">			dest[dIndex[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+<span class="fc" id="L1416">			dest[dIndex[0]] |= save;</span>
+
+<span class="fc" id="L1418">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1421" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1422">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1423" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1424">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1426">			copyParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L1427">	}</span>
+
+	private static void copyParallelFromForwards0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		int save;
+		
+<span class="fc bfc" id="L1433" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L1436">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1437">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1439">			save = source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+<span class="fc" id="L1440">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L1441">			dest[dIndex[0]] |= save;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L1444">			sIndex[0]++;</span>
+<span class="fc" id="L1445">			dIndex[0]++;</span>
+		}
+
+<span class="fc bfc" id="L1448" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L1450">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L1452" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1454">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1455">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1457">			save = source[sIndex[1]] &amp; LOWEST_BITS;</span>
+<span class="fc" id="L1458">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L1459">			dest[dIndex[1]] |= save;</span>
+		}
+<span class="fc" id="L1461">	}</span>
+
+	private static void copyParallelFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		int save;
+		
+<span class="fc bfc" id="L1467" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1469">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1470">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1472">			save = source[sIndex[1]] &amp; LOWEST_BITS;</span>
+<span class="fc" id="L1473">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L1474">			dest[dIndex[1]] |= save;</span>
+		}
+
+<span class="fc bfc" id="L1477" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't copy the first index if partial
+<span class="fc" id="L1479">			dIndex[0]++;</span>
+<span class="fc" id="L1480">			sIndex[0]++;</span>
+		}
+		
+<span class="fc bfc" id="L1483" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L1485">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L1487" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L1489">			sIndex[0]--;</span>
+<span class="fc" id="L1490">			dIndex[0]--;</span>
+			
+<span class="fc" id="L1492">			final int HIGHEST_BITS = INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1493">			final int LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1495">			save = source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+<span class="fc" id="L1496">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L1497">			dest[dIndex[0]] |= save;</span>
+		}
+<span class="fc" id="L1499">	}</span>
+
+	private static void copyHigherFrom0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1502" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L1503">			int d = dIndex[0];</span>
+<span class="fc" id="L1504">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1509">			int save = (source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(INT_DATA_MASK &lt;&lt; dOffset[1]) &amp; INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1510">			dest[d] &amp;= INT_DATA_MASK &lt;&lt; dOffset[1] | ~(INT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1511">			dest[d] |= save;</span>
+<span class="fc" id="L1512">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1515" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1516">			copyHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1517" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1518">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1520">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1521">	}</span>
+
+	private static void copyHigherFromForwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		int save;
+		
+<span class="fc" id="L1527">		int d = dIndex[0];</span>
+<span class="fc" id="L1528">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L1530">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1531">		dest[d] &amp;= ~(INT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1532">		dest[d] |= save; </span>
+
+<span class="fc bfc" id="L1534" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L1535">			save = source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1536">			dest[d] &amp;= ~(INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1537">			dest[d] |= save;</span>
+
+<span class="fc" id="L1539">			++s;</span>
+
+<span class="fc" id="L1541">			save = source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+<span class="fc" id="L1542">			dest[d] &amp;= INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1543">			dest[d] |= save;</span>
+		}
+
+<span class="fc bfc" id="L1546" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1547" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L1549">				save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1550">				dest[d] &amp;= INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1551">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L1553">				save = source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1554">				dest[d] &amp;= ~(INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1555">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L1557" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1558">					s++;</span>
+					
+<span class="fc" id="L1560">					save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L1561">					dest[d] &amp;= INT_DATA_MASK &lt;&lt; dOffset[1] | INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1562">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L1566">	}</span>
+
+	private static void copyHigherFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		int save;
+		
+<span class="fc" id="L1572">		int d = dIndex[1];</span>
+<span class="fc" id="L1573">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L1575" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1576" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L1577">				save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1578">				dest[d] &amp;= INT_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1579">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L1581" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1582">					save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L1583">					dest[d] &amp;= INT_DATA_MASK &lt;&lt; dOffset[1] | INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1584">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L1587">				s--;</span>
+				
+<span class="fc" id="L1589">				save = source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1590">				dest[d] &amp;= ~(INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1591">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L1595" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L1596">			save = source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+<span class="fc" id="L1597">			dest[d] &amp;= INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1598">			dest[d] |= save;</span>
+
+<span class="fc" id="L1600">			--s;</span>
+
+<span class="fc" id="L1602">			save = source[s] &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1603">			dest[d] &amp;= ~(INT_DATA_MASK &gt;&gt;&gt; INT_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1604">			dest[d] |= save;</span>
+		}
+
+<span class="fc" id="L1607">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1608">		dest[d] &amp;= ~(INT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1609">		dest[d] |= save; </span>
+<span class="fc" id="L1610">	}</span>
+
+	private static void copyLowerFrom0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1613" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L1614">			int d = dIndex[0];</span>
+<span class="fc" id="L1615">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1620">			int save = source[s] &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(INT_DATA_MASK &lt;&lt; dOffset[1]) &amp; INT_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1621">			dest[d] &amp;= INT_DATA_MASK &lt;&lt; dOffset[1] | ~(INT_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1622">			dest[d] |= save;</span>
+<span class="fc" id="L1623">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1626" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1627">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1628" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1629">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1631">			copyLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1632">	}</span>
+
+	private static void copyLowerFromForwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		int save;
+		
+<span class="fc" id="L1638">		int d = dIndex[0];</span>
+<span class="fc" id="L1639">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L1641">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1642">		dest[d] &amp;= ~((INT_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1643">		dest[d] |= save;</span>
+
+<span class="fc bfc" id="L1645" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L1646">			save = source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1647">			dest[d] &amp;= INT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1648">			dest[d] |= save;</span>
+
+<span class="fc" id="L1650">			++d;</span>
+
+<span class="fc" id="L1652">			save = source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1653">			dest[d] &amp;= ~(INT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1654">			dest[d] |= save;</span>
+		}
+		
+<span class="fc bfc" id="L1657" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1658" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L1660">				save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L1661">				dest[d] &amp;= ~(~(INT_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1662">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L1664">				save = source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1665">				dest[d] &amp;= INT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1666">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L1668" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1669">					d++;</span>
+					
+<span class="fc" id="L1671">					save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1672">					dest[d] &amp;= ~(~(INT_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1673">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L1677">	}</span>
+
+	private static void copyLowerFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		int save;
+		
+<span class="fc" id="L1683">		int d = dIndex[1];</span>
+<span class="fc" id="L1684">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L1686" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1687" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L1688">				save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L1689">				dest[d] &amp;= ~(~(INT_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1690">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L1692" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1693">					save = (source[s] &amp; ~(INT_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1694">					dest[d] &amp;= ~(~(INT_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1695">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L1698">				d--;</span>
+				
+<span class="fc" id="L1700">				save = source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1701">				dest[d] &amp;= INT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1702">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L1706" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L1707">			save = source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1708">			dest[d] &amp;= ~(INT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1709">			dest[d] |= save;</span>
+
+<span class="fc" id="L1711">			--d;</span>
+
+<span class="fc" id="L1713">			save = source[s] &lt;&lt; INT_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L1714">			dest[d] &amp;= INT_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L1715">			dest[d] |= save;</span>
+		}
+		
+<span class="fc" id="L1718">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1719">		dest[d] &amp;= ~((INT_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1720">		dest[d] |= save;</span>
+<span class="fc" id="L1721">	}</span>
+
+	/********** long[] **********/
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * &lt;p&gt;Offlimits bits are read as 0, and discarded when written to.
+	 * &lt;/p&gt;
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void safeCopyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+<span class="fc" id="L1747">		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));</span>
+<span class="fc" id="L1748">	}</span>
+
+	private static void safeCopyFrom0(long[] source, IntRef srcPos, long[] dest, IntRef destPos, IntRef length) {
+<span class="fc" id="L1751">		IntRef fillLow = byRef(0);</span>
+<span class="fc" id="L1752">		IntRef fillHigh = byRef(0);</span>
+<span class="fc bfc" id="L1753" title="All 2 branches covered.">		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length &lt;&lt; LONG_ADDRESS_LINES, source.length &lt;&lt; LONG_ADDRESS_LINES))</span>
+<span class="fc" id="L1754">			return;</span>
+		
+<span class="fc" id="L1756">		copyFrom(source, srcPos.i, dest, destPos.i, length.i);</span>
+<span class="fc" id="L1757">		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);</span>
+<span class="fc" id="L1758">		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);</span>
+<span class="fc" id="L1759">	}</span>
+
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
+	public static void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+<span class="fc bfc" id="L1780" title="All 2 branches covered.">		if (!checkSafeIndices(srcPos, destPos, length, source.length &lt;&lt; LONG_ADDRESS_LINES, dest.length &lt;&lt; LONG_ADDRESS_LINES))</span>
+<span class="fc" id="L1781">			return;</span>
+		
+<span class="fc" id="L1783">		int[] sIndex  = {srcPos  &gt;&gt; LONG_ADDRESS_LINES, (srcPos  + length) &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L1784">		int[] sOffset = {srcPos  &amp; LONG_ADDRESS_MASK,   (srcPos  + length) &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc" id="L1786">		int[] dIndex  = {destPos &gt;&gt; LONG_ADDRESS_LINES, (destPos + length) &gt;&gt; LONG_ADDRESS_LINES};</span>
+<span class="fc" id="L1787">		int[] dOffset = {destPos &amp; LONG_ADDRESS_MASK,   (destPos + length) &amp; LONG_ADDRESS_MASK  };</span>
+		
+<span class="fc bfc" id="L1789" title="All 2 branches covered.">		if (sOffset[0] == dOffset[0])</span>
+			// FAST PATH: handle both ends specially, copy middle unchanged
+<span class="fc" id="L1791">			copyParallelFrom0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1792" title="All 2 branches covered.">		else if (sOffset[0] &lt; dOffset[0])</span>
+<span class="fc" id="L1793">			copyHigherFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else /* if (sOffset[0] &gt; dOffset[0]) */
+<span class="fc" id="L1795">			copyLowerFrom0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1796">	}</span>
+
+	private static void copyParallelFrom0(long[] source, long[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1799" title="All 2 branches covered.">		if (dIndex[1] == dIndex[0]) {</span>
+			// special case: subword copy within word and neither offset is zero
+			
+<span class="fc" id="L1802">			final long LOWEST_BITS_FROM = ~(LONG_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1803">			final long HIGHEST_BITS_TO = LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+
+<span class="fc" id="L1805">			long save = source[sIndex[0]] &amp; ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);</span>
+<span class="fc" id="L1806">			dest[dIndex[0]] &amp;= LOWEST_BITS_FROM | HIGHEST_BITS_TO;</span>
+<span class="fc" id="L1807">			dest[dIndex[0]] |= save;</span>
+
+<span class="fc" id="L1809">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1812" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1813">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1814" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1815">			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1817">			copyParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);</span>
+<span class="fc" id="L1818">	}</span>
+
+	private static void copyParallelFromForwards0(long[] source, long[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		long save;
+		
+<span class="fc bfc" id="L1824" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+			
+<span class="fc" id="L1827">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1828">			final long LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1830">			save = source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+<span class="fc" id="L1831">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L1832">			dest[dIndex[0]] |= save;</span>
+			
+			// first index already taken care of
+<span class="fc" id="L1835">			sIndex[0]++;</span>
+<span class="fc" id="L1836">			dIndex[0]++;</span>
+		}
+
+<span class="fc bfc" id="L1839" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L1841">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L1843" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1845">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1846">			final long LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1848">			save = source[sIndex[1]] &amp; LOWEST_BITS;</span>
+<span class="fc" id="L1849">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L1850">			dest[dIndex[1]] |= save;</span>
+		}
+<span class="fc" id="L1852">	}</span>
+
+	private static void copyParallelFromBackwards0(long[] source, long[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		long save;
+		
+<span class="fc bfc" id="L1858" title="All 2 branches covered.">		if (dOffset[1] != 0) {</span>
+			// handle &quot;to&quot; end specially
+<span class="fc" id="L1860">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1861">			final long LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1863">			save = source[sIndex[1]] &amp; LOWEST_BITS;</span>
+<span class="fc" id="L1864">			dest[dIndex[1]] &amp;= HIGHEST_BITS;</span>
+<span class="fc" id="L1865">			dest[dIndex[1]] |= save;</span>
+		}
+
+<span class="fc bfc" id="L1868" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// don't copy the first index if partial
+<span class="fc" id="L1870">			dIndex[0]++;</span>
+<span class="fc" id="L1871">			sIndex[0]++;</span>
+		}
+		
+<span class="fc bfc" id="L1874" title="All 2 branches covered.">		if (dIndex[1] &gt; dIndex[0])</span>
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+<span class="fc" id="L1876">		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);</span>
+
+<span class="fc bfc" id="L1878" title="All 2 branches covered.">		if (dOffset[0] != 0) {</span>
+			// handle &quot;from&quot; end specially
+<span class="fc" id="L1880">			sIndex[0]--;</span>
+<span class="fc" id="L1881">			dIndex[0]--;</span>
+			
+<span class="fc" id="L1883">			final long HIGHEST_BITS = LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1884">			final long LOWEST_BITS = ~HIGHEST_BITS;</span>
+			
+<span class="fc" id="L1886">			save = source[sIndex[0]] &amp; HIGHEST_BITS;</span>
+<span class="fc" id="L1887">			dest[dIndex[0]] &amp;= LOWEST_BITS;</span>
+<span class="fc" id="L1888">			dest[dIndex[0]] |= save;</span>
+		}
+<span class="fc" id="L1890">	}</span>
+
+	private static void copyHigherFrom0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L1893" title="All 2 branches covered.">		if (dIndex[0] == dIndex[1]) {</span>
+<span class="fc" id="L1894">			int d = dIndex[0];</span>
+<span class="fc" id="L1895">			int s = sIndex[0];</span>
+					
+			// At this point dIndex[0] == dIndex[1] AND sOffset[0] &lt; dOffset[0].
+			// This implies that sIndex[0] == sIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L1900">			long save = (source[s] &lt;&lt; dOffset[0] - sOffset[0]) &amp; ~(LONG_DATA_MASK &lt;&lt; dOffset[1]) &amp; LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1901">			dest[d] &amp;= LONG_DATA_MASK &lt;&lt; dOffset[1] | ~(LONG_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1902">			dest[d] |= save;</span>
+<span class="fc" id="L1903">			return;</span>
+		}
+		
+<span class="fc bfc" id="L1906" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L1907">			copyHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L1908" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L1909">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L1911">			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L1912">	}</span>
+
+	private static void copyHigherFromForwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		long save;
+		
+<span class="fc" id="L1918">		int d = dIndex[0];</span>
+<span class="fc" id="L1919">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L1921">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1922">		dest[d] &amp;= ~(LONG_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L1923">		dest[d] |= save; </span>
+
+<span class="fc bfc" id="L1925" title="All 2 branches covered.">		while(++d &lt; dIndex[1]) {</span>
+<span class="fc" id="L1926">			save = source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1927">			dest[d] &amp;= ~(LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1928">			dest[d] |= save;</span>
+
+<span class="fc" id="L1930">			++s;</span>
+
+<span class="fc" id="L1932">			save = source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+<span class="fc" id="L1933">			dest[d] &amp;= LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1934">			dest[d] |= save;</span>
+		}
+
+<span class="fc bfc" id="L1937" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1938" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+				// implies s == sIndex[1] [proof needed]
+<span class="fc" id="L1940">				save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1941">				dest[d] &amp;= LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1942">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc" id="L1944">				save = source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1945">				dest[d] &amp;= ~(LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1946">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L1948" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1949">					s++;</span>
+					
+<span class="fc" id="L1951">					save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L1952">					dest[d] &amp;= LONG_DATA_MASK &lt;&lt; dOffset[1] | LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1953">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L1957">	}</span>
+
+	private static void copyHigherFromBackwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		long save;
+		
+<span class="fc" id="L1963">		int d = dIndex[1];</span>
+<span class="fc" id="L1964">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L1966" title="All 2 branches covered.">		if (dOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L1967" title="All 2 branches covered.">			if (dOffset[1] &lt; sOffset[1]) {</span>
+<span class="fc" id="L1968">				save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1969">				dest[d] &amp;= LONG_DATA_MASK &lt;&lt; dOffset[1];</span>
+<span class="fc" id="L1970">				dest[d] |= save;</span>
+			} else /* dOffset[1] &gt; sOffset[1] */ {
+<span class="fc bfc" id="L1972" title="All 2 branches covered.">				if (sOffset[1] &gt; 0) {</span>
+<span class="fc" id="L1973">					save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L1974">					dest[d] &amp;= LONG_DATA_MASK &lt;&lt; dOffset[1] | LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L1975">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L1978">				s--;</span>
+				
+<span class="fc" id="L1980">				save = source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1981">				dest[d] &amp;= ~(LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1982">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L1986" title="All 2 branches covered.">		while(--d &gt; dIndex[0]) {</span>
+<span class="fc" id="L1987">			save = source[s] &lt;&lt; dOffset[0] - sOffset[0];</span>
+<span class="fc" id="L1988">			dest[d] &amp;= LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1989">			dest[d] |= save;</span>
+
+<span class="fc" id="L1991">			--s;</span>
+
+<span class="fc" id="L1993">			save = source[s] &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]);</span>
+<span class="fc" id="L1994">			dest[d] &amp;= ~(LONG_DATA_MASK &gt;&gt;&gt; LONG_DATA_LINES - (dOffset[0] - sOffset[0]));</span>
+<span class="fc" id="L1995">			dest[d] |= save;</span>
+		}
+
+<span class="fc" id="L1998">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L1999">		dest[d] &amp;= ~(LONG_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L2000">		dest[d] |= save; </span>
+<span class="fc" id="L2001">	}</span>
+
+	private static void copyLowerFrom0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+<span class="fc bfc" id="L2004" title="All 2 branches covered.">		if (sIndex[0] == sIndex[1]) {</span>
+<span class="fc" id="L2005">			int d = dIndex[0];</span>
+<span class="fc" id="L2006">			int s = sIndex[0];</span>
+			
+			// At this point sIndex[0] == sIndex[1] AND sOffset[0] &gt; dOffset[0].
+			// This implies that dIndex[0] == dIndex[1] (so there is no need to copy more than 1 chunk).
+			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+<span class="fc" id="L2011">			long save = source[s] &gt;&gt;&gt; (sOffset[0] - dOffset[0]) &amp; ~(LONG_DATA_MASK &lt;&lt; dOffset[1]) &amp; LONG_DATA_MASK &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L2012">			dest[d] &amp;= LONG_DATA_MASK &lt;&lt; dOffset[1] | ~(LONG_DATA_MASK &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L2013">			dest[d] |= save;</span>
+<span class="fc" id="L2014">			return;</span>
+		}
+		
+<span class="fc bfc" id="L2017" title="All 2 branches covered.">		if (dIndex[0] &lt; sIndex[0])</span>
+<span class="fc" id="L2018">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc bfc" id="L2019" title="All 2 branches covered.">		else if (dIndex[0] == sIndex[0])</span>
+<span class="fc" id="L2020">			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+		else
+<span class="fc" id="L2022">			copyLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);</span>
+<span class="fc" id="L2023">	}</span>
+
+	private static void copyLowerFromForwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		long save;
+		
+<span class="fc" id="L2029">		int d = dIndex[0];</span>
+<span class="fc" id="L2030">		int s = sIndex[0];</span>
+		
+<span class="fc" id="L2032">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L2033">		dest[d] &amp;= ~((LONG_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L2034">		dest[d] |= save;</span>
+
+<span class="fc bfc" id="L2036" title="All 2 branches covered.">		while(++s &lt; sIndex[1]) {</span>
+<span class="fc" id="L2037">			save = source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2038">			dest[d] &amp;= LONG_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2039">			dest[d] |= save;</span>
+
+<span class="fc" id="L2041">			++d;</span>
+
+<span class="fc" id="L2043">			save = source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2044">			dest[d] &amp;= ~(LONG_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2045">			dest[d] |= save;</span>
+		}
+		
+<span class="fc bfc" id="L2048" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L2049" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+				// implies d == dIndex[1] [proof needed]
+<span class="fc" id="L2051">				save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L2052">				dest[d] &amp;= ~(~(LONG_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L2053">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc" id="L2055">				save = source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2056">				dest[d] &amp;= LONG_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2057">				dest[d] |= save;</span>
+				
+<span class="fc bfc" id="L2059" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L2060">					d++;</span>
+					
+<span class="fc" id="L2062">					save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2063">					dest[d] &amp;= ~(~(LONG_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2064">					dest[d] |= save;</span>
+				}
+			}
+		}
+<span class="fc" id="L2068">	}</span>
+	
+	private static void copyLowerFromBackwards0(long[] source, long[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &amp;ing them
+		long save;
+		
+<span class="fc" id="L2074">		int d = dIndex[1];</span>
+<span class="fc" id="L2075">		int s = sIndex[1];</span>
+		
+<span class="fc bfc" id="L2077" title="All 2 branches covered.">		if (sOffset[1] &gt; 0) {</span>
+<span class="fc bfc" id="L2078" title="All 2 branches covered.">			if (dOffset[1] &gt; sOffset[1]) {</span>
+<span class="fc" id="L2079">				save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &lt;&lt; dOffset[1] - sOffset[1];</span>
+<span class="fc" id="L2080">				dest[d] &amp;= ~(~(LONG_DATA_MASK &lt;&lt; sOffset[1]) &lt;&lt; dOffset[1] - sOffset[1]);</span>
+<span class="fc" id="L2081">				dest[d] |= save;</span>
+			} else /* dOffset[1] &lt; sOffset[1] */ {
+<span class="fc bfc" id="L2083" title="All 2 branches covered.">				if (dOffset[1] &gt; 0) {</span>
+<span class="fc" id="L2084">					save = (source[s] &amp; ~(LONG_DATA_MASK &lt;&lt; sOffset[1])) &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2085">					dest[d] &amp;= ~(~(LONG_DATA_MASK &lt;&lt; sOffset[1]) &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2086">					dest[d] |= save;</span>
+				}
+				
+<span class="fc" id="L2089">				d--;</span>
+				
+<span class="fc" id="L2091">				save = source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2092">				dest[d] &amp;= LONG_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2093">				dest[d] |= save;</span>
+			}
+		}
+
+<span class="fc bfc" id="L2097" title="All 2 branches covered.">		while(--s &gt; sIndex[0]) {</span>
+<span class="fc" id="L2098">			save = source[s] &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2099">			dest[d] &amp;= ~(LONG_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2100">			dest[d] |= save;</span>
+
+<span class="fc" id="L2102">			--d;</span>
+
+<span class="fc" id="L2104">			save = source[s] &lt;&lt; LONG_DATA_LINES - (sOffset[0] - dOffset[0]);</span>
+<span class="fc" id="L2105">			dest[d] &amp;= LONG_DATA_MASK &gt;&gt;&gt; sOffset[0] - dOffset[0];</span>
+<span class="fc" id="L2106">			dest[d] |= save;</span>
+		}
+		
+<span class="fc" id="L2109">		save = source[s] &gt;&gt;&gt; sOffset[0] &lt;&lt; dOffset[0];</span>
+<span class="fc" id="L2110">		dest[d] &amp;= ~((LONG_DATA_MASK &gt;&gt;&gt; sOffset[0]) &lt;&lt; dOffset[0]);</span>
+<span class="fc" id="L2111">		dest[d] |= save;</span>
+<span class="fc" id="L2112">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.7.201606060606</span></div></body></html>
