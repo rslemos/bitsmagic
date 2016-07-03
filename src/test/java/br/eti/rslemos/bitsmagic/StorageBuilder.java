@@ -47,4 +47,18 @@ public interface StorageBuilder<T> {
 			return result;
 		}
 	}
+	
+	static class CharArrayBuilder {
+		protected static char[] build0(long...d) {
+			char[] result = new char[d.length * 4];
+			for (int i = 0; i < d.length; i++) {
+				result[i * 4 + 0] = (char) (d[d.length - i - 1] >>>  0);
+				result[i * 4 + 1] = (char) (d[d.length - i - 1] >>> 16);
+				result[i * 4 + 2] = (char) (d[d.length - i - 1] >>> 32);
+				result[i * 4 + 3] = (char) (d[d.length - i - 1] >>> 48);
+			}
+		
+			return result;
+		}
+	}
 }

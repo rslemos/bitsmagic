@@ -405,4 +405,298 @@ public class Store {
 		data[index] &= mask;
 		data[index] |= (byte)(v >> 8*BYTE_DATA_LINES - offset) & ~mask;
 	}
+	
+	/********** char[] **********/
+
+	private static final int CHAR_ADDRESS_LINES = 4;
+	private static final int CHAR_DATA_LINES = 1 << CHAR_ADDRESS_LINES;
+	private static final int CHAR_ADDRESS_MASK = ~(-1 << CHAR_ADDRESS_LINES);
+	private static final int CHAR_DATA_MASK = ~(-1 << CHAR_DATA_LINES);
+	
+	// we expect this function to be heavily inlined
+	private static int read(char[] data, int index) {
+		return index >=0 && index < data.length ? data[index] & CHAR_DATA_MASK : 0;
+	}
+
+	public static boolean readBit(char[] data, int i) {
+		int index = i >> CHAR_ADDRESS_LINES;
+
+		if (index < 0 || index >= data.length)
+			return false;
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		return (data[index] << ~offset) < 0;
+	}
+
+	public static void writeBit(char[] data, int i, boolean v) {
+		int index = i >> CHAR_ADDRESS_LINES;
+
+		if (index >= 0 && index < data.length) {
+			int offset = i & CHAR_ADDRESS_MASK;
+			if (v)
+				data[index] |= 1 << offset;
+			else
+				data[index] &= ~(1 << offset);
+		}
+	}
+
+	public static byte readByte(char[] data, int i) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		int d0 = read(data, index);
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		if (offset == 0)
+			return (byte) d0;
+
+		d0 >>>= offset;
+		
+		if (offset + Byte.SIZE <= CHAR_DATA_LINES)
+			return (byte)d0;
+
+		int d1 = read(data, ++index);
+		d1 <<= CHAR_DATA_LINES - offset;
+		
+		return (byte) (d1 | d0);
+	}
+
+	public static void writeByte(char[] data, int i, byte v) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		
+		int mask = ~(CHAR_DATA_MASK << Byte.SIZE) << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (v << offset) & mask;
+		}
+		
+		if (offset + Byte.SIZE <= CHAR_DATA_LINES)
+			return;
+		
+		if (++index >= data.length) return;
+		
+		mask = ~(CHAR_DATA_MASK << Byte.SIZE) >>> CHAR_DATA_LINES - offset;
+		
+		data[index] &= ~mask;
+		data[index] |= (v >> (CHAR_DATA_LINES-offset)) & mask;
+	}
+
+	public static char readChar(char[] data, int i) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		int d0 = read(data, index);
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		if (offset == 0)
+			return (char) d0;
+
+		d0 >>>= offset;
+		
+		int d1 = read(data, ++index);
+		d1 <<= CHAR_DATA_LINES - offset;
+		
+		return (char) (d1 | d0);
+	}
+
+	public static void writeChar(char[] data, int i, char v) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		
+		int mask = ~(CHAR_DATA_MASK << Character.SIZE) << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= v << offset & mask;
+		}
+		
+		if (offset + Character.SIZE <= CHAR_DATA_LINES)
+			return;
+		
+		if (++index >= data.length) return;
+
+		mask = ~(CHAR_DATA_MASK << Character.SIZE) >> CHAR_DATA_LINES - offset;
+		
+		data[index] &= ~mask;
+		data[index] |= v >> CHAR_DATA_LINES - offset & mask;
+	}
+
+	public static short readShort(char[] data, int i) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		int d0 = read(data, index);
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		if (offset == 0)
+			return (short) d0;
+
+		d0 >>>= offset;
+		
+		int d1 = read(data, ++index);
+		d1 <<= CHAR_DATA_LINES - offset;
+		
+		return (short) (d1 | d0);
+	}
+
+	public static void writeShort(char[] data, int i, short v) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -1) return;
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		
+		int mask = ~(CHAR_DATA_MASK << Short.SIZE) << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= v << offset & mask;
+		}
+		
+		if (offset + Short.SIZE <= CHAR_DATA_LINES)
+			return;
+		
+		if (++index >= data.length) return;
+
+		mask = ~(CHAR_DATA_MASK << Short.SIZE) >> CHAR_DATA_LINES - offset;
+		
+		data[index] &= ~mask;
+		data[index] |= v >> CHAR_DATA_LINES - offset & mask;
+	}
+
+	public static int readInt(char[] data, int i) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		int d0 = read(data, index);
+		int d1 = read(data, ++index);
+	
+		int offset = i & CHAR_ADDRESS_MASK;
+		if (offset == 0)
+			return d1 << CHAR_DATA_LINES | d0;
+		
+		int d2 = read(data, ++index);
+		
+		d0 >>>= offset;
+		d1 <<= CHAR_DATA_LINES - offset;
+		d2 <<= 2*CHAR_DATA_LINES - offset;
+		
+		return d2 | d1 | d0;
+	}
+
+	public static void writeInt(char[] data, int i, int v) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		if (index >= data.length) return;
+		if (index < -2) return;
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		if (offset == 0) {
+			if (index >= 0)
+				data[index] = (char)(v >> 0);
+	
+			if (++index >= data.length) return;
+			if (index >= 0)
+				data[index] = (char)(v >> CHAR_DATA_LINES);
+			
+			return;
+		}
+	
+		int mask = CHAR_DATA_MASK << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (v << offset) & mask;
+		}
+		
+		if (++index >= data.length) return;
+		if (index >= 0)
+			data[index] = (char)(v >> CHAR_DATA_LINES - offset);
+		
+		if (++index >= data.length) return;
+		
+		data[index] &= mask;
+		data[index] |= (char)(v >> 2*CHAR_DATA_LINES - offset) & ~mask;
+	}
+
+	public static long readLong(char[] data, int i) {
+		int index = i >> CHAR_ADDRESS_LINES;
+		
+		long d0 = read(data, index);
+		long d1 = read(data, ++index);
+		long d2 = read(data, ++index);
+		long d3 = read(data, ++index);
+	
+		int offset = i & CHAR_ADDRESS_MASK;
+		if (offset == 0)
+			return d3 << 3*CHAR_DATA_LINES | d2 << 2*CHAR_DATA_LINES | d1 << CHAR_DATA_LINES | d0;
+		
+		long d4 = read(data, ++index);
+		
+		d0 >>>= offset;
+		d1 <<= CHAR_DATA_LINES - offset;
+		d2 <<= 2*CHAR_DATA_LINES - offset;
+		d3 <<= 3*CHAR_DATA_LINES - offset;
+		d4 <<= 4*CHAR_DATA_LINES - offset;
+		
+		return d4 | d3 | d2 | d1 | d0;
+	}
+
+	public static void writeLong(char[] data, int i, long v) {
+		int index = i >> CHAR_ADDRESS_LINES;
+	
+		if (index >= data.length) return;
+		if (index < -4) return;
+		
+		int offset = i & CHAR_ADDRESS_MASK;
+		if (offset == 0) {
+			if (index >= 0)
+				data[index] = (char)(v >> 0);
+	
+			if (++index >= data.length) return;
+			if (index >= 0)
+				data[index] = (char)(v >> CHAR_DATA_LINES);
+			
+			if (++index >= data.length) return;
+			if (index >= 0)
+				data[index] = (char)(v >> 2*CHAR_DATA_LINES);
+			
+			if (++index >= data.length) return;
+			if (index >= 0)
+				data[index] = (char)(v >> 3*CHAR_DATA_LINES);
+			
+			return;
+		}
+	
+		int mask = CHAR_DATA_MASK << offset;
+		
+		if (index >= 0) {
+			data[index] &= ~mask;
+			data[index] |= (v << offset) & mask;
+		}
+		
+		if (++index >= data.length) return;
+		if (index >= 0)
+			data[index] = (char)(v >> CHAR_DATA_LINES - offset);
+		
+		if (++index >= data.length) return;
+		if (index >= 0)
+			data[index] = (char)(v >> 2*CHAR_DATA_LINES - offset);
+		
+		if (++index >= data.length) return;
+		if (index >= 0)
+			data[index] = (char)(v >> 3*CHAR_DATA_LINES - offset);
+		
+		if (++index >= data.length) return;
+		
+		data[index] &= mask;
+		data[index] |= (char)(v >> 4*CHAR_DATA_LINES - offset) & ~mask;
+	}
 }
