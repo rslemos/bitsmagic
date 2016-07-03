@@ -75,4 +75,16 @@ public interface StorageBuilder<T> {
 			return result;
 		}
 	}
+	
+	static class IntArrayBuilder {
+		protected static int[] build0(long...d) {
+			int[] result = new int[d.length * 2];
+			for (int i = 0; i < d.length; i++) {
+				result[i * 2 + 0] = (int) (d[d.length - i - 1] >>>  0);
+				result[i * 2 + 1] = (int) (d[d.length - i - 1] >>> 32);
+			}
+		
+			return result;
+		}
+	}
 }
