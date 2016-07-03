@@ -3347,6 +3347,68 @@ public class StoreUnitTest {
 				assertThat(subject, is(equalTo(expected)));
 			}
 		}
+
+		public static abstract class BitString<T> extends Fixture<T> {
+			protected abstract String readBitString(T data, int offset, int length);
+			protected abstract void writeBitString(T data, int offset, String v);
+
+			protected abstract String readBitString(T data);
+			protected abstract void writeBitString(T data, String v);
+
+			@Test public void readFull() {
+				assertThat(readBitString(subject), is(equalTo("0011001100110110100000001000000100000100001000100010010010101010")));
+			}
+
+			@Test public void read0_64() {
+				String expected = "0011001100110110100000001000000100000100001000100010010010101010";
+				String actual = readBitString(subject, 0, 64);
+				
+				assertThat(actual, is(equalTo(expected)));
+			}
+
+			@Test public void read0_32() {
+				String expected = "00000100001000100010010010101010";
+				String actual = readBitString(subject, 0, 32);
+				
+				assertThat(actual, is(equalTo(expected)));
+			}
+			
+			@Test public void read32_32() {
+				String expected = "00110011001101101000000010000001";
+				String actual = readBitString(subject, 32, 32);
+				
+				assertThat(actual, is(equalTo(expected)));
+			}
+			
+			@Test public void writeFull() {
+				writeBitString(subject, "1100110011001001011111110111111011111011110111011101101101010101");
+				T expected = build(0b1100110011001001011111110111111011111011110111011101101101010101L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void write0_64() {
+				writeBitString(subject, 0, "1100110011001001011111110111111011111011110111011101101101010101");
+				T expected = build(0b1100110011001001011111110111111011111011110111011101101101010101L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void write0_32() {
+				writeBitString(subject, 0, "11111011110111011101101101010101");
+				T expected = build(0b0011001100110110100000001000000111111011110111011101101101010101L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void write32_32() {
+				writeBitString(subject, 32, "11001100110010010111111101111110");
+				T expected = build(0b1100110011001001011111110111111000000100001000100010010010101010L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+		}
 	}
 	
 	@RunWith(Enclosed.class)
