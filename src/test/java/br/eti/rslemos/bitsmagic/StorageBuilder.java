@@ -29,4 +29,22 @@ package br.eti.rslemos.bitsmagic;
 
 public interface StorageBuilder<T> {
 	T build(long... d);
+	
+	static class ByteArrayBuilder {
+		protected static byte[] build0(long...d) {
+			byte[] result = new byte[d.length * 8];
+			for (int i = 0; i < d.length; i++) {
+				result[i * 8 + 0] = (byte) (d[d.length - i - 1] >>>  0);
+				result[i * 8 + 1] = (byte) (d[d.length - i - 1] >>>  8);
+				result[i * 8 + 2] = (byte) (d[d.length - i - 1] >>> 16);
+				result[i * 8 + 3] = (byte) (d[d.length - i - 1] >>> 24);
+				result[i * 8 + 4] = (byte) (d[d.length - i - 1] >>> 32);
+				result[i * 8 + 5] = (byte) (d[d.length - i - 1] >>> 40);
+				result[i * 8 + 6] = (byte) (d[d.length - i - 1] >>> 48);
+				result[i * 8 + 7] = (byte) (d[d.length - i - 1] >>> 56);
+			}
+		
+			return result;
+		}
+	}
 }
