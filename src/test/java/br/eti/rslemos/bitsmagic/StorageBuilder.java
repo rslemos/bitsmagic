@@ -61,4 +61,18 @@ public interface StorageBuilder<T> {
 			return result;
 		}
 	}
+	
+	static class ShortArrayBuilder {
+		protected static short[] build0(long...d) {
+			short[] result = new short[d.length * 4];
+			for (int i = 0; i < d.length; i++) {
+				result[i * 4 + 0] = (short) (d[d.length - i - 1] >>>  0);
+				result[i * 4 + 1] = (short) (d[d.length - i - 1] >>> 16);
+				result[i * 4 + 2] = (short) (d[d.length - i - 1] >>> 32);
+				result[i * 4 + 3] = (short) (d[d.length - i - 1] >>> 48);
+			}
+		
+			return result;
+		}
+	}
 }

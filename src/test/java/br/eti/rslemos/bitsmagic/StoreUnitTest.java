@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 
 import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
 import br.eti.rslemos.bitsmagic.StorageBuilder.CharArrayBuilder;
+import br.eti.rslemos.bitsmagic.StorageBuilder.ShortArrayBuilder;
 
 @RunWith(Enclosed.class)
 public class StoreUnitTest {
@@ -3421,6 +3422,45 @@ public class StoreUnitTest {
 			@Override protected long readLong(char[] data, int i) { return Store.readLong(data, i); }
 			@Override protected void writeLong(char[] data, int i, long v) { Store.writeLong(data, i, v); }
 			@Override public char[] build(long... d) { return build0(d); }
+		}
+	}
+
+	@RunWith(Enclosed.class)
+	public static class ShortArray extends ShortArrayBuilder {
+		public static class Bit extends Cases.Bit<short[]> {
+			@Override protected boolean readBit(short[] data, int i) { return Store.readBit(data, i); }
+			@Override protected void writeBit(short[] data, int i, boolean v) { Store.writeBit(data, i, v); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+	
+		public static class Byte extends Cases.Byte<short[]> {
+			@Override protected byte readByte(short[] data, int i) { return Store.readByte(data, i); }
+			@Override protected void writeByte(short[] data, int i, byte v) { Store.writeByte(data, i, v); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+	
+		public static class Char extends Cases.Char<short[]> {
+			@Override protected char readChar(short[] data, int i) { return Store.readChar(data, i); }
+			@Override protected void writeChar(short[] data, int i, char v) { Store.writeChar(data, i, v); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+	
+		public static class Short extends Cases.Short<short[]> {
+			@Override protected short readShort(short[] data, int i) { return Store.readShort(data, i); }
+			@Override protected void writeShort(short[] data, int i, short v) { Store.writeShort(data, i, v); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+	
+		public static class Int extends Cases.Int<short[]> {
+			@Override protected int readInt(short[] data, int i) { return Store.readInt(data, i); }
+			@Override protected void writeInt(short[] data, int i, int v) { Store.writeInt(data, i, v); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+	
+		public static class Long extends Cases.Long<short[]> {
+			@Override protected long readLong(short[] data, int i) { return Store.readLong(data, i); }
+			@Override protected void writeLong(short[] data, int i, long v) { Store.writeLong(data, i, v); }
+			@Override public short[] build(long... d) { return build0(d); }
 		}
 	}
 }
