@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 
 import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
 import br.eti.rslemos.bitsmagic.StorageBuilder.CharArrayBuilder;
+import br.eti.rslemos.bitsmagic.StorageBuilder.ShortArrayBuilder;
 
 @RunWith(Enclosed.class)
 public class CopyUnitTest {
@@ -9260,6 +9261,16 @@ public class CopyUnitTest {
 				Copy.copyFrom(source, srcPos, dest, destPos, length);
 			}
 			@Override public char[] build(long... d) { return build0(d); }
+		}
+	}
+
+	@RunWith(Enclosed.class)
+	public static class ShortArray extends ShortArrayBuilder {
+		public static class CopyFromDifferentSource extends Cases.CopyFromDifferentSource<short[]> {
+			@Override protected void copyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public short[] build(long... d) { return build0(d); }
 		}
 	}
 }
