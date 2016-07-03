@@ -3448,6 +3448,14 @@ public class StoreUnitTest {
 			@Override protected void writeLong(byte[] data, int i, long v) { Store.writeLong(data, i, v); }
 			@Override public byte[] build(long... d) { return build0(d); }
 		}
+	
+		public static class BitString extends Cases.BitString<byte[]> {
+			@Override protected String readBitString(byte[] data, int offset, int length) { return Store.readBitString(data, offset, length); }
+			@Override protected void writeBitString(byte[] data, int offset, String v) { Store.writeBitString(data, offset, v); }
+			@Override protected String readBitString(byte[] data) { return Store.readBitString(data); }
+			@Override protected void writeBitString(byte[] data, String v) { Store.writeBitString(data, v); }
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
 	}
 
 	@RunWith(Enclosed.class)

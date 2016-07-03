@@ -51,19 +51,25 @@ public class Store {
 			return false;
 		
 		int offset = i & BYTE_ADDRESS_MASK;
+		return readBit0(data, index, offset);
+	}
+	
+	private static boolean readBit0(byte[] data, int index, int offset) {
 		return (data[index] << ~offset) < 0;
 	}
 	
 	public static void writeBit(byte[] data, int i, boolean v) {
 		int index = i >> BYTE_ADDRESS_LINES;
 
-		if (index >= 0 && index < data.length) {
-			int offset = i & BYTE_ADDRESS_MASK;
-			if (v)
-				data[index] |= 1 << offset;
-			else
-				data[index] &= ~(1 << offset);
-		}
+		if (index >= 0 && index < data.length)
+			writeBit0(data, index, i & BYTE_ADDRESS_MASK, v);
+	}
+
+	private static void writeBit0(byte[] data, int index, int offset, boolean v) {
+		if (v)
+			data[index] |= 1 << offset;
+		else
+			data[index] &= ~(1 << offset);
 	}
 
 	public static byte readByte(byte[] data, int i) {
@@ -405,7 +411,51 @@ public class Store {
 		data[index] &= mask;
 		data[index] |= (byte)(v >> 8*BYTE_DATA_LINES - offset) & ~mask;
 	}
+
+	public static String readBitString(byte[] data) {
+		return readBitString(data, 0, data.length * BYTE_DATA_LINES - 0);
+	}
 	
+	public static String readBitString(byte[] data, int offset, int length) {
+		char[] dest = new char[length];
+		return new String(readBitString(data, offset, dest, 0, length));
+	}
+	
+	private static char[] readBitString(byte[] src, int srcPos, char[] dest, int destPos, int length) {
+		Arrays.fill(dest, destPos, length, '0');
+		
+		for (int i = destPos + length - 1, index = 0; i >= destPos; i--, srcPos++) {
+			index += srcPos >> BYTE_ADDRESS_LINES;
+			srcPos &= BYTE_ADDRESS_MASK;
+
+			if (readBit0(src, index, srcPos))
+				dest[i] = '1';
+		}
+		
+		return dest;
+	}
+
+	public static void writeBitString(byte[] data, String v) {
+		writeBitString(data, 0, v);
+	}
+	
+	public static void writeBitString(byte[] data, int offset, String v) {
+		writeBitString(data, offset, v.length(), v);
+	}
+	
+	private static void writeBitString(byte[] data, int offset, int length, String v) {
+		writeBitString(data, offset, v.toCharArray(), 0, length);
+	}
+	
+	private static void writeBitString(byte[] dest, int destPos, char[] src, int srcPos, int length) {
+		for (int i = srcPos + length - 1, index = 0; i >= srcPos; i--, destPos++) {
+			index += destPos >> BYTE_ADDRESS_LINES;
+			destPos &= BYTE_ADDRESS_MASK;
+			
+			writeBit0(dest, index, destPos, src[i] == '1');
+		}
+	}
+
 	/********** char[] **********/
 
 	private static final int CHAR_ADDRESS_LINES = 4;
