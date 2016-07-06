@@ -1320,11 +1320,11 @@ public class Store {
 
 	/********** int[] **********/
 
-	private static final int INT_ADDRESS_LINES = 5;
-	private static final int INT_DATA_LINES = 1 << INT_ADDRESS_LINES;
-	private static final int INT_ADDRESS_MASK = ~(-1 << INT_ADDRESS_LINES);
-	private static final int INT_DATA_MASK = ~0;
-	private static final long INT_DATA_MASKL = ~(-1L << INT_DATA_LINES);
+	static final int INT_ADDRESS_LINES = 5;
+	static final int INT_DATA_LINES = 1 << INT_ADDRESS_LINES;
+	static final int INT_ADDRESS_MASK = ~(-1 << INT_ADDRESS_LINES);
+	static final int INT_DATA_MASK = ~0;
+	static final long INT_DATA_MASKL = ~(-1L << INT_DATA_LINES);
 	
 	// we expect this function to be heavily inlined
 	private static int read(int[] data, int index) {
