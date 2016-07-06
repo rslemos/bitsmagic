@@ -34,9 +34,9 @@ public class Store {
 
 	/********** byte[] **********/
 
-	private static final int BYTE_ADDRESS_LINES = 3;
-	private static final int BYTE_DATA_LINES = 1 << BYTE_ADDRESS_LINES;
-	private static final int BYTE_ADDRESS_MASK = ~(-1 << BYTE_ADDRESS_LINES);
+	static final int BYTE_ADDRESS_LINES = 3;
+	static final int BYTE_DATA_LINES = 1 << BYTE_ADDRESS_LINES;
+	static final int BYTE_ADDRESS_MASK = ~(-1 << BYTE_ADDRESS_LINES);
 	static final int BYTE_DATA_MASK = ~(-1 << BYTE_DATA_LINES);
 	
 	// we expect this function to be heavily inlined

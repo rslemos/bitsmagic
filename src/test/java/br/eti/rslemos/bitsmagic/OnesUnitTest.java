@@ -313,4 +313,9 @@ public class OnesUnitTest {
 		@Test public void ones_16_248() { assertThat(ones(subject, 16, 16 + 248), is(equalTo(123))); }
 		@Test public void ones_16_288() { assertThat(ones(subject, 16, 16 + 288), is(equalTo(155))); }
 	}
+	
+	public static class ByteArray extends Cases<byte[]> {
+		@Override public byte[] build(long... d) { return ByteArrayBuilder.build0(d); }
+		@Override protected int ones(byte[] data, int from, int to) { return Ones.ones(data, from, to); }
+	}
 }
