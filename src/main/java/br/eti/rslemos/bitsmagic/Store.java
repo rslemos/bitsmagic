@@ -516,9 +516,9 @@ public class Store {
 
 	/********** char[] **********/
 
-	private static final int CHAR_ADDRESS_LINES = 4;
-	private static final int CHAR_DATA_LINES = 1 << CHAR_ADDRESS_LINES;
-	private static final int CHAR_ADDRESS_MASK = ~(-1 << CHAR_ADDRESS_LINES);
+	static final int CHAR_ADDRESS_LINES = 4;
+	static final int CHAR_DATA_LINES = 1 << CHAR_ADDRESS_LINES;
+	static final int CHAR_ADDRESS_MASK = ~(-1 << CHAR_ADDRESS_LINES);
 	static final int CHAR_DATA_MASK = ~(-1 << CHAR_DATA_LINES);
 	
 	// we expect this function to be heavily inlined

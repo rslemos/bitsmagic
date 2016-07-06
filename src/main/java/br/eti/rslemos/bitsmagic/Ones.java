@@ -30,6 +30,8 @@ package br.eti.rslemos.bitsmagic;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.CHAR_DATA_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 
@@ -116,6 +118,52 @@ public class Ones {
 			final int LOWEST_BITS = ~(BYTE_DATA_MASK << offset[1]);
 			
 			count += ones((byte)(data[index[1]] & LOWEST_BITS));
+		}
+		
+		return count;
+	}
+
+	/********** char[] **********/
+	
+	public static int ones(char[] data, int from, int to) {
+		if (from == to)
+			return 0;
+		
+		if (to < from)
+			throw new IllegalArgumentException();
+
+		int[] index  = {from  >> CHAR_ADDRESS_LINES, to >> CHAR_ADDRESS_LINES};
+		int[] offset = {from  & CHAR_ADDRESS_MASK,   to & CHAR_ADDRESS_MASK  };
+		
+		if (index[1] == index[0]) {
+			// special case: subword count
+			
+			final int LOWEST_BITS_FROM = ~(CHAR_DATA_MASK << offset[0]);
+			final int HIGHEST_BITS_TO = CHAR_DATA_MASK << offset[1];
+
+			return ones((char)(data[index[0]] & ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO)));
+		}
+		
+		int count = 0;
+		
+		if (offset[0] != 0) {
+			// handle "from" end specially
+			
+			final int HIGHEST_BITS = CHAR_DATA_MASK << offset[0];
+
+			count += ones((char)(data[index[0]] & HIGHEST_BITS));
+			
+			// first index already taken care of
+			index[0]++;
+		}
+
+		for (int j = index[0]; j < index[1]; j++)
+			count += ones(data[j]);
+
+		if (offset[1] != 0) {
+			final int LOWEST_BITS = ~(CHAR_DATA_MASK << offset[1]);
+			
+			count += ones((char)(data[index[1]] & LOWEST_BITS));
 		}
 		
 		return count;
