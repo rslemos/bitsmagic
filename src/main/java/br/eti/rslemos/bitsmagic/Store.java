@@ -918,9 +918,9 @@ public class Store {
 
 	/********** short[] **********/
 
-	private static final int SHORT_ADDRESS_LINES = 4;
-	private static final int SHORT_DATA_LINES = 1 << SHORT_ADDRESS_LINES;
-	private static final int SHORT_ADDRESS_MASK = ~(-1 << SHORT_ADDRESS_LINES);
+	static final int SHORT_ADDRESS_LINES = 4;
+	static final int SHORT_DATA_LINES = 1 << SHORT_ADDRESS_LINES;
+	static final int SHORT_ADDRESS_MASK = ~(-1 << SHORT_ADDRESS_LINES);
 	static final int SHORT_DATA_MASK = ~(-1 << SHORT_DATA_LINES);
 	
 	// we expect this function to be heavily inlined

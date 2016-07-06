@@ -323,4 +323,9 @@ public class OnesUnitTest {
 		@Override public char[] build(long... d) { return CharArrayBuilder.build0(d); }
 		@Override protected int ones(char[] data, int from, int to) { return Ones.ones(data, from, to); }
 	}
+	
+	public static class ShortArray extends Cases<short[]> {
+		@Override public short[] build(long... d) { return ShortArrayBuilder.build0(d); }
+		@Override protected int ones(short[] data, int from, int to) { return Ones.ones(data, from, to); }
+	}
 }
