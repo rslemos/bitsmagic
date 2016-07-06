@@ -1705,10 +1705,10 @@ public class Store {
 
 	/********** long[] **********/
 
-	private static final int LONG_ADDRESS_LINES = 6;
-	private static final int LONG_DATA_LINES = 1 << LONG_ADDRESS_LINES;
-	private static final int LONG_ADDRESS_MASK = ~(-1 << LONG_ADDRESS_LINES);
-	private static final long LONG_DATA_MASK = ~0L;
+	static final int LONG_ADDRESS_LINES = 6;
+	static final int LONG_DATA_LINES = 1 << LONG_ADDRESS_LINES;
+	static final int LONG_ADDRESS_MASK = ~(-1 << LONG_ADDRESS_LINES);
+	static final long LONG_DATA_MASK = ~0L;
 	
 	// we expect this function to be heavily inlined
 	private static long read(long[] data, int index) {

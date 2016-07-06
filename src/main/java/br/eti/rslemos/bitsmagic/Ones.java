@@ -36,6 +36,9 @@ import static br.eti.rslemos.bitsmagic.Store.CHAR_DATA_MASK;
 import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.INT_DATA_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_DATA_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
@@ -259,6 +262,52 @@ public class Ones {
 
 		if (offset[1] != 0) {
 			final int LOWEST_BITS = ~(INT_DATA_MASK << offset[1]);
+			
+			count += ones(data[index[1]] & LOWEST_BITS);
+		}
+		
+		return count;
+	}
+
+	/********** long[] **********/
+	
+	public static int ones(long[] data, int from, int to) {
+		if (from == to)
+			return 0;
+		
+		if (to < from)
+			throw new IllegalArgumentException();
+
+		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
+		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };
+		
+		if (index[1] == index[0]) {
+			// special case: subword count
+			
+			final long LOWEST_BITS_FROM = ~(LONG_DATA_MASK << offset[0]);
+			final long HIGHEST_BITS_TO = LONG_DATA_MASK << offset[1];
+
+			return ones(data[index[0]] & ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO));
+		}
+		
+		int count = 0;
+		
+		if (offset[0] != 0) {
+			// handle "from" end specially
+			
+			final long HIGHEST_BITS = LONG_DATA_MASK << offset[0];
+
+			count += ones(data[index[0]] & HIGHEST_BITS);
+			
+			// first index already taken care of
+			index[0]++;
+		}
+
+		for (int j = index[0]; j < index[1]; j++)
+			count += ones(data[j]);
+
+		if (offset[1] != 0) {
+			final long LOWEST_BITS = ~(LONG_DATA_MASK << offset[1]);
 			
 			count += ones(data[index[1]] & LOWEST_BITS);
 		}
