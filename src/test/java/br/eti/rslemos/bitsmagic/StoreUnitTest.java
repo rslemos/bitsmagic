@@ -3347,6 +3347,68 @@ public class StoreUnitTest {
 				assertThat(subject, is(equalTo(expected)));
 			}
 		}
+
+		public static abstract class BitString<T> extends Fixture<T> {
+			protected abstract String readBitString(T data, int offset, int length);
+			protected abstract void writeBitString(T data, int offset, String v);
+
+			protected abstract String readBitString(T data);
+			protected abstract void writeBitString(T data, String v);
+
+			@Test public void readFull() {
+				assertThat(readBitString(subject), is(equalTo("0011001100110110100000001000000100000100001000100010010010101010")));
+			}
+
+			@Test public void read0_64() {
+				String expected = "0011001100110110100000001000000100000100001000100010010010101010";
+				String actual = readBitString(subject, 0, 64);
+				
+				assertThat(actual, is(equalTo(expected)));
+			}
+
+			@Test public void read0_32() {
+				String expected = "00000100001000100010010010101010";
+				String actual = readBitString(subject, 0, 32);
+				
+				assertThat(actual, is(equalTo(expected)));
+			}
+			
+			@Test public void read32_32() {
+				String expected = "00110011001101101000000010000001";
+				String actual = readBitString(subject, 32, 32);
+				
+				assertThat(actual, is(equalTo(expected)));
+			}
+			
+			@Test public void writeFull() {
+				writeBitString(subject, "1100110011001001011111110111111011111011110111011101101101010101");
+				T expected = build(0b1100110011001001011111110111111011111011110111011101101101010101L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void write0_64() {
+				writeBitString(subject, 0, "1100110011001001011111110111111011111011110111011101101101010101");
+				T expected = build(0b1100110011001001011111110111111011111011110111011101101101010101L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void write0_32() {
+				writeBitString(subject, 0, "11111011110111011101101101010101");
+				T expected = build(0b0011001100110110100000001000000111111011110111011101101101010101L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void write32_32() {
+				writeBitString(subject, 32, "11001100110010010111111101111110");
+				T expected = build(0b1100110011001001011111110111111000000100001000100010010010101010L);
+				
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+		}
 	}
 	
 	@RunWith(Enclosed.class)
@@ -3384,6 +3446,14 @@ public class StoreUnitTest {
 		public static class Long extends Cases.Long<byte[]> {
 			@Override protected long readLong(byte[] data, int i) { return Store.readLong(data, i); }
 			@Override protected void writeLong(byte[] data, int i, long v) { Store.writeLong(data, i, v); }
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
+	
+		public static class BitString extends Cases.BitString<byte[]> {
+			@Override protected String readBitString(byte[] data, int offset, int length) { return Store.readBitString(data, offset, length); }
+			@Override protected void writeBitString(byte[] data, int offset, String v) { Store.writeBitString(data, offset, v); }
+			@Override protected String readBitString(byte[] data) { return Store.readBitString(data); }
+			@Override protected void writeBitString(byte[] data, String v) { Store.writeBitString(data, v); }
 			@Override public byte[] build(long... d) { return build0(d); }
 		}
 	}
@@ -3425,6 +3495,14 @@ public class StoreUnitTest {
 			@Override protected void writeLong(char[] data, int i, long v) { Store.writeLong(data, i, v); }
 			@Override public char[] build(long... d) { return build0(d); }
 		}
+	
+		public static class BitString extends Cases.BitString<char[]> {
+			@Override protected String readBitString(char[] data, int offset, int length) { return Store.readBitString(data, offset, length); }
+			@Override protected void writeBitString(char[] data, int offset, String v) { Store.writeBitString(data, offset, v); }
+			@Override protected String readBitString(char[] data) { return Store.readBitString(data); }
+			@Override protected void writeBitString(char[] data, String v) { Store.writeBitString(data, v); }
+			@Override public char[] build(long... d) { return build0(d); }
+		}
 	}
 
 	@RunWith(Enclosed.class)
@@ -3462,6 +3540,14 @@ public class StoreUnitTest {
 		public static class Long extends Cases.Long<short[]> {
 			@Override protected long readLong(short[] data, int i) { return Store.readLong(data, i); }
 			@Override protected void writeLong(short[] data, int i, long v) { Store.writeLong(data, i, v); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+	
+		public static class BitString extends Cases.BitString<short[]> {
+			@Override protected String readBitString(short[] data, int offset, int length) { return Store.readBitString(data, offset, length); }
+			@Override protected void writeBitString(short[] data, int offset, String v) { Store.writeBitString(data, offset, v); }
+			@Override protected String readBitString(short[] data) { return Store.readBitString(data); }
+			@Override protected void writeBitString(short[] data, String v) { Store.writeBitString(data, v); }
 			@Override public short[] build(long... d) { return build0(d); }
 		}
 	}
@@ -3503,6 +3589,14 @@ public class StoreUnitTest {
 			@Override protected void writeLong(int[] data, int i, long v) { Store.writeLong(data, i, v); }
 			@Override public int[] build(long... d) { return build0(d); }
 		}
+	
+		public static class BitString extends Cases.BitString<int[]> {
+			@Override protected String readBitString(int[] data, int offset, int length) { return Store.readBitString(data, offset, length); }
+			@Override protected void writeBitString(int[] data, int offset, String v) { Store.writeBitString(data, offset, v); }
+			@Override protected String readBitString(int[] data) { return Store.readBitString(data); }
+			@Override protected void writeBitString(int[] data, String v) { Store.writeBitString(data, v); }
+			@Override public int[] build(long... d) { return build0(d); }
+		}
 	}
 
 	@RunWith(Enclosed.class)
@@ -3540,6 +3634,14 @@ public class StoreUnitTest {
 		public static class Long extends Cases.Long<long[]> {
 			@Override protected long readLong(long[] data, int i) { return Store.readLong(data, i); }
 			@Override protected void writeLong(long[] data, int i, long v) { Store.writeLong(data, i, v); }
+			@Override public long[] build(long... d) { return build0(d); }
+		}
+	
+		public static class BitString extends Cases.BitString<long[]> {
+			@Override protected String readBitString(long[] data, int offset, int length) { return Store.readBitString(data, offset, length); }
+			@Override protected void writeBitString(long[] data, int offset, String v) { Store.writeBitString(data, offset, v); }
+			@Override protected String readBitString(long[] data) { return Store.readBitString(data); }
+			@Override protected void writeBitString(long[] data, String v) { Store.writeBitString(data, v); }
 			@Override public long[] build(long... d) { return build0(d); }
 		}
 	}
