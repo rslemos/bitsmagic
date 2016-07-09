@@ -4290,6 +4290,11 @@ public class StoreUnitTest {
 			@Override protected void writeBit(byte[] data, int i, boolean v) { Store.writeBit(data, i, v); }
 			@Override public byte[] build(long... d) { return build0(d); }
 		}
+		
+		public static class Fill extends Cases.Fill<byte[]> {
+			@Override protected void fill(byte[] data, int from, int to, boolean v) { Store.fill(data, from, to, v); }
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
 	
 		public static class Byte extends Cases.Byte<byte[]> {
 			@Override protected byte readByte(byte[] data, int i) { return Store.readByte(data, i); }
