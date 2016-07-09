@@ -1,10 +1,8 @@
+
+[![License][license]][mit license] [![Master status][master status]][travis-ci] [![Master coverage][master coverage]][codecov master]
+[![Develop status][develop status]][travis-ci][![Develop coverage][develop coverage]][codecov develop]
+
 # bitsmagic
-
-| Master                                                | Develop                                                  |
-| ----------------------------------------------------- | -------------------------------------------------------- |
-| [![Master status][master status]][master travis-ci]   | [![Develop status][develop status]][develop travis-ci]   |
-| [![Master coverage][master coverage]][master codecov] | [![Develop coverage][develop coverage]][develop codecov] |
-
 
 Code library for simple (yet magic) bit manipulation
 
@@ -22,15 +20,20 @@ the Gods" kōan](http://stevelosh.com/blog/2013/04/git-koans/#only-the-gods)
 maybe regularly violated, as pushed commits can be rebased at will (these
 branches should be temporary anyway).
 
-[master status]: https://travis-ci.org/rslemos/bitsmagic.png?branch=master
-[master travis-ci]: https://travis-ci.org/rslemos/bitsmagic
-[master coverage]: https://codecov.io/gh/rslemos/bitsmagic/branch/master/graph/badge.svg
-[master codecov]: https://codecov.io/gh/rslemos/bitsmagic/branch/master
+[//]: # (assorted links)
+[mit license]: http://doge.mit-license.org
+[travis-ci]: https://travis-ci.org/rslemos/bitsmagic
+[codecov master]: https://codecov.io/gh/rslemos/bitsmagic/branch/master
+[codecov develop]: https://codecov.io/gh/rslemos/bitsmagic/branch/develop
 
-[develop status]: https://travis-ci.org/rslemos/bitsmagic.png?branch=develop
-[develop travis-ci]: https://travis-ci.org/rslemos/bitsmagic
-[develop coverage]: https://codecov.io/gh/rslemos/bitsmagic/branch/develop/graph/badge.svg
-[develop codecov]: https://codecov.io/gh/rslemos/bitsmagic/branch/develop
+[//]: # (badges' images)
+[license]: http://img.shields.io/:license-mit-blue.svg?style=plastic
+
+[master status]: https://img.shields.io/travis/rslemos/bitsmagic/develop.svg?style=plastic
+[master coverage]: https://img.shields.io/codecov/c/github/rslemos/bitsmagic/master.svg?style=plastic
+
+[develop status]: https://img.shields.io/travis/rslemos/bitsmagic/develop.svg?style=plastic
+[develop coverage]: https://img.shields.io/codecov/c/github/rslemos/bitsmagic/develop.svg?style=plastic
 
 --------------------------------------------------------------------------------
   BEGIN COPYRIGHT NOTICE
