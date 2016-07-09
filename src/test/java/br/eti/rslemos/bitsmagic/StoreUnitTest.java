@@ -4499,6 +4499,11 @@ public class StoreUnitTest {
 			@Override public long[] build(long... d) { return build0(d); }
 		}
 	
+		public static class Fill extends Cases.Fill<long[]> {
+			@Override protected void fill(long[] data, int from, int to, boolean v) { Store.fill(data, from, to, v); }
+			@Override public long[] build(long... d) { return build0(d); }
+		}
+	
 		public static class Byte extends Cases.Byte<long[]> {
 			@Override protected byte readByte(long[] data, int i) { return Store.readByte(data, i); }
 			@Override protected void writeByte(long[] data, int i, byte v) { Store.writeByte(data, i, v); }
