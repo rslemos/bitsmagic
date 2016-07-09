@@ -1,7 +1,11 @@
 language: java
 sudo: false
+
 branches:
   only:
     - master
+    - develop
 
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
 

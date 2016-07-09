@@ -1,11 +1,16 @@
 # bitsmagic
 
 [![Master status][master status]][master travis-ci] 
+[![codecov][master coverage]][master codecov]
+
+
 
 Code library for simple (yet magic) bit manipulation
 
 [master status]: https://travis-ci.org/rslemos/bitsmagic.png?branch=master
 [master travis-ci]: https://travis-ci.org/rslemos/bitsmagic
+[master coverage]: https://codecov.io/gh/rslemos/bitsmagic/branch/master/graph/badge.svg
+[master codecov]: https://codecov.io/gh/rslemos/bitsmagic
 
 --------------------------------------------------------------------------------
   BEGIN COPYRIGHT NOTICE
