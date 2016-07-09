@@ -37,7 +37,7 @@ public class Store {
 	private static final int BYTE_ADDRESS_LINES = 3;
 	private static final int BYTE_DATA_LINES = 1 << BYTE_ADDRESS_LINES;
 	private static final int BYTE_ADDRESS_MASK = ~(-1 << BYTE_ADDRESS_LINES);
-	private static final int BYTE_DATA_MASK = ~(-1 << BYTE_DATA_LINES);
+	static final int BYTE_DATA_MASK = ~(-1 << BYTE_DATA_LINES);
 	
 	// we expect this function to be heavily inlined
 	private static int read(byte[] data, int index) {
@@ -519,7 +519,7 @@ public class Store {
 	private static final int CHAR_ADDRESS_LINES = 4;
 	private static final int CHAR_DATA_LINES = 1 << CHAR_ADDRESS_LINES;
 	private static final int CHAR_ADDRESS_MASK = ~(-1 << CHAR_ADDRESS_LINES);
-	private static final int CHAR_DATA_MASK = ~(-1 << CHAR_DATA_LINES);
+	static final int CHAR_DATA_MASK = ~(-1 << CHAR_DATA_LINES);
 	
 	// we expect this function to be heavily inlined
 	private static int read(char[] data, int index) {
@@ -921,7 +921,7 @@ public class Store {
 	private static final int SHORT_ADDRESS_LINES = 4;
 	private static final int SHORT_DATA_LINES = 1 << SHORT_ADDRESS_LINES;
 	private static final int SHORT_ADDRESS_MASK = ~(-1 << SHORT_ADDRESS_LINES);
-	private static final int SHORT_DATA_MASK = ~(-1 << SHORT_DATA_LINES);
+	static final int SHORT_DATA_MASK = ~(-1 << SHORT_DATA_LINES);
 	
 	// we expect this function to be heavily inlined
 	private static int read(short[] data, int index) {
