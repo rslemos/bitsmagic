@@ -259,6 +259,878 @@ public class StoreUnitTest {
 			}
 		}
 		
+		public static abstract class Fill<T> extends Fixture<T> {
+			protected abstract void fill(T data, int from, int to, boolean v);
+			
+			@Test public void fill_0_0_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010101010L);
+
+				fill(subject,  0,        0, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_0_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010101010L);
+
+				fill(subject,  0,        0, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_4_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010100000L);
+
+				fill(subject,  0,        4, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_4_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010101111L);
+
+				fill(subject,  0,        4, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_6_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010000000L);
+
+				fill(subject,  0,        6, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_6_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010111111L);
+
+				fill(subject,  0,        6, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_7_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010000000L);
+
+				fill(subject,  0,        7, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_7_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010011111111L);
+
+				fill(subject,  0,        7, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_8_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010000000000L);
+
+				fill(subject,  0,        8, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_8_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010011111111L);
+
+				fill(subject,  0,        8, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_12_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010000000000000L);
+
+				fill(subject,  0,       12, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_12_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010111111111111L);
+
+				fill(subject,  0,       12, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_14_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000000000L);
+
+				fill(subject,  0,       14, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_14_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100011111111111111L);
+
+				fill(subject,  0,       14, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_15_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000000000L);
+
+				fill(subject,  0,       15, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_15_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100111111111111111L);
+
+				fill(subject,  0,       15, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_16_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000000000L);
+
+				fill(subject,  0,       16, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_16_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000101111111111111111L);
+
+				fill(subject,  0,       16, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_20_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000000000000000000000L);
+
+				fill(subject,  0,       20, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_20_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001011111111111111111111L);
+
+				fill(subject,  0,       20, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_22_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100000000000000000000000000L);
+
+				fill(subject,  0,       22, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_22_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001111111111111111111111L);
+
+				fill(subject,  0,       22, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_23_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100000000000000000000000000L);
+
+				fill(subject,  0,       23, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_23_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100011111111111111111111111L);
+
+				fill(subject,  0,       23, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_24_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100000000000000000000000000L);
+
+				fill(subject,  0,       24, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_24_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100111111111111111111111111L);
+
+				fill(subject,  0,       24, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_28_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000000000L);
+
+				fill(subject,  0,       28, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_28_t()   {
+				T expected = build(0b0011001100110110100000001000000100001111111111111111111111111111L);
+
+				fill(subject,  0,       28, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_30_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000000000L);
+
+				fill(subject,  0,       30, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_30_t()   {
+				T expected = build(0b0011001100110110100000001000000100111111111111111111111111111111L);
+
+				fill(subject,  0,       30, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_31_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000000000L);
+
+				fill(subject,  0,       31, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_31_t()   {
+				T expected = build(0b0011001100110110100000001000000101111111111111111111111111111111L);
+
+				fill(subject,  0,       31, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_32_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000000000L);
+
+				fill(subject,  0,       32, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_32_t()   {
+				T expected = build(0b0011001100110110100000001000000111111111111111111111111111111111L);
+
+				fill(subject,  0,       32, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_36_f()   {
+				T expected = build(0b0011001100110110100000001000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       36, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_36_t()   {
+				T expected = build(0b0011001100110110100000001000111111111111111111111111111111111111L);
+
+				fill(subject,  0,       36, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_40_f()   {
+				T expected = build(0b0011001100110110100000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       40, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_40_t()   {
+				T expected = build(0b0011001100110110100000001111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       40, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_44_f()   {
+				T expected = build(0b0011001100110110100000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       44, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_44_t()   {
+				T expected = build(0b0011001100110110100011111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       44, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_46_f()   {
+				T expected = build(0b0011001100110110100000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       46, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_46_t()   {
+				T expected = build(0b0011001100110110101111111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       46, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_48_f()   {
+				T expected = build(0b0011001100110110000000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       48, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_48_t()   {
+				T expected = build(0b0011001100110110111111111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       48, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_56_f()   {
+				T expected = build(0b0011001100000000000000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       56, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_56_t()   {
+				T expected = build(0b0011001111111111111111111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       56, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_60_f()   {
+				T expected = build(0b0011000000000000000000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       60, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_60_t()   {
+				T expected = build(0b0011111111111111111111111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       60, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_62_f()   {
+				T expected = build(0b0000000000000000000000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       62, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_62_t()   {
+				T expected = build(0b0011111111111111111111111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       62, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_64_f()   {
+				T expected = build(0b0000000000000000000000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       64, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_64_t()   {
+				T expected = build(0b1111111111111111111111111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       64, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_72_f()   {
+				T expected = build(0b0000000000000000000000000000000000000000000000000000000000000000L);
+
+				fill(subject,  0,       72, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_0_72_t()   {
+				T expected = build(0b1111111111111111111111111111111111111111111111111111111111111111L);
+
+				fill(subject,  0,       72, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_4_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010000010L);
+
+				fill(subject,  2,  2 +   4, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_4_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010111110L);
+
+				fill(subject,  2,  2 +   4, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_6_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010000000010L);
+
+				fill(subject,  2,  2 +   6, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_6_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010011111110L);
+
+				fill(subject,  2,  2 +   6, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_7_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010000000010L);
+
+				fill(subject,  2,  2 +   7, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_7_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010111111110L);
+
+				fill(subject,  2,  2 +   7, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_12_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000000010L);
+
+				fill(subject,  2,  2 +  12, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_12_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100011111111111110L);
+
+				fill(subject,  2,  2 +  12, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_14_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000000010L);
+
+				fill(subject,  2,  2 +  14, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_14_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000101111111111111110L);
+
+				fill(subject,  2,  2 +  14, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_15_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000000010L);
+
+				fill(subject,  2,  2 +  15, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_15_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000111111111111111110L);
+
+				fill(subject,  2,  2 +  15, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_20_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100000000000000000000000010L);
+
+				fill(subject,  2,  2 +  20, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_20_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001111111111111111111110L);
+
+				fill(subject,  2,  2 +  20, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_22_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100000000000000000000000010L);
+
+				fill(subject,  2,  2 +  22, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_22_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100111111111111111111111110L);
+
+				fill(subject,  2,  2 +  22, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_23_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100000000000000000000000010L);
+
+				fill(subject,  2,  2 +  23, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_23_t()   {
+				T expected = build(0b0011001100110110100000001000000100000101111111111111111111111110L);
+
+				fill(subject,  2,  2 +  23, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_28_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000000010L);
+
+				fill(subject,  2,  2 +  28, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_28_t()   {
+				T expected = build(0b0011001100110110100000001000000100111111111111111111111111111110L);
+
+				fill(subject,  2,  2 +  28, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_30_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000000010L);
+
+				fill(subject,  2,  2 +  30, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_30_t()   {
+				T expected = build(0b0011001100110110100000001000000111111111111111111111111111111110L);
+
+				fill(subject,  2,  2 +  30, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_31_f()   {
+				T expected = build(0b0011001100110110100000001000000000000000000000000000000000000010L);
+
+				fill(subject,  2,  2 +  31, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_31_t()   {
+				T expected = build(0b0011001100110110100000001000000111111111111111111111111111111110L);
+
+				fill(subject,  2,  2 +  31, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_36_f()   {
+				T expected = build(0b0011001100110110100000001000000000000000000000000000000000000010L);
+
+				fill(subject,  2,  2 +  36, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_2_36_t()   {
+				T expected = build(0b0011001100110110100000001011111111111111111111111111111111111110L);
+
+				fill(subject,  2,  2 +  36, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_8_f()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010000000001010L);
+
+				fill(subject,  4,  4 +   8, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_8_t()    {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010111111111010L);
+
+				fill(subject,  4,  4 +   8, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_12_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000001010L);
+
+				fill(subject,  4,  4 +  12, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_12_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000101111111111111010L);
+
+				fill(subject,  4,  4 +  12, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_14_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000000000000000001010L);
+
+				fill(subject,  4,  4 +  14, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_14_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100001000111111111111111010L);
+
+				fill(subject,  4,  4 +  14, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_24_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  24, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_24_t()   {
+				T expected = build(0b0011001100110110100000001000000100001111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  24, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_28_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  28, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_28_t()   {
+				T expected = build(0b0011001100110110100000001000000111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  28, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_30_f()   {
+				T expected = build(0b0011001100110110100000001000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  30, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_30_t()   {
+				T expected = build(0b0011001100110110100000001000001111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  30, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_40_f()   {
+				T expected = build(0b0011001100110110100000000000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  40, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_40_t()   {
+				T expected = build(0b0011001100110110100011111111111111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  40, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_44_f()   {
+				T expected = build(0b0011001100110110000000000000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  44, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_44_t()   {
+				T expected = build(0b0011001100110110111111111111111111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  44, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_46_f()   {
+				T expected = build(0b0011001100110100000000000000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  46, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_46_t()   {
+				T expected = build(0b0011001100110111111111111111111111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  46, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_48_f()   {
+				T expected = build(0b0011001100110000000000000000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  48, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_48_t()   {
+				T expected = build(0b0011001100111111111111111111111111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  48, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_56_f()   {
+				T expected = build(0b0011000000000000000000000000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  56, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_56_t()   {
+				T expected = build(0b0011111111111111111111111111111111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  56, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_60_f()   {
+				T expected = build(0b0000000000000000000000000000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  60, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_60_t()   {
+				T expected = build(0b1111111111111111111111111111111111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  60, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_62_f()   {
+				T expected = build(0b0000000000000000000000000000000000000000000000000000000000001010L);
+
+				fill(subject,  4,  4 +  62, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_4_62_t()   {
+				T expected = build(0b1111111111111111111111111111111111111111111111111111111111111010L);
+
+				fill(subject,  4,  4 +  62, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_16_f()   {
+				T expected = build(0b0011001100110110100000001000000100000100000000000000000010101010L);
+
+				fill(subject,  8,  8 +  16, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_16_t()   {
+				T expected = build(0b0011001100110110100000001000000100000100111111111111111110101010L);
+
+				fill(subject,  8,  8 +  16, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_24_f()   {
+				T expected = build(0b0011001100110110100000001000000100000000000000000000000010101010L);
+
+				fill(subject,  8,  8 +  24, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_24_t()   {
+				T expected = build(0b0011001100110110100000001000000111111111111111111111111110101010L);
+
+				fill(subject,  8,  8 +  24, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_28_f()   {
+				T expected = build(0b0011001100110110100000001000000000000000000000000000000010101010L);
+
+				fill(subject,  8,  8 +  28, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_28_t()   {
+				T expected = build(0b0011001100110110100000001000111111111111111111111111111110101010L);
+
+				fill(subject,  8,  8 +  28, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_48_f()   {
+				T expected = build(0b0011001100000000000000000000000000000000000000000000000010101010L);
+
+				fill(subject,  8,  8 +  48, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_48_t()   {
+				T expected = build(0b0011001111111111111111111111111111111111111111111111111110101010L);
+
+				fill(subject,  8,  8 +  48, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_56_f()   {
+				T expected = build(0b0000000000000000000000000000000000000000000000000000000010101010L);
+
+				fill(subject,  8,  8 +  56, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_56_t()   {
+				T expected = build(0b1111111111111111111111111111111111111111111111111111111110101010L);
+
+				fill(subject,  8,  8 +  56, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_60_f()   {
+				T expected = build(0b0000000000000000000000000000000000000000000000000000000010101010L);
+
+				fill(subject,  8,  8 +  60, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_8_60_t()   {
+				T expected = build(0b1111111111111111111111111111111111111111111111111111111110101010L);
+
+				fill(subject,  8,  8 +  60, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_16_32_f()  {
+				T expected = build(0b0011001100110110000000000000000000000000000000000010010010101010L);
+
+				fill(subject, 16, 16 +  32, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_16_32_t()  {
+				T expected = build(0b0011001100110110111111111111111111111111111111110010010010101010L);
+
+				fill(subject, 16, 16 +  32, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_16_48_f()  {
+				T expected = build(0b0000000000000000000000000000000000000000000000000010010010101010L);
+
+				fill(subject, 16, 16 +  48, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_16_48_t()  {
+				T expected = build(0b1111111111111111111111111111111111111111111111110010010010101010L);
+
+				fill(subject, 16, 16 +  48, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_16_56_f()  {
+				T expected = build(0b0000000000000000000000000000000000000000000000000010010010101010L);
+
+				fill(subject, 16, 16 +  56, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+
+			@Test public void fill_16_56_t()  {
+				T expected = build(0b1111111111111111111111111111111111111111111111110010010010101010L);
+
+				fill(subject, 16, 16 +  56, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+		}
+		
 		public static abstract class Byte<T> extends Fixture<T> {
 			protected abstract byte readByte(T data, int i);
 			protected abstract void writeByte(T data, int i, byte v);
@@ -3418,6 +4290,11 @@ public class StoreUnitTest {
 			@Override protected void writeBit(byte[] data, int i, boolean v) { Store.writeBit(data, i, v); }
 			@Override public byte[] build(long... d) { return build0(d); }
 		}
+		
+		public static class Fill extends Cases.Fill<byte[]> {
+			@Override protected void fill(byte[] data, int from, int to, boolean v) { Store.fill(data, from, to, v); }
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
 	
 		public static class Byte extends Cases.Byte<byte[]> {
 			@Override protected byte readByte(byte[] data, int i) { return Store.readByte(data, i); }
@@ -3463,6 +4340,11 @@ public class StoreUnitTest {
 		public static class Bit extends Cases.Bit<char[]> {
 			@Override protected boolean readBit(char[] data, int i) { return Store.readBit(data, i); }
 			@Override protected void writeBit(char[] data, int i, boolean v) { Store.writeBit(data, i, v); }
+			@Override public char[] build(long... d) { return build0(d); }
+		}
+	
+		public static class Fill extends Cases.Fill<char[]> {
+			@Override protected void fill(char[] data, int from, int to, boolean v) { Store.fill(data, from, to, v); }
 			@Override public char[] build(long... d) { return build0(d); }
 		}
 	
@@ -3513,6 +4395,11 @@ public class StoreUnitTest {
 			@Override public short[] build(long... d) { return build0(d); }
 		}
 	
+		public static class Fill extends Cases.Fill<short[]> {
+			@Override protected void fill(short[] data, int from, int to, boolean v) { Store.fill(data, from, to, v); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+	
 		public static class Byte extends Cases.Byte<short[]> {
 			@Override protected byte readByte(short[] data, int i) { return Store.readByte(data, i); }
 			@Override protected void writeByte(short[] data, int i, byte v) { Store.writeByte(data, i, v); }
@@ -3560,6 +4447,11 @@ public class StoreUnitTest {
 			@Override public int[] build(long... d) { return build0(d); }
 		}
 	
+		public static class Fill extends Cases.Fill<int[]> {
+			@Override protected void fill(int[] data, int from, int to, boolean v) { Store.fill(data, from, to, v); }
+			@Override public int[] build(long... d) { return build0(d); }
+		}
+	
 		public static class Byte extends Cases.Byte<int[]> {
 			@Override protected byte readByte(int[] data, int i) { return Store.readByte(data, i); }
 			@Override protected void writeByte(int[] data, int i, byte v) { Store.writeByte(data, i, v); }
@@ -3604,6 +4496,11 @@ public class StoreUnitTest {
 		public static class Bit extends Cases.Bit<long[]> {
 			@Override protected boolean readBit(long[] data, int i) { return Store.readBit(data, i); }
 			@Override protected void writeBit(long[] data, int i, boolean v) { Store.writeBit(data, i, v); }
+			@Override public long[] build(long... d) { return build0(d); }
+		}
+	
+		public static class Fill extends Cases.Fill<long[]> {
+			@Override protected void fill(long[] data, int from, int to, boolean v) { Store.fill(data, from, to, v); }
 			@Override public long[] build(long... d) { return build0(d); }
 		}
 	

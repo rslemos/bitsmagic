@@ -72,6 +72,64 @@ public class Store {
 			data[index] &= ~(1 << offset);
 	}
 
+	public static void fill(byte[] data, int from, int to, boolean v) {
+		if (from == to)
+			return;
+		
+		if (to < from)
+			throw new IllegalArgumentException();
+		
+		// clamp
+		if (from < 0)
+			from = 0;
+		
+		if (to > data.length << BYTE_ADDRESS_LINES)
+			to = data.length << BYTE_ADDRESS_LINES;
+
+		int[] index  = {from  >> BYTE_ADDRESS_LINES, to >> BYTE_ADDRESS_LINES};
+		int[] offset = {from  & BYTE_ADDRESS_MASK,   to & BYTE_ADDRESS_MASK  };
+		
+		if (index[1] == index[0]) {
+			// special case: subword count
+			
+			final long LOWEST_BITS_FROM = ~(BYTE_DATA_MASK << offset[0]);
+			final long HIGHEST_BITS_TO = BYTE_DATA_MASK << offset[1];
+
+			if (v)
+				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);
+			else
+				data[index[0]] &= LOWEST_BITS_FROM | HIGHEST_BITS_TO;
+			
+			return;
+		}
+		
+		if (offset[0] != 0) {
+			// handle "from" end specially
+			
+			final long HIGHEST_BITS = BYTE_DATA_MASK << offset[0];
+
+			if (v)
+				data[index[0]] |= HIGHEST_BITS;
+			else
+				data[index[0]] &= ~HIGHEST_BITS;
+			
+			// first index already taken care of
+			index[0]++;
+		}
+
+		if (index[1] > index[0])
+			Arrays.fill(data, index[0], index[1], (byte) (v ? -1 : 0));
+
+		if (offset[1] != 0) {
+			final long LOWEST_BITS = ~(BYTE_DATA_MASK << offset[1]);
+
+			if (v)
+				data[index[1]] |= LOWEST_BITS;
+			else
+				data[index[1]] &= ~LOWEST_BITS;
+		}
+	}
+
 	public static byte readByte(byte[] data, int i) {
 		int index = i >> BYTE_ADDRESS_LINES;
 		
@@ -496,6 +554,64 @@ public class Store {
 			data[index] &= ~(1 << offset);
 	}
 
+	public static void fill(char[] data, int from, int to, boolean v) {
+		if (from == to)
+			return;
+		
+		if (to < from)
+			throw new IllegalArgumentException();
+		
+		// clamp
+		if (from < 0)
+			from = 0;
+		
+		if (to > data.length << CHAR_ADDRESS_LINES)
+			to = data.length << CHAR_ADDRESS_LINES;
+
+		int[] index  = {from  >> CHAR_ADDRESS_LINES, to >> CHAR_ADDRESS_LINES};
+		int[] offset = {from  & CHAR_ADDRESS_MASK,   to & CHAR_ADDRESS_MASK  };
+		
+		if (index[1] == index[0]) {
+			// special case: subword count
+			
+			final long LOWEST_BITS_FROM = ~(CHAR_DATA_MASK << offset[0]);
+			final long HIGHEST_BITS_TO = CHAR_DATA_MASK << offset[1];
+
+			if (v)
+				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);
+			else
+				data[index[0]] &= LOWEST_BITS_FROM | HIGHEST_BITS_TO;
+			
+			return;
+		}
+		
+		if (offset[0] != 0) {
+			// handle "from" end specially
+			
+			final long HIGHEST_BITS = CHAR_DATA_MASK << offset[0];
+
+			if (v)
+				data[index[0]] |= HIGHEST_BITS;
+			else
+				data[index[0]] &= ~HIGHEST_BITS;
+			
+			// first index already taken care of
+			index[0]++;
+		}
+
+		if (index[1] > index[0])
+			Arrays.fill(data, index[0], index[1], (char) (v ? -1 : 0));
+
+		if (offset[1] != 0) {
+			final long LOWEST_BITS = ~(CHAR_DATA_MASK << offset[1]);
+
+			if (v)
+				data[index[1]] |= LOWEST_BITS;
+			else
+				data[index[1]] &= ~LOWEST_BITS;
+		}
+	}
+
 	public static byte readByte(char[] data, int i) {
 		int index = i >> CHAR_ADDRESS_LINES;
 		
@@ -838,6 +954,64 @@ public class Store {
 			data[index] |= 1 << offset;
 		else
 			data[index] &= ~(1 << offset);
+	}
+
+	public static void fill(short[] data, int from, int to, boolean v) {
+		if (from == to)
+			return;
+		
+		if (to < from)
+			throw new IllegalArgumentException();
+		
+		// clamp
+		if (from < 0)
+			from = 0;
+		
+		if (to > data.length << SHORT_ADDRESS_LINES)
+			to = data.length << SHORT_ADDRESS_LINES;
+
+		int[] index  = {from  >> SHORT_ADDRESS_LINES, to >> SHORT_ADDRESS_LINES};
+		int[] offset = {from  & SHORT_ADDRESS_MASK,   to & SHORT_ADDRESS_MASK  };
+		
+		if (index[1] == index[0]) {
+			// special case: subword count
+			
+			final long LOWEST_BITS_FROM = ~(SHORT_DATA_MASK << offset[0]);
+			final long HIGHEST_BITS_TO = SHORT_DATA_MASK << offset[1];
+
+			if (v)
+				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);
+			else
+				data[index[0]] &= LOWEST_BITS_FROM | HIGHEST_BITS_TO;
+			
+			return;
+		}
+		
+		if (offset[0] != 0) {
+			// handle "from" end specially
+			
+			final long HIGHEST_BITS = SHORT_DATA_MASK << offset[0];
+
+			if (v)
+				data[index[0]] |= HIGHEST_BITS;
+			else
+				data[index[0]] &= ~HIGHEST_BITS;
+			
+			// first index already taken care of
+			index[0]++;
+		}
+
+		if (index[1] > index[0])
+			Arrays.fill(data, index[0], index[1], (short) (v ? -1 : 0));
+
+		if (offset[1] != 0) {
+			final long LOWEST_BITS = ~(SHORT_DATA_MASK << offset[1]);
+
+			if (v)
+				data[index[1]] |= LOWEST_BITS;
+			else
+				data[index[1]] &= ~LOWEST_BITS;
+		}
 	}
 
 	public static byte readByte(short[] data, int i) {
@@ -1189,6 +1363,64 @@ public class Store {
 			data[index] &= ~(1 << offset);
 	}
 
+	public static void fill(int[] data, int from, int to, boolean v) {
+		if (from == to)
+			return;
+		
+		if (to < from)
+			throw new IllegalArgumentException();
+		
+		// clamp
+		if (from < 0)
+			from = 0;
+		
+		if (to > data.length << INT_ADDRESS_LINES)
+			to = data.length << INT_ADDRESS_LINES;
+
+		int[] index  = {from  >> INT_ADDRESS_LINES, to >> INT_ADDRESS_LINES};
+		int[] offset = {from  & INT_ADDRESS_MASK,   to & INT_ADDRESS_MASK  };
+		
+		if (index[1] == index[0]) {
+			// special case: subword count
+			
+			final long LOWEST_BITS_FROM = ~(INT_DATA_MASK << offset[0]);
+			final long HIGHEST_BITS_TO = INT_DATA_MASK << offset[1];
+
+			if (v)
+				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);
+			else
+				data[index[0]] &= LOWEST_BITS_FROM | HIGHEST_BITS_TO;
+			
+			return;
+		}
+		
+		if (offset[0] != 0) {
+			// handle "from" end specially
+			
+			final long HIGHEST_BITS = INT_DATA_MASK << offset[0];
+
+			if (v)
+				data[index[0]] |= HIGHEST_BITS;
+			else
+				data[index[0]] &= ~HIGHEST_BITS;
+			
+			// first index already taken care of
+			index[0]++;
+		}
+
+		if (index[1] > index[0])
+			Arrays.fill(data, index[0], index[1], v ? -1 : 0);
+
+		if (offset[1] != 0) {
+			final long LOWEST_BITS = ~(INT_DATA_MASK << offset[1]);
+
+			if (v)
+				data[index[1]] |= LOWEST_BITS;
+			else
+				data[index[1]] &= ~LOWEST_BITS;
+		}
+	}
+
 	public static byte readByte(int[] data, int i) {
 		int index = i >> INT_ADDRESS_LINES;
 		
@@ -1509,6 +1741,64 @@ public class Store {
 			data[index] |= 1L << offset;
 		else
 			data[index] &= ~(1L << offset);
+	}
+
+	public static void fill(long[] data, int from, int to, boolean v) {
+		if (from == to)
+			return;
+		
+		if (to < from)
+			throw new IllegalArgumentException();
+		
+		// clamp
+		if (from < 0)
+			from = 0;
+		
+		if (to > data.length << LONG_ADDRESS_LINES)
+			to = data.length << LONG_ADDRESS_LINES;
+
+		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
+		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };
+		
+		if (index[1] == index[0]) {
+			// special case: subword count
+			
+			final long LOWEST_BITS_FROM = ~(LONG_DATA_MASK << offset[0]);
+			final long HIGHEST_BITS_TO = LONG_DATA_MASK << offset[1];
+
+			if (v)
+				data[index[0]] |= ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);
+			else
+				data[index[0]] &= LOWEST_BITS_FROM | HIGHEST_BITS_TO;
+			
+			return;
+		}
+		
+		if (offset[0] != 0) {
+			// handle "from" end specially
+			
+			final long HIGHEST_BITS = LONG_DATA_MASK << offset[0];
+
+			if (v)
+				data[index[0]] |= HIGHEST_BITS;
+			else
+				data[index[0]] &= ~HIGHEST_BITS;
+			
+			// first index already taken care of
+			index[0]++;
+		}
+
+		if (index[1] > index[0])
+			Arrays.fill(data, index[0], index[1], v ? -1L : 0L);
+
+		if (offset[1] != 0) {
+			final long LOWEST_BITS = ~(LONG_DATA_MASK << offset[1]);
+
+			if (v)
+				data[index[1]] |= LOWEST_BITS;
+			else
+				data[index[1]] &= ~LOWEST_BITS;
+		}
 	}
 
 	public static byte readByte(long[] data, int i) {
