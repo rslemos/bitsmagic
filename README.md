@@ -1,16 +1,36 @@
 # bitsmagic
 
-[![Master status][master status]][master travis-ci] 
-[![codecov][master coverage]][master codecov]
-
+| Master                                                | Develop                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------- |
+| [![Master status][master status]][master travis-ci]   | [![Develop status][develop status]][develop travis-ci]   |
+| [![Master coverage][master coverage]][master codecov] | [![Develop coverage][develop coverage]][develop codecov] |
 
 
 Code library for simple (yet magic) bit manipulation
 
+--------------------------------------------------------------------------------
+
+This project is permanently under development using this [successful branching
+model](http://nvie.com/posts/a-successful-git-branching-model/).
+
+The "master" branch contains only released versions (currently none).
+
+All development occurs in the "develop" branch.
+
+Features are developed on "feature/\*" branches. On these branches the ["Only
+the Gods" kōan](http://stevelosh.com/blog/2013/04/git-koans/#only-the-gods)
+maybe regularly violated, as pushed commits can be rebased at will (these
+branches should be temporary anyway).
+
 [master status]: https://travis-ci.org/rslemos/bitsmagic.png?branch=master
 [master travis-ci]: https://travis-ci.org/rslemos/bitsmagic
 [master coverage]: https://codecov.io/gh/rslemos/bitsmagic/branch/master/graph/badge.svg
-[master codecov]: https://codecov.io/gh/rslemos/bitsmagic
+[master codecov]: https://codecov.io/gh/rslemos/bitsmagic/branch/master
+
+[develop status]: https://travis-ci.org/rslemos/bitsmagic.png?branch=develop
+[develop travis-ci]: https://travis-ci.org/rslemos/bitsmagic
+[develop coverage]: https://codecov.io/gh/rslemos/bitsmagic/branch/develop/graph/badge.svg
+[develop codecov]: https://codecov.io/gh/rslemos/bitsmagic/branch/develop
 
 --------------------------------------------------------------------------------
   BEGIN COPYRIGHT NOTICE
