@@ -1,6 +1,11 @@
 
-[![License][license]][license text] [![Master status][master status]][travis-ci] [![Master coverage][master coverage]][codecov master]
-[![Develop status][develop status]][travis-ci][![Develop coverage][develop coverage]][codecov develop]
+  [![License][license]][license text]
+  &nbsp;&nbsp;
+  [![Master status][master status]][travis-ci]
+  [![Master coverage][master coverage]][codecov master]
+  &nbsp;&nbsp;
+  [![Develop status][develop status]][travis-ci]
+  [![Develop coverage][develop coverage]][codecov develop]
 
 # bitsmagic
 
