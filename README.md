@@ -1,6 +1,11 @@
 
-[![License][license]][mit license] [![Master status][master status]][travis-ci] [![Master coverage][master coverage]][codecov master]
-[![Develop status][develop status]][travis-ci][![Develop coverage][develop coverage]][codecov develop]
+  [![License][license]][license text]
+  &nbsp;&nbsp;
+  [![Master status][master status]][travis-ci]
+  [![Master coverage][master coverage]][codecov master]
+  &nbsp;&nbsp;
+  [![Develop status][develop status]][travis-ci]
+  [![Develop coverage][develop coverage]][codecov develop]
 
 # bitsmagic
 
@@ -21,13 +26,13 @@ maybe regularly violated, as pushed commits can be rebased at will (these
 branches should be temporary anyway).
 
 [//]: # (assorted links)
-[mit license]: http://doge.mit-license.org
+[license text]: https://raw.githubusercontent.com/rslemos/bitsmagic/master/LICENSE
 [travis-ci]: https://travis-ci.org/rslemos/bitsmagic
 [codecov master]: https://codecov.io/gh/rslemos/bitsmagic/branch/master
 [codecov develop]: https://codecov.io/gh/rslemos/bitsmagic/branch/develop
 
 [//]: # (badges' images)
-[license]: http://img.shields.io/:license-mit-blue.svg?style=plastic
+[license]: https://img.shields.io/github/license/rslemos/bitsmagic.svg?style=plastic
 
 [master status]: https://img.shields.io/travis/rslemos/bitsmagic/develop.svg?style=plastic
 [master coverage]: https://img.shields.io/codecov/c/github/rslemos/bitsmagic/master.svg?style=plastic
