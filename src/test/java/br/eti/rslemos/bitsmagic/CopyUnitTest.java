@@ -14248,5 +14248,12 @@ public class CopyUnitTest {
 			}
 			@Override public long[] build(long... d) { return build0(d); }
 		}
+		
+		public static class CopyFromSameSource extends Cases.CopyFromSameSource<long[]> {
+			@Override protected void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public long[] build(long... d) { return build0(d); }
+		}
 	}
 }
