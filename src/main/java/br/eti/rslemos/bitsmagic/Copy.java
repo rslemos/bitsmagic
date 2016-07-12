@@ -82,11 +82,24 @@ public class Copy {
 			final int LOWEST_BITS_FROM = ~(BYTE_DATA_MASK << dOffset[0]);
 			final int HIGHEST_BITS_TO = BYTE_DATA_MASK << dOffset[1];
 
+			byte save = (byte) (source[sIndex[0]] & ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO));
 			dest[dIndex[0]] &= LOWEST_BITS_FROM | HIGHEST_BITS_TO;
-			dest[dIndex[0]] |= source[sIndex[0]] & ~(LOWEST_BITS_FROM | HIGHEST_BITS_TO);;
+			dest[dIndex[0]] |= save;
 
 			return;
 		}
+		
+		if (dIndex[0] < sIndex[0])
+			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);
+		else if (dIndex[0] == sIndex[0])
+			copyParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);
+		else
+			copyParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);
+	}
+
+	private static void copyParallelFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &ing them
+		byte save;
 		
 		if (dOffset[0] != 0) {
 			// handle "from" end specially
@@ -94,8 +107,9 @@ public class Copy {
 			final int HIGHEST_BITS = BYTE_DATA_MASK << dOffset[0];
 			final int LOWEST_BITS = ~HIGHEST_BITS;
 			
+			save = (byte) (source[sIndex[0]] & HIGHEST_BITS);
 			dest[dIndex[0]] &= LOWEST_BITS;
-			dest[dIndex[0]] |= source[sIndex[0]] & HIGHEST_BITS;
+			dest[dIndex[0]] |= save;
 			
 			// first index already taken care of
 			sIndex[0]++;
@@ -111,99 +125,270 @@ public class Copy {
 			final int HIGHEST_BITS = BYTE_DATA_MASK << dOffset[1];
 			final int LOWEST_BITS = ~HIGHEST_BITS;
 			
+			save = (byte) (source[sIndex[1]] & LOWEST_BITS);
 			dest[dIndex[1]] &= HIGHEST_BITS;
-			dest[dIndex[1]] |= source[sIndex[1]] & LOWEST_BITS;
+			dest[dIndex[1]] |= save;
+		}
+	}
+
+	private static void copyParallelFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &ing them
+		byte save;
+		
+		if (dOffset[1] != 0) {
+			// handle "to" end specially
+			final int HIGHEST_BITS = BYTE_DATA_MASK << dOffset[1];
+			final int LOWEST_BITS = ~HIGHEST_BITS;
+			
+			save = (byte) (source[sIndex[1]] & LOWEST_BITS);
+			dest[dIndex[1]] &= HIGHEST_BITS;
+			dest[dIndex[1]] |= save;
+			
+		}
+
+		if (dOffset[0] != 0) {
+			// don't copy the first index if partial
+			dIndex[0]++;
+			sIndex[0]++;
+		}
+		
+		if (dIndex[1] > dIndex[0])
+			// main bulk copy (FASTEST PATH if no end should be handled specially)
+		    System.arraycopy(source, sIndex[0], dest, dIndex[0], dIndex[1]-dIndex[0]);
+
+		if (dOffset[0] != 0) {
+			// handle "from" end specially
+			dIndex[0]--;
+			sIndex[0]--;
+			
+			final int HIGHEST_BITS = BYTE_DATA_MASK << dOffset[0];
+			final int LOWEST_BITS = ~HIGHEST_BITS;
+			
+			save = (byte) (source[sIndex[0]] & HIGHEST_BITS);
+			dest[dIndex[0]] &= LOWEST_BITS;
+			dest[dIndex[0]] |= save;
 		}
 	}
 
 	private static void copyHigherFrom0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
-		int d = dIndex[0];
-		int s = sIndex[0];
-				
-		if (d == dIndex[1]) {
+		if (dIndex[0] == dIndex[1]) {
+			int d = dIndex[0];
+			int s = sIndex[0];
 			// At this point dIndex[0] == dIndex[1] AND sOffset[0] < dOffset[0].
 			// This implies that sIndex[0] == sIndex[1] (so there is no need to copy more than 1 chunk).
 			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+			byte save = (byte) ((source[s] << dOffset[0] - sOffset[0]) & ~(BYTE_DATA_MASK << dOffset[1]) & BYTE_DATA_MASK << dOffset[0]);
 			dest[d] &= BYTE_DATA_MASK << dOffset[1] | ~(BYTE_DATA_MASK << dOffset[0]);
-			dest[d] |= (source[s] << dOffset[0] - sOffset[0]) & ~(BYTE_DATA_MASK << dOffset[1]) & BYTE_DATA_MASK << dOffset[0];
+			dest[d] |= save;
 			return;
 		}
 		
+		if (dIndex[0] < sIndex[0])
+			copyHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else if (dIndex[0] == sIndex[0])
+			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else
+			copyHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+	}
+	
+	private static void copyHigherFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &ing them
+		byte save;
+		
+		int d = dIndex[0];
+		int s = sIndex[0];
+		
+		save = (byte) ((source[s] & BYTE_DATA_MASK) >>> sOffset[0] << dOffset[0]);
 		dest[d] &= ~(BYTE_DATA_MASK << dOffset[0]);
-		dest[d] |= (source[s] & BYTE_DATA_MASK) >>> sOffset[0] << dOffset[0]; 
+		dest[d] |= save; 
 
 		while(++d < dIndex[1]) {
+			save = (byte) ((source[s] & BYTE_DATA_MASK) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
 			dest[d] &= ~(BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
-			dest[d] |= (source[s] & BYTE_DATA_MASK) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);
+			dest[d] |= save;
 
 			++s;
 
+			save = (byte) (source[s] << dOffset[0] - sOffset[0]);
 			dest[d] &= BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);
-			dest[d] |= source[s] << dOffset[0] - sOffset[0];
+			dest[d] |= save;
 		}
 
 		if (dOffset[1] > 0) {
 			if (dOffset[1] < sOffset[1]) {
 				// implies s == sIndex[1] [proof needed]
+				save = (byte) ((source[s] & BYTE_DATA_MASK & ~(BYTE_DATA_MASK << sOffset[1])) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
 				dest[d] &= BYTE_DATA_MASK << dOffset[1];
-				dest[d] |= (source[s] & BYTE_DATA_MASK & ~(BYTE_DATA_MASK << sOffset[1])) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);
+				dest[d] |= save;
 			} else /* dOffset[1] > sOffset[1] */ {
+				save = (byte) ((source[s] & BYTE_DATA_MASK) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
 				dest[d] &= ~(BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
-				dest[d] |= (source[s] & BYTE_DATA_MASK) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);
+				dest[d] |= save;
 				
 				if (sOffset[1] > 0) {
 					s++;
 					
+					save = (byte) ((source[s] & BYTE_DATA_MASK & ~(BYTE_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1]);
 					dest[d] &= BYTE_DATA_MASK << dOffset[1] | BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[1] - sOffset[1]);
-					dest[d] |= (source[s] & BYTE_DATA_MASK & ~(BYTE_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1];
+					dest[d] |= save;
 				}
 			}
 		}
 	}
 
-	private static void copyLowerFrom0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
-		int d = dIndex[0];
-		int s = sIndex[0];
+	private static void copyHigherFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &ing them
+		byte save;
 		
-		if (s == sIndex[1]) {
+		int d = dIndex[1];
+		int s = sIndex[1];
+		
+		if (dOffset[1] > 0) {
+			if (dOffset[1] < sOffset[1]) {
+				save = (byte) ((source[s] & BYTE_DATA_MASK & ~(BYTE_DATA_MASK << sOffset[1])) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
+				dest[d] &= BYTE_DATA_MASK << dOffset[1];
+				dest[d] |= save;
+			} else /* dOffset[1] > sOffset[1] */ {
+				if (sOffset[1] > 0) {
+					save = (byte) ((source[s] & BYTE_DATA_MASK & ~(BYTE_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1]);
+					dest[d] &= BYTE_DATA_MASK << dOffset[1] | BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[1] - sOffset[1]);
+					dest[d] |= save;
+				}
+				
+				s--;
+				
+				save = (byte) ((source[s] & BYTE_DATA_MASK) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
+				dest[d] &= ~(BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
+				dest[d] |= save;
+			}
+		}
+
+		while(--d > dIndex[0]) {
+			save = (byte) (source[s] << dOffset[0] - sOffset[0]);
+			dest[d] &= BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]);
+			dest[d] |= save;
+
+			--s;
+
+			save = (byte) ((source[s] & BYTE_DATA_MASK) >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
+			dest[d] &= ~(BYTE_DATA_MASK >>> BYTE_DATA_LINES - (dOffset[0] - sOffset[0]));
+			dest[d] |= save;
+		}
+
+		save = (byte) ((source[s] & BYTE_DATA_MASK) >>> sOffset[0] << dOffset[0]);
+		dest[d] &= ~(BYTE_DATA_MASK << dOffset[0]);
+		dest[d] |= save; 
+	}
+	
+	private static void copyLowerFrom0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		if (sIndex[0] == sIndex[1]) {
+			int d = dIndex[0];
+			int s = sIndex[0];
+			
 			// At this point sIndex[0] == sIndex[1] AND sOffset[0] > dOffset[0].
 			// This implies that dIndex[0] == dIndex[1] (so there is no need to copy more than 1 chunk).
 			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
+			byte save = (byte) ((source[s] & BYTE_DATA_MASK) >>> (sOffset[0] - dOffset[0]) & ~(BYTE_DATA_MASK << dOffset[1]) & BYTE_DATA_MASK << dOffset[0]);
 			dest[d] &= BYTE_DATA_MASK << dOffset[1] | ~(BYTE_DATA_MASK << dOffset[0]);
-			dest[d] |= (source[s] & BYTE_DATA_MASK) >>> (sOffset[0] - dOffset[0]) & ~(BYTE_DATA_MASK << dOffset[1]) & BYTE_DATA_MASK << dOffset[0];
+			dest[d] |= save;
 			return;
 		}
 		
+		if (dIndex[0] < sIndex[0])
+			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else if (dIndex[0] == sIndex[0])
+			copyLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else
+			copyLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+	}
+	
+	private static void copyLowerFromForwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &ing them
+		byte save;
+		
+		int d = dIndex[0];
+		int s = sIndex[0];
+		
+		save = (byte) ((source[s] & BYTE_DATA_MASK) >>> sOffset[0] << dOffset[0]);
 		dest[d] &= ~((BYTE_DATA_MASK >>> sOffset[0]) << dOffset[0]);
-		dest[d] |= (source[s] & BYTE_DATA_MASK) >>> sOffset[0] << dOffset[0];
+		dest[d] |= save;
 
 		while(++s < sIndex[1]) {
+			save = (byte) (source[s] << BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));
 			dest[d] &= BYTE_DATA_MASK >>> sOffset[0] - dOffset[0];
-			dest[d] |= source[s] << BYTE_DATA_LINES - (sOffset[0] - dOffset[0]);
+			dest[d] |= save;
 
 			++d;
 
+			save = (byte) ((source[s] & BYTE_DATA_MASK) >>> sOffset[0] - dOffset[0]);
 			dest[d] &= ~(BYTE_DATA_MASK >>> sOffset[0] - dOffset[0]);
-			dest[d] |= (source[s] & BYTE_DATA_MASK) >>> sOffset[0] - dOffset[0];
+			dest[d] |= save;
 		}
 		
 		if (sOffset[1] > 0) {
 			if (dOffset[1] > sOffset[1]) {
 				// implies d == dIndex[1] [proof needed]
+				save = (byte) ((source[s] & ~(BYTE_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1]);
 				dest[d] &= ~(~(BYTE_DATA_MASK << sOffset[1]) << dOffset[1] - sOffset[1]);
-				dest[d] |= (source[s] & ~(BYTE_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1];
+				dest[d] |= save;
 			} else /* dOffset[1] < sOffset[1] */ {
+				save = (byte) (source[s] << BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));
 				dest[d] &= BYTE_DATA_MASK >>> sOffset[0] - dOffset[0];
-				dest[d] |= source[s] << BYTE_DATA_LINES - (sOffset[0] - dOffset[0]);
+				dest[d] |= save;
 				
 				if (dOffset[1] > 0) {
 					d++;
 					
+					save = (byte) ((source[s] & ~(BYTE_DATA_MASK << sOffset[1])) >>> sOffset[0] - dOffset[0]);
 					dest[d] &= ~(~(BYTE_DATA_MASK << sOffset[1]) >>> sOffset[0] - dOffset[0]);
-					dest[d] |= (source[s] & ~(BYTE_DATA_MASK << sOffset[1])) >>> sOffset[0] - dOffset[0];
+					dest[d] |= save;
 				}
 			}
 		}
+	}
+
+	private static void copyLowerFromBackwards0(byte[] source, byte[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		// for the cases where source == dest, so save |red bits, before &ing them
+		byte save;
+		
+		int d = dIndex[1];
+		int s = sIndex[1];
+
+		if (sOffset[1] > 0) {
+			if (dOffset[1] > sOffset[1]) {
+				save = (byte) ((source[s] & ~(BYTE_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1]);
+				dest[d] &= ~(~(BYTE_DATA_MASK << sOffset[1]) << dOffset[1] - sOffset[1]);
+				dest[d] |= save;
+			} else /* dOffset[1] < sOffset[1] */ {
+				if (dOffset[1] > 0) {
+					save = (byte) ((source[s] & ~(BYTE_DATA_MASK << sOffset[1])) >>> sOffset[0] - dOffset[0]);
+					dest[d] &= ~(~(BYTE_DATA_MASK << sOffset[1]) >>> sOffset[0] - dOffset[0]);
+					dest[d] |= save;
+				}
+				
+				d--;
+				
+				save = (byte) (source[s] << BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));
+				dest[d] &= BYTE_DATA_MASK >>> sOffset[0] - dOffset[0];
+				dest[d] |= save;
+			}
+		}
+
+		while(--s > sIndex[0]) {
+			save = (byte) ((source[s] & BYTE_DATA_MASK) >>> sOffset[0] - dOffset[0]);
+			dest[d] &= ~(BYTE_DATA_MASK >>> sOffset[0] - dOffset[0]);
+			dest[d] |= save;
+
+			--d;
+
+			save = (byte) (source[s] << BYTE_DATA_LINES - (sOffset[0] - dOffset[0]));
+			dest[d] &= BYTE_DATA_MASK >>> sOffset[0] - dOffset[0];
+			dest[d] |= save;
+		}
+		
+		save = (byte) ((source[s] & BYTE_DATA_MASK) >>> sOffset[0] << dOffset[0]);
+		dest[d] &= ~((BYTE_DATA_MASK >>> sOffset[0]) << dOffset[0]);
+		dest[d] |= save;
 	}
 
 	/********** char[] **********/
