@@ -870,6 +870,15 @@ public class Xor {
 			return;
 		}
 		
+		if (dIndex[0] < sIndex[0])
+			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);
+		else if (dIndex[0] == sIndex[0])
+			xorParallelFromForwards0(source, dest, sIndex, dIndex, dOffset);
+		else
+			xorParallelFromBackwards0(source, dest, sIndex, dIndex, dOffset);
+	}
+
+	private static void xorParallelFromForwards0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
 		if (dOffset[0] != 0) {
 			// handle "from" end specially
 			
@@ -896,11 +905,42 @@ public class Xor {
 		}
 	}
 
+	private static void xorParallelFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] dIndex, int[] dOffset) {
+		if (dOffset[1] != 0) {
+			// handle "to" end specially
+			final int HIGHEST_BITS = INT_DATA_MASK << dOffset[1];
+			final int LOWEST_BITS = ~HIGHEST_BITS;
+			
+			dest[dIndex[1]] ^= source[sIndex[1]] & LOWEST_BITS;
+		}
+
+		if (dOffset[0] != 0) {
+			// don't xor the first index if partial
+			dIndex[0]++;
+			sIndex[0]++;
+		}
+		
+		// unfortunately no fast path available
+		// (though this is fast enough without masking and bit shifting)
+		for(int i = dIndex[1] - 1, j = sIndex[1] - 1; i >= dIndex[0]; i--, j--)
+			dest[i] ^= source[j];
+
+		if (dOffset[0] != 0) {
+			// handle "from" end specially
+			sIndex[0]--;
+			dIndex[0]--;
+			
+			final int HIGHEST_BITS = INT_DATA_MASK << dOffset[0];
+			
+			dest[dIndex[0]] ^= source[sIndex[0]] & HIGHEST_BITS;
+		}
+	}
+
 	private static void xorHigherFrom0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
-		int d = dIndex[0];
-		int s = sIndex[0];
-				
-		if (d == dIndex[1]) {
+		if (dIndex[0] == dIndex[1]) {
+			int d = dIndex[0];
+			int s = sIndex[0];
+					
 			// At this point dIndex[0] == dIndex[1] AND sOffset[0] < dOffset[0].
 			// This implies that sIndex[0] == sIndex[1] (so there is no need to xor more than 1 chunk).
 			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
@@ -908,6 +948,18 @@ public class Xor {
 			return;
 		}
 		
+		if (dIndex[0] < sIndex[0])
+			xorHigherFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else if (dIndex[0] == sIndex[0])
+			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else
+			xorHigherFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+	}
+
+	private static void xorHigherFromForwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		int d = dIndex[0];
+		int s = sIndex[0];
+				
 		dest[d] ^= source[s] >>> sOffset[0] << dOffset[0]; 
 
 		while(++d < dIndex[1]) {
@@ -934,17 +986,58 @@ public class Xor {
 		}
 	}
 
+	private static void xorHigherFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		int d = dIndex[1];
+		int s = sIndex[1];
+				
+		if (dOffset[1] > 0) {
+			if (dOffset[1] < sOffset[1]) {
+				dest[d] ^= (source[s] & ~(INT_DATA_MASK << sOffset[1])) >>> INT_DATA_LINES - (dOffset[0] - sOffset[0]);
+			} else /* dOffset[1] > sOffset[1] */ {
+				if (sOffset[1] > 0) {
+					dest[d] ^= (source[s] & ~(INT_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1];
+				}
+				
+				s--;
+				
+				dest[d] ^= source[s] >>> INT_DATA_LINES - (dOffset[0] - sOffset[0]);
+			}
+		}
+
+		while(--d > dIndex[0]) {
+			dest[d] ^= source[s] << dOffset[0] - sOffset[0];
+
+			--s;
+
+			dest[d] ^= source[s] >>> INT_DATA_LINES - (dOffset[0] - sOffset[0]);
+		}
+
+		dest[d] ^= source[s] >>> sOffset[0] << dOffset[0]; 
+	}
+
 	private static void xorLowerFrom0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
-		int d = dIndex[0];
-		int s = sIndex[0];
-		
-		if (s == sIndex[1]) {
+		if (sIndex[0] == sIndex[1]) {
+			int d = dIndex[0];
+			int s = sIndex[0];
+			
 			// At this point sIndex[0] == sIndex[1] AND sOffset[0] > dOffset[0].
 			// This implies that dIndex[0] == dIndex[1] (so there is no need to xor more than 1 chunk).
 			// I have discovered a truly marvelous proof of this, which this media is too clumsy to contain.
 			dest[d] ^= source[s] >>> (sOffset[0] - dOffset[0]) & ~(INT_DATA_MASK << dOffset[1]) & INT_DATA_MASK << dOffset[0];
 			return;
 		}
+		
+		if (dIndex[0] < sIndex[0])
+			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else if (dIndex[0] == sIndex[0])
+			xorLowerFromForwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+		else
+			xorLowerFromBackwards0(source, dest, sIndex, sOffset, dIndex, dOffset);
+	}
+
+	private static void xorLowerFromForwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		int d = dIndex[0];
+		int s = sIndex[0];
 		
 		dest[d] ^= source[s] >>> sOffset[0] << dOffset[0];
 
@@ -970,6 +1063,35 @@ public class Xor {
 				}
 			}
 		}
+	}
+
+	private static void xorLowerFromBackwards0(int[] source, int[] dest, int[] sIndex, int[] sOffset, int[] dIndex, int[] dOffset) {
+		int d = dIndex[1];
+		int s = sIndex[1];
+		
+		if (sOffset[1] > 0) {
+			if (dOffset[1] > sOffset[1]) {
+				dest[d] ^= (source[s] & ~(INT_DATA_MASK << sOffset[1])) << dOffset[1] - sOffset[1];
+			} else /* dOffset[1] < sOffset[1] */ {
+				if (dOffset[1] > 0) {
+					dest[d] ^= (source[s] & ~(INT_DATA_MASK << sOffset[1])) >>> sOffset[0] - dOffset[0];
+				}
+				
+				d--;
+				
+				dest[d] ^= source[s] << INT_DATA_LINES - (sOffset[0] - dOffset[0]);
+			}
+		}
+
+		while(--s > sIndex[0]) {
+			dest[d] ^= source[s] >>> sOffset[0] - dOffset[0];
+
+			--d;
+
+			dest[d] ^= source[s] << INT_DATA_LINES - (sOffset[0] - dOffset[0]);
+		}
+		
+		dest[d] ^= source[s] >>> sOffset[0] << dOffset[0];
 	}
 
 	/********** long[] **********/

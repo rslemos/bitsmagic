@@ -16852,6 +16852,13 @@ public class XorUnitTest {
 			}
 			@Override public int[] build(long... d) { return build0(d); }
 		}
+		
+		public static class XorFromSameSource extends Cases.XorFromSameSource<int[]> {
+			@Override protected void xorFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
+				Xor.xorFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public int[] build(long... d) { return build0(d); }
+		}
 	}
 
 	@RunWith(Enclosed.class)
