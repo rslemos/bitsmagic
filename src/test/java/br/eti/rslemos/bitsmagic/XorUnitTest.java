@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 
 import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
 import br.eti.rslemos.bitsmagic.StorageBuilder.CharArrayBuilder;
+import br.eti.rslemos.bitsmagic.StorageBuilder.ShortArrayBuilder;
 
 @RunWith(Enclosed.class)
 public class XorUnitTest {
@@ -9260,6 +9261,16 @@ public class XorUnitTest {
 				Xor.xorFrom(source, srcPos, dest, destPos, length);
 			}
 			@Override public char[] build(long... d) { return build0(d); }
+		}
+	}
+
+	@RunWith(Enclosed.class)
+	public static class ShortArray extends ShortArrayBuilder {
+		public static class XorFromDifferentSource extends Cases.XorFromDifferentSource<short[]> {
+			@Override protected void xorFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+				Xor.xorFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public short[] build(long... d) { return build0(d); }
 		}
 	}
 }
