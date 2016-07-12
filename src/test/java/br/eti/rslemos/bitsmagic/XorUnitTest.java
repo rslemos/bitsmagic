@@ -16818,6 +16818,13 @@ public class XorUnitTest {
 			}
 			@Override public char[] build(long... d) { return build0(d); }
 		}
+		
+		public static class XorFromSameSource extends Cases.XorFromSameSource<char[]> {
+			@Override protected void xorFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+				Xor.xorFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public char[] build(long... d) { return build0(d); }
+		}
 	}
 
 	@RunWith(Enclosed.class)
