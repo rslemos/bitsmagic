@@ -14186,28 +14186,12 @@ public class CopyUnitTest {
 			protected abstract void writeBitString(T data, String v);
 			protected abstract String readBitString(T data);
 			
-			protected static <T extends CopyFromDifferentSource<?>> TestSuite suite(Class<T> clazz, int size) {
-				try {
-					Constructor<T> ctor = clazz.getConstructor(int.class, int.class, int.class);
-					TestSuite suite = new TestSuite();
-	
-					for(int i=0; i<=2*size; i++)
-						for(int j=0; j<=2*size; j++)
-							for(int k=0; k <= 2*size-i && k <= 2*size-j; k++) 
-								suite.addTest(ctor.newInstance(i, j, k));
-					
-					return suite;
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-	
 			private final int srcPos;
 			private final int destPos;
 			private final int length;
 			
-			private T subject  = build(0b0L, 0b0011001100110110100000001000000100000100001000100010010010101010L);
-			private T source   = build(0b0L, 0b1100110011001001011111110111111011111011110111011101101101010101L);
+			protected T subject  = build(0b0L, 0b0011001100110110100000001000000100000100001000100010010010101010L);
+			protected T source   = build(0b0L, 0b1100110011001001011111110111111011111011110111011101101101010101L);
 	
 			protected CopyFromDifferentSource(int srcPos, int destPos, int length) {
 				super(String.format("%d:%d -> %d:%d", srcPos, srcPos + length, destPos, destPos + length));
@@ -14252,6 +14236,34 @@ public class CopyUnitTest {
 				return cs;
 			}
 		}
+		
+		public static abstract class CopyFromSameSource<T> extends CopyFromDifferentSource<T> {
+			protected CopyFromSameSource(int srcPos, int destPos, int length) {
+				super(srcPos, destPos, length);
+			}
+
+			@Override
+			public void runTest() {
+				source = subject;
+				super.runTest();
+			}
+		}
+
+		protected static <T extends CopyFromDifferentSource<?>> TestSuite suite(Class<T> clazz, int size) {
+			try {
+				Constructor<T> ctor = clazz.getConstructor(int.class, int.class, int.class);
+				TestSuite suite = new TestSuite();
+		
+				for(int i=0; i<=2*size; i++)
+					for(int j=0; j<=2*size; j++)
+						for(int k=0; k <= 2*size-i && k <= 2*size-j; k++) 
+							suite.addTest(ctor.newInstance(i, j, k));
+				
+				return suite;
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 	
 	@RunWith(Enclosed.class)
@@ -14271,9 +14283,26 @@ public class CopyUnitTest {
 		}
 		
 		public static class StressFromDifferentSource extends Stress.CopyFromDifferentSource<byte[]> {
-			public static TestSuite suite() { return Stress.CopyFromDifferentSource.suite(StressFromDifferentSource.class, 8); }
+			public static TestSuite suite() { return Stress.suite(StressFromDifferentSource.class, 8); }
 
 			public StressFromDifferentSource(int srcPos, int destPos, int length) {
+				super(srcPos, destPos, length);
+			}
+
+			@Override protected void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			
+			@Override protected byte[] clone(byte[] data) { return data.clone(); }
+			@Override protected void writeBitString(byte[] data, String v) { Store.writeBitString(data, v); }
+			@Override protected String readBitString(byte[] data) { return Store.readBitString(data); }
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
+		
+		public static class StressFromSameSource extends Stress.CopyFromSameSource<byte[]> {
+			public static TestSuite suite() { return Stress.suite(StressFromSameSource.class, 8); }
+
+			public StressFromSameSource(int srcPos, int destPos, int length) {
 				super(srcPos, destPos, length);
 			}
 
@@ -14305,9 +14334,26 @@ public class CopyUnitTest {
 		}
 
 		public static class StressFromDifferentSource extends Stress.CopyFromDifferentSource<char[]> {
-			public static TestSuite suite() { return Stress.CopyFromDifferentSource.suite(StressFromDifferentSource.class, 16); }
+			public static TestSuite suite() { return Stress.suite(StressFromDifferentSource.class, 16); }
 
 			public StressFromDifferentSource(int srcPos, int destPos, int length) {
+				super(srcPos, destPos, length);
+			}
+
+			@Override protected void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			
+			@Override protected char[] clone(char[] data) { return data.clone(); }
+			@Override protected void writeBitString(char[] data, String v) { Store.writeBitString(data, v); }
+			@Override protected String readBitString(char[] data) { return Store.readBitString(data); }
+			@Override public char[] build(long... d) { return build0(d); }
+		}
+
+		public static class StressFromSameSource extends Stress.CopyFromSameSource<char[]> {
+			public static TestSuite suite() { return Stress.suite(StressFromSameSource.class, 16); }
+
+			public StressFromSameSource(int srcPos, int destPos, int length) {
 				super(srcPos, destPos, length);
 			}
 
@@ -14339,9 +14385,26 @@ public class CopyUnitTest {
 		}
 
 		public static class StressFromDifferentSource extends Stress.CopyFromDifferentSource<short[]> {
-			public static TestSuite suite() { return Stress.CopyFromDifferentSource.suite(StressFromDifferentSource.class, 16); }
+			public static TestSuite suite() { return Stress.suite(StressFromDifferentSource.class, 16); }
 
 			public StressFromDifferentSource(int srcPos, int destPos, int length) {
+				super(srcPos, destPos, length);
+			}
+
+			@Override protected void copyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			
+			@Override protected short[] clone(short[] data) { return data.clone(); }
+			@Override protected void writeBitString(short[] data, String v) { Store.writeBitString(data, v); }
+			@Override protected String readBitString(short[] data) { return Store.readBitString(data); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+
+		public static class StressFromSameSource extends Stress.CopyFromSameSource<short[]> {
+			public static TestSuite suite() { return Stress.suite(StressFromSameSource.class, 16); }
+
+			public StressFromSameSource(int srcPos, int destPos, int length) {
 				super(srcPos, destPos, length);
 			}
 
@@ -14371,11 +14434,28 @@ public class CopyUnitTest {
 			}
 			@Override public int[] build(long... d) { return build0(d); }
 		}
-			
+		
 		public static class StressFromDifferentSource extends Stress.CopyFromDifferentSource<int[]> {
-			public static TestSuite suite() { return Stress.CopyFromDifferentSource.suite(StressFromDifferentSource.class, 32); }
+			public static TestSuite suite() { return Stress.suite(StressFromDifferentSource.class, 32); }
 
 			public StressFromDifferentSource(int srcPos, int destPos, int length) {
+				super(srcPos, destPos, length);
+			}
+
+			@Override protected void copyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			
+			@Override protected int[] clone(int[] data) { return data.clone(); }
+			@Override protected void writeBitString(int[] data, String v) { Store.writeBitString(data, v); }
+			@Override protected String readBitString(int[] data) { return Store.readBitString(data); }
+			@Override public int[] build(long... d) { return build0(d); }
+		}
+		
+		public static class StressFromSameSource extends Stress.CopyFromSameSource<int[]> {
+			public static TestSuite suite() { return Stress.suite(StressFromSameSource.class, 32); }
+
+			public StressFromSameSource(int srcPos, int destPos, int length) {
 				super(srcPos, destPos, length);
 			}
 
@@ -14407,9 +14487,26 @@ public class CopyUnitTest {
 		}
 		
 		public static class StressFromDifferentSource extends Stress.CopyFromDifferentSource<long[]> {
-			public static TestSuite suite() { return Stress.CopyFromDifferentSource.suite(StressFromDifferentSource.class, 32 /* 64? */); }
+			public static TestSuite suite() { return Stress.suite(StressFromDifferentSource.class, 32 /* 64? */); }
 
 			public StressFromDifferentSource(int srcPos, int destPos, int length) {
+				super(srcPos, destPos, length);
+			}
+
+			@Override protected void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			
+			@Override protected long[] clone(long[] data) { return data.clone(); }
+			@Override protected void writeBitString(long[] data, String v) { Store.writeBitString(data, v); }
+			@Override protected String readBitString(long[] data) { return Store.readBitString(data); }
+			@Override public long[] build(long... d) { return build0(d); }
+		}
+		
+		public static class StressFromSameSource extends Stress.CopyFromSameSource<long[]> {
+			public static TestSuite suite() { return Stress.suite(StressFromSameSource.class, 32 /* 64? */); }
+
+			public StressFromSameSource(int srcPos, int destPos, int length) {
 				super(srcPos, destPos, length);
 			}
 
