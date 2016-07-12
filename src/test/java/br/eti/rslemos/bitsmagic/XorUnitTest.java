@@ -39,6 +39,7 @@ import org.junit.runner.RunWith;
 import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
 import br.eti.rslemos.bitsmagic.StorageBuilder.CharArrayBuilder;
 import br.eti.rslemos.bitsmagic.StorageBuilder.IntArrayBuilder;
+import br.eti.rslemos.bitsmagic.StorageBuilder.LongArrayBuilder;
 import br.eti.rslemos.bitsmagic.StorageBuilder.ShortArrayBuilder;
 
 @RunWith(Enclosed.class)
@@ -9282,6 +9283,16 @@ public class XorUnitTest {
 				Xor.xorFrom(source, srcPos, dest, destPos, length);
 			}
 			@Override public int[] build(long... d) { return build0(d); }
+		}
+	}
+
+	@RunWith(Enclosed.class)
+	public static class LongArray extends LongArrayBuilder {
+		public static class XorFromDifferentSource extends Cases.XorFromDifferentSource<long[]> {
+			@Override protected void xorFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+				Xor.xorFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public long[] build(long... d) { return build0(d); }
 		}
 	}
 }
