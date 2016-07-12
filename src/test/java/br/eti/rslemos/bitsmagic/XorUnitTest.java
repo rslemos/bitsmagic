@@ -36,6 +36,8 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
+
 @RunWith(Enclosed.class)
 public class XorUnitTest {
 	@Ignore
@@ -9237,6 +9239,16 @@ public class XorUnitTest {
 				xorFrom(source, 144, subject, 32,  48);
 				assertThat(subject, is(equalTo(expected)));
 			}
+		}
+	}
+
+	@RunWith(Enclosed.class)
+	public static class ByteArray extends ByteArrayBuilder {
+		public static class XorFromDifferentSource extends Cases.XorFromDifferentSource<byte[]> {
+			@Override protected void xorFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+				Xor.xorFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public byte[] build(long... d) { return build0(d); }
 		}
 	}
 }
