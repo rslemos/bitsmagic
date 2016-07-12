@@ -4282,7 +4282,7 @@ public class StoreUnitTest {
 
 		}
 	}
-	
+
 	@RunWith(Enclosed.class)
 	public static class ByteArray extends ByteArrayBuilder {
 		public static class Bit extends Cases.Bit<byte[]> {
