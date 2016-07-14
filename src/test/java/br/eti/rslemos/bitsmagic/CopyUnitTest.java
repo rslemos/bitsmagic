@@ -35015,10 +35015,24 @@ public class CopyUnitTest {
 			}
 			@Override public char[] build(long... d) { return build0(d); }
 		}
-	
+		
 		public static class CopyFromSameSource extends Cases.CopyFromSameSource<char[]> {
 			@Override protected void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
 				Copy.copyFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public char[] build(long... d) { return build0(d); }
+		}
+		
+		public static class SafeCopyFromDifferentSource extends Cases.SafeCopyFromDifferentSource<char[]> {
+			@Override protected void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+				Copy.safeCopyFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public char[] build(long... d) { return build0(d); }
+		}
+		
+		public static class SafeCopyFromSameSource extends Cases.SafeCopyFromSameSource<char[]> {
+			@Override protected void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+				Copy.safeCopyFrom(source, srcPos, dest, destPos, length);
 			}
 			@Override public char[] build(long... d) { return build0(d); }
 		}
