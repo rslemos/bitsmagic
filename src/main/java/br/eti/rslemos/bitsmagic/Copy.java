@@ -1531,6 +1531,21 @@ public class Copy {
 
 	/********** long[] **********/
 
+	public static void safeCopyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
+	}
+
+	private static void safeCopyFrom0(long[] source, IntRef srcPos, long[] dest, IntRef destPos, IntRef length) {
+		IntRef fillLow = byRef(0);
+		IntRef fillHigh = byRef(0);
+		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length << LONG_ADDRESS_LINES, source.length << LONG_ADDRESS_LINES))
+			return;
+		
+		copyFrom(source, srcPos.i, dest, destPos.i, length.i);
+		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);
+		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
+	}
+
 	public static void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
 		if (!checkSafeIndices(srcPos, destPos, length, source.length << LONG_ADDRESS_LINES, dest.length << LONG_ADDRESS_LINES))
 			return;
