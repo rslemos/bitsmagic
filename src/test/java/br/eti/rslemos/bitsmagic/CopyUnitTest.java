@@ -34991,6 +34991,20 @@ public class CopyUnitTest {
 			}
 			@Override public byte[] build(long... d) { return build0(d); }
 		}
+		
+		public static class SafeCopyFromDifferentSource extends Cases.SafeCopyFromDifferentSource<byte[]> {
+			@Override protected void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+				Copy.safeCopyFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
+		
+		public static class SafeCopyFromSameSource extends Cases.SafeCopyFromSameSource<byte[]> {
+			@Override protected void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+				Copy.safeCopyFrom(source, srcPos, dest, destPos, length);
+			}
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
 	}
 
 	@RunWith(Enclosed.class)

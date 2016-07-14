@@ -121,6 +121,21 @@ public class Copy {
 
 	/********** byte[] **********/
 	
+	public static void safeCopyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
+	}
+
+	private static void safeCopyFrom0(byte[] source, IntRef srcPos, byte[] dest, IntRef destPos, IntRef length) {
+		IntRef fillLow = byRef(0);
+		IntRef fillHigh = byRef(0);
+		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length << BYTE_ADDRESS_LINES, source.length << BYTE_ADDRESS_LINES))
+			return;
+		
+		copyFrom(source, srcPos.i, dest, destPos.i, length.i);
+		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);
+		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
+	}
+
 	public static void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
 		if (!checkSafeIndices(srcPos, destPos, length, source.length << BYTE_ADDRESS_LINES, dest.length << BYTE_ADDRESS_LINES))
 			return;
