@@ -85,6 +85,9 @@ public class Store {
 		
 		if (to > data.length << BYTE_ADDRESS_LINES)
 			to = data.length << BYTE_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return;
 
 		int[] index  = {from  >> BYTE_ADDRESS_LINES, to >> BYTE_ADDRESS_LINES};
 		int[] offset = {from  & BYTE_ADDRESS_MASK,   to & BYTE_ADDRESS_MASK  };
@@ -568,6 +571,9 @@ public class Store {
 		if (to > data.length << CHAR_ADDRESS_LINES)
 			to = data.length << CHAR_ADDRESS_LINES;
 
+		if (!(to > from))
+			return;
+
 		int[] index  = {from  >> CHAR_ADDRESS_LINES, to >> CHAR_ADDRESS_LINES};
 		int[] offset = {from  & CHAR_ADDRESS_MASK,   to & CHAR_ADDRESS_MASK  };
 		
@@ -969,6 +975,9 @@ public class Store {
 		
 		if (to > data.length << SHORT_ADDRESS_LINES)
 			to = data.length << SHORT_ADDRESS_LINES;
+
+		if (!(to > from))
+			return;
 
 		int[] index  = {from  >> SHORT_ADDRESS_LINES, to >> SHORT_ADDRESS_LINES};
 		int[] offset = {from  & SHORT_ADDRESS_MASK,   to & SHORT_ADDRESS_MASK  };
@@ -1377,6 +1386,9 @@ public class Store {
 		if (to > data.length << INT_ADDRESS_LINES)
 			to = data.length << INT_ADDRESS_LINES;
 
+		if (!(to > from))
+			return;
+
 		int[] index  = {from  >> INT_ADDRESS_LINES, to >> INT_ADDRESS_LINES};
 		int[] offset = {from  & INT_ADDRESS_MASK,   to & INT_ADDRESS_MASK  };
 		
@@ -1756,6 +1768,9 @@ public class Store {
 		
 		if (to > data.length << LONG_ADDRESS_LINES)
 			to = data.length << LONG_ADDRESS_LINES;
+
+		if (!(to > from))
+			return;
 
 		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
 		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };
