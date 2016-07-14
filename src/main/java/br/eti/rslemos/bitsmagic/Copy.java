@@ -51,21 +51,37 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 public class Copy {
 	private Copy() { /* non-instantiable */ }
 
-	/********** byte[] **********/
-	
-	public static void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
-		if (length == 0)
-			return;
+	private static boolean checkSafeIndices(int srcPos, int destPos, int length, int maxSrc, int maxDest) {
+		if (srcPos < 0 || srcPos > maxSrc)
+			throw new ArrayIndexOutOfBoundsException(srcPos);
+		
+		if (destPos < 0 || destPos > maxDest)
+			throw new ArrayIndexOutOfBoundsException(destPos);
+		
+		if (srcPos + length < 0 || srcPos + length > maxSrc)
+			throw new ArrayIndexOutOfBoundsException(srcPos + length);
+		
+		if (destPos + length < 0 || destPos + length > maxDest)
+			throw new ArrayIndexOutOfBoundsException(destPos + length);
 		
 		if (length < 0)
 			throw new IllegalArgumentException();
+		
+		return length > 0;
+	}
+
+	/********** byte[] **********/
+	
+	public static void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << BYTE_ADDRESS_LINES, dest.length << BYTE_ADDRESS_LINES))
+			return;
 		
 		int[] sIndex  = {srcPos  >> BYTE_ADDRESS_LINES, (srcPos  + length) >> BYTE_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & BYTE_ADDRESS_MASK,   (srcPos  + length) & BYTE_ADDRESS_MASK  };
 		
 		int[] dIndex  = {destPos >> BYTE_ADDRESS_LINES, (destPos + length) >> BYTE_ADDRESS_LINES};
 		int[] dOffset = {destPos & BYTE_ADDRESS_MASK,   (destPos + length) & BYTE_ADDRESS_MASK  };
-		
+
 		if (sOffset[0] == dOffset[0])
 			// FAST PATH: handle both ends specially, copy middle unchanged
 			copyParallelFrom0(source, dest, sIndex, dIndex, dOffset);
@@ -394,11 +410,8 @@ public class Copy {
 	/********** char[] **********/
 
 	public static void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << CHAR_ADDRESS_LINES, dest.length << CHAR_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> CHAR_ADDRESS_LINES, (srcPos  + length) >> CHAR_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & CHAR_ADDRESS_MASK,   (srcPos  + length) & CHAR_ADDRESS_MASK  };
@@ -735,11 +748,8 @@ public class Copy {
 	/********** short[] **********/
 	
 	public static void copyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << SHORT_ADDRESS_LINES, dest.length << SHORT_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> SHORT_ADDRESS_LINES, (srcPos  + length) >> SHORT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & SHORT_ADDRESS_MASK,   (srcPos  + length) & SHORT_ADDRESS_MASK  };
@@ -1076,11 +1086,8 @@ public class Copy {
 	/********** int[] **********/
 
 	public static void copyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << INT_ADDRESS_LINES, dest.length << INT_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> INT_ADDRESS_LINES, (srcPos  + length) >> INT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & INT_ADDRESS_MASK,   (srcPos  + length) & INT_ADDRESS_MASK  };
@@ -1416,11 +1423,8 @@ public class Copy {
 	/********** long[] **********/
 
 	public static void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << LONG_ADDRESS_LINES, dest.length << LONG_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> LONG_ADDRESS_LINES, (srcPos  + length) >> LONG_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & LONG_ADDRESS_MASK,   (srcPos  + length) & LONG_ADDRESS_MASK  };
