@@ -27,6 +27,7 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
+import static br.eti.rslemos.bitsmagic.IntRef.byRef;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_LINES;
@@ -68,6 +69,54 @@ public class Copy {
 			throw new IllegalArgumentException();
 		
 		return length > 0;
+	}
+	
+	private static boolean prepareSafeCopy(IntRef srcPos, IntRef destPos, IntRef length, IntRef fillLow, IntRef fillHigh, final int maxDest, final int maxSource) {
+		if (length.i == 0)
+			return false;
+		
+		if (length.i < 0)
+			throw new IllegalArgumentException();
+		
+		if (!(destPos.i < maxDest && destPos.i + length.i > 0))
+			return false;
+
+		// fix destination starting point out of range 
+		if (destPos.i < 0) {
+			length.i -= -destPos.i;
+			srcPos.i += -destPos.i;
+			destPos.i += -destPos.i;
+		}
+		
+		// fix destination ending point out of range
+		if (destPos.i + length.i > maxDest) {
+			length.i -= (destPos.i + length.i) - maxDest;
+		}
+		
+		if (!(srcPos.i < maxSource && srcPos.i + length.i > 0)) {
+			fillHigh.i = length.i;
+			length.i = 0;
+			srcPos.i = 0;
+			
+			return true;
+		}
+		
+		// fix source starting point out of range
+		if (srcPos.i < 0) {
+			fillLow.i = -srcPos.i;
+			
+			length.i -= -srcPos.i;
+			destPos.i += -srcPos.i;
+			srcPos.i += -srcPos.i;
+		}
+		
+		// fix source ending point out of range
+		if (srcPos.i + length.i > maxSource) {
+			fillHigh.i = (srcPos.i + length.i) - maxSource;
+			length.i -= (srcPos.i + length.i) - maxSource;
+		}
+		
+		return true;
 	}
 
 	/********** byte[] **********/
