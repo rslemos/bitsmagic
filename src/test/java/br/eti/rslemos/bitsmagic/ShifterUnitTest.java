@@ -6290,4 +6290,9 @@ public class ShifterUnitTest {
 			assertThat(subject, is(equalTo(expected)));
 		}
 	}
+	
+	public static class Byte extends Cases<byte[]> {
+		@Override protected void shr(byte[] data, int i, int length, int amount) { Shifter.shr(data, i, length, amount); }
+		@Override public byte[] build(long... d) { return ByteArrayBuilder.build0(d); }
+	}
 }
