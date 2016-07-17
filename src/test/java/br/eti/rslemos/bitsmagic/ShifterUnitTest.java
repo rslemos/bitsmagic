@@ -6305,4 +6305,9 @@ public class ShifterUnitTest {
 		@Override protected void shr(short[] data, int i, int length, int amount) { Shifter.shr(data, i, length, amount); }
 		@Override public short[] build(long... d) { return ShortArrayBuilder.build0(d); }
 	}
+	
+	public static class Int extends Cases<int[]> {
+		@Override protected void shr(int[] data, int i, int length, int amount) { Shifter.shr(data, i, length, amount); }
+		@Override public int[] build(long... d) { return IntArrayBuilder.build0(d); }
+	}
 }

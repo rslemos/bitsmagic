@@ -75,4 +75,16 @@ public class Shifter {
 		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);
 		Store.fill(data, to - amount, to, false);
 	}
+	
+	/********** int[] **********/
+	
+	public static void shr(int[] data, int from, int to, int amount) {
+		if (to < from)
+			throw new IllegalArgumentException();
+		
+		amount = fixAmount(to - from, amount);
+		
+		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);
+		Store.fill(data, to - amount, to, false);
+	}
 }
