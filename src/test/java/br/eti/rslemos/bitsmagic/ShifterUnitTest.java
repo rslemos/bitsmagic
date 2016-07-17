@@ -6310,4 +6310,9 @@ public class ShifterUnitTest {
 		@Override protected void shr(int[] data, int i, int length, int amount) { Shifter.shr(data, i, length, amount); }
 		@Override public int[] build(long... d) { return IntArrayBuilder.build0(d); }
 	}
+	
+	public static class Long extends Cases<long[]> {
+		@Override protected void shr(long[] data, int i, int length, int amount) { Shifter.shr(data, i, length, amount); }
+		@Override public long[] build(long... d) { return LongArrayBuilder.build0(d); }
+	}
 }
