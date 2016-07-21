@@ -27,6 +27,7 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
+import static br.eti.rslemos.bitsmagic.IntRef.byRef;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_LINES;
@@ -51,21 +52,100 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 public class Copy {
 	private Copy() { /* non-instantiable */ }
 
-	/********** byte[] **********/
-	
-	public static void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
-		if (length == 0)
-			return;
+	private static boolean checkSafeIndices(int srcPos, int destPos, int length, int maxSrc, int maxDest) {
+		if (srcPos < 0 || srcPos > maxSrc)
+			throw new ArrayIndexOutOfBoundsException(srcPos);
+		
+		if (destPos < 0 || destPos > maxDest)
+			throw new ArrayIndexOutOfBoundsException(destPos);
+		
+		if (srcPos + length < 0 || srcPos + length > maxSrc)
+			throw new ArrayIndexOutOfBoundsException(srcPos + length);
+		
+		if (destPos + length < 0 || destPos + length > maxDest)
+			throw new ArrayIndexOutOfBoundsException(destPos + length);
 		
 		if (length < 0)
 			throw new IllegalArgumentException();
+		
+		return length > 0;
+	}
+	
+	private static boolean prepareSafeCopy(IntRef srcPos, IntRef destPos, IntRef length, IntRef fillLow, IntRef fillHigh, final int maxDest, final int maxSource) {
+		if (length.i == 0)
+			return false;
+		
+		if (length.i < 0)
+			throw new IllegalArgumentException();
+		
+		if (!(destPos.i < maxDest && destPos.i + length.i > 0))
+			return false;
+
+		// fix destination starting point out of range 
+		if (destPos.i < 0) {
+			length.i -= -destPos.i;
+			srcPos.i += -destPos.i;
+			destPos.i += -destPos.i;
+		}
+		
+		// fix destination ending point out of range
+		if (destPos.i + length.i > maxDest) {
+			length.i -= (destPos.i + length.i) - maxDest;
+		}
+		
+		if (!(srcPos.i < maxSource && srcPos.i + length.i > 0)) {
+			fillHigh.i = length.i;
+			length.i = 0;
+			srcPos.i = 0;
+			
+			return true;
+		}
+		
+		// fix source starting point out of range
+		if (srcPos.i < 0) {
+			fillLow.i = -srcPos.i;
+			
+			length.i -= -srcPos.i;
+			destPos.i += -srcPos.i;
+			srcPos.i += -srcPos.i;
+		}
+		
+		// fix source ending point out of range
+		if (srcPos.i + length.i > maxSource) {
+			fillHigh.i = (srcPos.i + length.i) - maxSource;
+			length.i -= (srcPos.i + length.i) - maxSource;
+		}
+		
+		return true;
+	}
+
+	/********** byte[] **********/
+	
+	public static void safeCopyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
+	}
+
+	private static void safeCopyFrom0(byte[] source, IntRef srcPos, byte[] dest, IntRef destPos, IntRef length) {
+		IntRef fillLow = byRef(0);
+		IntRef fillHigh = byRef(0);
+		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length << BYTE_ADDRESS_LINES, source.length << BYTE_ADDRESS_LINES))
+			return;
+		
+		copyFrom(source, srcPos.i, dest, destPos.i, length.i);
+		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);
+		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
+	}
+
+	public static void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << BYTE_ADDRESS_LINES, dest.length << BYTE_ADDRESS_LINES))
+			return;
 		
 		int[] sIndex  = {srcPos  >> BYTE_ADDRESS_LINES, (srcPos  + length) >> BYTE_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & BYTE_ADDRESS_MASK,   (srcPos  + length) & BYTE_ADDRESS_MASK  };
 		
 		int[] dIndex  = {destPos >> BYTE_ADDRESS_LINES, (destPos + length) >> BYTE_ADDRESS_LINES};
 		int[] dOffset = {destPos & BYTE_ADDRESS_MASK,   (destPos + length) & BYTE_ADDRESS_MASK  };
-		
+
 		if (sOffset[0] == dOffset[0])
 			// FAST PATH: handle both ends specially, copy middle unchanged
 			copyParallelFrom0(source, dest, sIndex, dIndex, dOffset);
@@ -393,12 +473,24 @@ public class Copy {
 
 	/********** char[] **********/
 
-	public static void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
-		if (length == 0)
+	public static void safeCopyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
+	}
+
+	private static void safeCopyFrom0(char[] source, IntRef srcPos, char[] dest, IntRef destPos, IntRef length) {
+		IntRef fillLow = byRef(0);
+		IntRef fillHigh = byRef(0);
+		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length << CHAR_ADDRESS_LINES, source.length << CHAR_ADDRESS_LINES))
 			return;
 		
-		if (length < 0)
-			throw new IllegalArgumentException();
+		copyFrom(source, srcPos.i, dest, destPos.i, length.i);
+		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);
+		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
+	}
+
+	public static void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << CHAR_ADDRESS_LINES, dest.length << CHAR_ADDRESS_LINES))
+			return;
 		
 		int[] sIndex  = {srcPos  >> CHAR_ADDRESS_LINES, (srcPos  + length) >> CHAR_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & CHAR_ADDRESS_MASK,   (srcPos  + length) & CHAR_ADDRESS_MASK  };
@@ -734,12 +826,24 @@ public class Copy {
 
 	/********** short[] **********/
 	
-	public static void copyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
-		if (length == 0)
+	public static void safeCopyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
+	}
+
+	private static void safeCopyFrom0(short[] source, IntRef srcPos, short[] dest, IntRef destPos, IntRef length) {
+		IntRef fillLow = byRef(0);
+		IntRef fillHigh = byRef(0);
+		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length << SHORT_ADDRESS_LINES, source.length << SHORT_ADDRESS_LINES))
 			return;
 		
-		if (length < 0)
-			throw new IllegalArgumentException();
+		copyFrom(source, srcPos.i, dest, destPos.i, length.i);
+		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);
+		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
+	}
+
+	public static void copyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << SHORT_ADDRESS_LINES, dest.length << SHORT_ADDRESS_LINES))
+			return;
 		
 		int[] sIndex  = {srcPos  >> SHORT_ADDRESS_LINES, (srcPos  + length) >> SHORT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & SHORT_ADDRESS_MASK,   (srcPos  + length) & SHORT_ADDRESS_MASK  };
@@ -1075,12 +1179,24 @@ public class Copy {
 
 	/********** int[] **********/
 
-	public static void copyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
-		if (length == 0)
+	public static void safeCopyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
+		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
+	}
+
+	private static void safeCopyFrom0(int[] source, IntRef srcPos, int[] dest, IntRef destPos, IntRef length) {
+		IntRef fillLow = byRef(0);
+		IntRef fillHigh = byRef(0);
+		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length << INT_ADDRESS_LINES, source.length << INT_ADDRESS_LINES))
 			return;
 		
-		if (length < 0)
-			throw new IllegalArgumentException();
+		copyFrom(source, srcPos.i, dest, destPos.i, length.i);
+		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);
+		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
+	}
+
+	public static void copyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << INT_ADDRESS_LINES, dest.length << INT_ADDRESS_LINES))
+			return;
 		
 		int[] sIndex  = {srcPos  >> INT_ADDRESS_LINES, (srcPos  + length) >> INT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & INT_ADDRESS_MASK,   (srcPos  + length) & INT_ADDRESS_MASK  };
@@ -1415,12 +1531,24 @@ public class Copy {
 
 	/********** long[] **********/
 
-	public static void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
-		if (length == 0)
+	public static void safeCopyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
+	}
+
+	private static void safeCopyFrom0(long[] source, IntRef srcPos, long[] dest, IntRef destPos, IntRef length) {
+		IntRef fillLow = byRef(0);
+		IntRef fillHigh = byRef(0);
+		if (!prepareSafeCopy(srcPos, destPos, length, fillLow, fillHigh, dest.length << LONG_ADDRESS_LINES, source.length << LONG_ADDRESS_LINES))
 			return;
 		
-		if (length < 0)
-			throw new IllegalArgumentException();
+		copyFrom(source, srcPos.i, dest, destPos.i, length.i);
+		Store.fill(dest, destPos.i + length.i, destPos.i + length.i + fillHigh.i, false);
+		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
+	}
+
+	public static void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << LONG_ADDRESS_LINES, dest.length << LONG_ADDRESS_LINES))
+			return;
 		
 		int[] sIndex  = {srcPos  >> LONG_ADDRESS_LINES, (srcPos  + length) >> LONG_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & LONG_ADDRESS_MASK,   (srcPos  + length) & LONG_ADDRESS_MASK  };

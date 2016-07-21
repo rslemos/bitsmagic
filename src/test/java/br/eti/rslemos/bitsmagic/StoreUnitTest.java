@@ -1129,6 +1129,64 @@ public class StoreUnitTest {
 				fill(subject, 16, 16 +  56, true);
 				assertThat(subject, is(equalTo(expected)));
 			}
+			
+			// out of range cases
+			@Test public void fill__16__8_t()  {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010101010L);
+
+				fill(subject, -16, -8, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+			
+			@Test public void fill__16_0_t()  {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010101010L);
+
+				fill(subject, -16, 0, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+			
+			@Test public void fill_64_128_t()  {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010101010L);
+
+				fill(subject, 64, 128, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+			
+			@Test public void fill_72_128_t()  {
+				T expected = build(0b0011001100110110100000001000000100000100001000100010010010101010L);
+
+				fill(subject, 72, 128, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+			
+			// partially out of range cases
+			@Test public void fill__16_16_f()  {
+				T expected = build(0b0011001100110110100000001000000100000100001000100000000000000000L);
+
+				fill(subject, -16, 16, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+			
+			@Test public void fill__16_16_t()  {
+				T expected = build(0b0011001100110110100000001000000100000100001000101111111111111111L);
+
+				fill(subject, -16, 16, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
+			
+			@Test public void fill_48_96_f()  {
+				T expected = build(0b0000000000000000100000001000000100000100001000100010010010101010L);
+
+				fill(subject, 48, 96, false);
+				assertThat(subject, is(equalTo(expected)));
+			}
+			
+			@Test public void fill_48_96_t()  {
+				T expected = build(0b1111111111111111100000001000000100000100001000100010010010101010L);
+
+				fill(subject, 48, 96, true);
+				assertThat(subject, is(equalTo(expected)));
+			}
 		}
 		
 		public static abstract class Byte<T> extends Fixture<T> {
