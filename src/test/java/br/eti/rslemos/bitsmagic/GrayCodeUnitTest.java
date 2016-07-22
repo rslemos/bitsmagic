@@ -40,6 +40,7 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
+import br.eti.rslemos.bitsmagic.StorageBuilder.CharArrayBuilder;
 
 @RunWith(Enclosed.class)
 public class GrayCodeUnitTest {
@@ -4839,6 +4840,22 @@ public class GrayCodeUnitTest {
 			@Override protected void toGray(byte[] data, int from, int to) { GrayCode.toGray(data, from, to); }
 			@Override protected void fromGray(byte[] data, int from, int to) { GrayCode.fromGray(data, from, to); }
 			@Override public byte[] build(long... d) { return build0(d); }
+		}
+	}
+	
+	@RunWith(Enclosed.class)
+	public static class CharArray extends CharArrayBuilder {
+		public static class HammingDistance1 extends Cases.HammingDistance1<char[]> {
+			@Override protected void toGray(char[] data, int from, int to) { GrayCode.toGray(data, from, to); }
+			@Override protected void xorFrom(char[] source, int srcPos, char[] dest, int destPos, int length) { Xor.xorFrom(source, srcPos, dest, destPos, length); }
+			@Override protected int ones(char[] data, int from, int to) { return Ones.ones(data, from, to); }
+			@Override public char[] build(long... d) { return build0(d); }
+		}
+		
+		public static class Inverse extends Cases.Inverse<char[]> {
+			@Override protected void toGray(char[] data, int from, int to) { GrayCode.toGray(data, from, to); }
+			@Override protected void fromGray(char[] data, int from, int to) { GrayCode.fromGray(data, from, to); }
+			@Override public char[] build(long... d) { return build0(d); }
 		}
 	}
 }
