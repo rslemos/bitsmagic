@@ -33,6 +33,8 @@ import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.INT_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.LONG_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
 
@@ -265,6 +267,47 @@ public class GrayCode {
 			index[1]++;
 		
 		int[] aux = new int[index[1] - index[0]];
+		
+		int length = to - from;
+		for(int i = 1; i < length; i <<= 1) {
+			System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);
+			Shifter.shr(aux, offset[0], offset[0] + length, i);
+			Xor.xorFrom(aux, offset[0], data, from, length);
+		}
+	}
+	
+	/********** long[] **********/
+
+	public static void toGray(long[] data, int from, int to) {
+		if (to - from < 0)
+			throw new IllegalArgumentException();
+		
+		if (to - from < 2)
+			return;
+		
+		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
+		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };
+		
+		if (offset[1] > 0)
+			index[1]++;
+		
+		long[] aux = new long[index[1] - index[0]];
+		System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);
+		Shifter.shr(aux, offset[0], offset[0] + to - from, 1);
+		Xor.xorFrom(aux, offset[0], data, from, to - from);
+	}
+
+	public static void fromGray(long[] data, int from, int to) {
+		if (to - from < 0)
+			throw new IllegalArgumentException();
+		
+		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
+		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };
+		
+		if (offset[1] > 0)
+			index[1]++;
+		
+		long[] aux = new long[index[1] - index[0]];
 		
 		int length = to - from;
 		for(int i = 1; i < length; i <<= 1) {
