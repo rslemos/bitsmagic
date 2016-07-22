@@ -39,6 +39,8 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
+
 @RunWith(Enclosed.class)
 public class GrayCodeUnitTest {
 	
@@ -4821,6 +4823,22 @@ public class GrayCodeUnitTest {
 				
 				assertThat(subject, is(equalTo(expected)));
 			}
+		}
+	}
+	
+	@RunWith(Enclosed.class)
+	public static class ByteArray extends ByteArrayBuilder {
+		public static class HammingDistance1 extends Cases.HammingDistance1<byte[]> {
+			@Override protected void toGray(byte[] data, int from, int to) { GrayCode.toGray(data, from, to); }
+			@Override protected void xorFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) { Xor.xorFrom(source, srcPos, dest, destPos, length); }
+			@Override protected int ones(byte[] data, int from, int to) { return Ones.ones(data, from, to); }
+			@Override public byte[] build(long... d) { return build0(d); }
+		}
+		
+		public static class Inverse extends Cases.Inverse<byte[]> {
+			@Override protected void toGray(byte[] data, int from, int to) { GrayCode.toGray(data, from, to); }
+			@Override protected void fromGray(byte[] data, int from, int to) { GrayCode.fromGray(data, from, to); }
+			@Override public byte[] build(long... d) { return build0(d); }
 		}
 	}
 }
