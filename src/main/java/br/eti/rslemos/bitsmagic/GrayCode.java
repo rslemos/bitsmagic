@@ -31,6 +31,8 @@ import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.CHAR_ADDRESS_MASK;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
+import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
 
 public class GrayCode {
 	public static byte toGray(byte v) {
@@ -179,6 +181,47 @@ public class GrayCode {
 			index[1]++;
 		
 		char[] aux = new char[index[1] - index[0]];
+		
+		int length = to - from;
+		for(int i = 1; i < length; i <<= 1) {
+			System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);
+			Shifter.shr(aux, offset[0], offset[0] + length, i);
+			Xor.xorFrom(aux, offset[0], data, from, length);
+		}
+	}
+	
+	/********** short[] **********/
+
+	public static void toGray(short[] data, int from, int to) {
+		if (to - from < 0)
+			throw new IllegalArgumentException();
+		
+		if (to - from < 2)
+			return;
+		
+		int[] index  = {from  >> SHORT_ADDRESS_LINES, to >> SHORT_ADDRESS_LINES};
+		int[] offset = {from  & SHORT_ADDRESS_MASK,   to & SHORT_ADDRESS_MASK  };
+		
+		if (offset[1] > 0)
+			index[1]++;
+		
+		short[] aux = new short[index[1] - index[0]];
+		System.arraycopy(data, index[0], aux, 0, index[1] - index[0]);
+		Shifter.shr(aux, offset[0], offset[0] + to - from, 1);
+		Xor.xorFrom(aux, offset[0], data, from, to - from);
+	}
+
+	public static void fromGray(short[] data, int from, int to) {
+		if (to - from < 0)
+			throw new IllegalArgumentException();
+		
+		int[] index  = {from  >> SHORT_ADDRESS_LINES, to >> SHORT_ADDRESS_LINES};
+		int[] offset = {from  & SHORT_ADDRESS_MASK,   to & SHORT_ADDRESS_MASK  };
+		
+		if (offset[1] > 0)
+			index[1]++;
+		
+		short[] aux = new short[index[1] - index[0]];
 		
 		int length = to - from;
 		for(int i = 1; i < length; i <<= 1) {

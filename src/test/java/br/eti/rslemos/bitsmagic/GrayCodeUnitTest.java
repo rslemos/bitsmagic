@@ -41,6 +41,7 @@ import org.junit.runner.RunWith;
 
 import br.eti.rslemos.bitsmagic.StorageBuilder.ByteArrayBuilder;
 import br.eti.rslemos.bitsmagic.StorageBuilder.CharArrayBuilder;
+import br.eti.rslemos.bitsmagic.StorageBuilder.ShortArrayBuilder;
 
 @RunWith(Enclosed.class)
 public class GrayCodeUnitTest {
@@ -4856,6 +4857,22 @@ public class GrayCodeUnitTest {
 			@Override protected void toGray(char[] data, int from, int to) { GrayCode.toGray(data, from, to); }
 			@Override protected void fromGray(char[] data, int from, int to) { GrayCode.fromGray(data, from, to); }
 			@Override public char[] build(long... d) { return build0(d); }
+		}
+	}
+	
+	@RunWith(Enclosed.class)
+	public static class ShortArray extends ShortArrayBuilder {
+		public static class HammingDistance1 extends Cases.HammingDistance1<short[]> {
+			@Override protected void toGray(short[] data, int from, int to) { GrayCode.toGray(data, from, to); }
+			@Override protected void xorFrom(short[] source, int srcPos, short[] dest, int destPos, int length) { Xor.xorFrom(source, srcPos, dest, destPos, length); }
+			@Override protected int ones(short[] data, int from, int to) { return Ones.ones(data, from, to); }
+			@Override public short[] build(long... d) { return build0(d); }
+		}
+		
+		public static class Inverse extends Cases.Inverse<short[]> {
+			@Override protected void toGray(short[] data, int from, int to) { GrayCode.toGray(data, from, to); }
+			@Override protected void fromGray(short[] data, int from, int to) { GrayCode.fromGray(data, from, to); }
+			@Override public short[] build(long... d) { return build0(d); }
 		}
 	}
 }
