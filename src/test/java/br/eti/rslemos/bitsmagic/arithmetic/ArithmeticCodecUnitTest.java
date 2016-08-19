@@ -27,8 +27,12 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic.arithmetic;
 
+import static br.eti.rslemos.bitsmagic.arithmetic.Distribution.even;
+import static br.eti.rslemos.bitsmagic.arithmetic.Distribution.toCumulative;
+import static java.util.Arrays.sort;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
@@ -111,6 +115,116 @@ public class ArithmeticCodecUnitTest {
 				return result;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
+			}
+		}
+	}
+	
+	public abstract static class Permutation extends ArithmeticCodecUnitTest {
+
+		Permutation(ArithmeticCodecFactory factory) { super(factory); }
+		
+		@Test public void permutationOf2()  { permutationOf( 2); }
+		@Test public void permutationOf3()  { permutationOf( 3); }
+		@Test public void permutationOf4()  { permutationOf( 4); }
+		@Test public void permutationOf5()  { permutationOf( 5); }
+		@Test public void permutationOf6()  { permutationOf( 6); }
+		@Test public void permutationOf7()  { permutationOf( 7); }
+		@Test public void permutationOf8()  { permutationOf( 8); }
+		@Test public void permutationOf9()  { permutationOf( 9); }
+		
+		@Ignore("ETA: ~40 seconds")
+		@Test public void permutationOf10() { permutationOf(10); }
+		
+		@Ignore("ETA: ~15 minutes")
+		@Test public void permutationOf11() { permutationOf(11); }
+		
+		@Ignore("ETA: ~2.5 hours")
+		@Test public void permutationOf12() { permutationOf(12); }
+		
+		@Ignore("ETA: ~1.3 day")
+		@Test public void permutationOf13() { permutationOf(13); }
+		
+		@Ignore("ETA: ~19 days")
+		@Test public void permutationOf14() { permutationOf(14); }
+		
+		@Ignore("ETA: ~9 months")
+		@Test public void permutationOf15() { permutationOf(15); }
+		
+		// for more than 15, n^n would not fit 64-bit longs (let alone the ETA of 12 years)
+		// needed for the fast encoding function used to test if a permutation was already seen
+	
+		private void permutationOf(final int n) {
+			try {
+				int base = 1;
+				
+				for(int i = 1; i <= n; i++)
+					base *= i;
+		
+				int[] sorted;
+				
+				// this will produce 0, 1, 2 ... n-1
+				{
+					sorted = even(n);
+					sorted[0]--;
+					sorted = toCumulative(sorted);
+				}
+		
+				long prev = 0;
+				for (int i = 0; i < base; i++) {
+					IntArrayInputStream stream = new IntArrayInputStream(i);
+					
+					Decoder decoder = factory.decoder(stream, base);
+					int[] count = even(n);
+							
+					int[] x = new int[n];
+					for (int j = 0; j < n; j++) {
+						int m = decoder.read(toCumulative(count));
+						count[m]--;
+						x[j] = m;
+					}
+					
+					// assert that "x" is a new permutation not previously seen
+					{
+						// fast, holey encoding of "x" in base n... 
+						long result = 0;
+						for (int j = 0; j < n; j++) {
+							result *= n;
+							result += x[j];
+						}
+						
+						// ...which nonetheless is guaranteed to be monotonically increasing function of "i"
+						assertThat(result, is(greaterThan(prev)));
+						prev = result;
+					}
+					
+					// assert that "x" is a permutation
+					{
+						if (i == 0) {
+							// the very first MUST BE sorted already (if not, the test will fail ON PURPOSE)
+						} else if (i == base - 1) {
+							// the very last MUST BE reverse sorted (if not, the test will fail ON PURPOSE)
+							// since this is the last time using "sorted" we will reverse it mercilessly
+							reverse(sorted);
+						} else
+							sort(x);
+						
+						assertThat(x, is(equalTo(sorted)));
+					}
+					
+					// this also asserts that "x" is a permutation
+					// since no element was returned more than once 
+					assertThat(count, is(equalTo(new int[n])));
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		private static void reverse(int... is) {
+			for (int i = 0; i < is.length/2; i++) {
+				int t = is[i];
+				is[i] = is[is.length - i - 1];
+				is[is.length - i - 1] = t;
 			}
 		}
 	}
