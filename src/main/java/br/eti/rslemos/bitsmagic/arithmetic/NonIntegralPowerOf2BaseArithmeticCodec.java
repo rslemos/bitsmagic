@@ -32,7 +32,7 @@ import java.io.IOException;
 import br.eti.rslemos.bitsmagic.stream.IntInputStream;
 import br.eti.rslemos.bitsmagic.stream.IntOutputStream;
 
-public class NonIntegralPowerOf2BaseArithmeticCodec {
+public class NonIntegralPowerOf2BaseArithmeticCodec extends AnyBaseArithmeticCodec {
 	// parameters
 	final int BASE;
 	
@@ -42,10 +42,6 @@ public class NonIntegralPowerOf2BaseArithmeticCodec {
 	final long UNDERFLOW_MASK;
 	final long UNDERFLOW_LOWEST;
 	
-	// state
-	long low;
-	long range;
-
 	private NonIntegralPowerOf2BaseArithmeticCodec(int base) {
 		BASE = base;
 		HIGHEST_OUTPUT = BASE - 1;
@@ -60,37 +56,18 @@ public class NonIntegralPowerOf2BaseArithmeticCodec {
 		UNDERFLOW_LOWEST = HIGHEST_OUTPUT*UNDERFLOW_MASK;
 	}
 	
-	void advance(int symbol, int... cumulativeCount) throws IOException {
-		int start = symbol == 0 ? 0 : cumulativeCount[symbol - 1];
-		int size = cumulativeCount[symbol] - start;
-		int total = cumulativeCount[cumulativeCount.length - 1];
-		
-		scale(start, size, total);
-		
-		while (peek(low) == peek(low + range - 1))
-			shiftOut(shift());
+	@Override protected void advance(int symbol, int... cumulativeCount) throws IOException {
+		super.advance(symbol, cumulativeCount);
 		
 		while (range < UNDERFLOW_MASK)
 			underflow();
 	}
 
-	void scale(int start, int size, int total) {
-		if (size == 0)
-			throw new IllegalArgumentException("Unexpected symbol");
-		
-		range /= total;
-		if (range == 0)
-			throw new IllegalStateException("Irrecoverable underflow: range is zero");
-		
-		low += start*range;
-		range *= size;
-	}
-	
-	int peek(long v) {
+	@Override int peek(long v) {
 		return (int) (v / SHIFT_MASK);
 	}
 
-	int shift() throws IOException {
+	@Override int shift() throws IOException {
 		int carry = peek(low);
 		low %= SHIFT_MASK;
 		low *= BASE;
@@ -103,9 +80,6 @@ public class NonIntegralPowerOf2BaseArithmeticCodec {
 		return shift();
 	}
 	
-	void shiftOut(int v) throws IOException {
-	}
-
 	public String toString() {
 		return String.format("range = [%s, %s)", Long.toString(low, BASE), Long.toString(low + range - 1, BASE));
 	}
@@ -176,19 +150,9 @@ public class NonIntegralPowerOf2BaseArithmeticCodec {
 		}
 		
 		@Override public int read(int... cumulativeCount) throws IOException {
-			int symbol = getSymbol(cumulativeCount);
+			int symbol = getSymbol(code, cumulativeCount);
 			
 			advance(symbol, cumulativeCount);
-			
-			return symbol;
-		}
-		
-		private int getSymbol(int... cumulativeCount) {
-			int total = cumulativeCount[cumulativeCount.length - 1];
-			int count = (int) ((code - low)/(range / total));
-			
-			int symbol;
-			for(symbol = 0; cumulativeCount[symbol] <= count; symbol++);
 			
 			return symbol;
 		}
