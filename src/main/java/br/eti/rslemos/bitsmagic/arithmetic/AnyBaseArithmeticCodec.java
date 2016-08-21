@@ -31,8 +31,31 @@ import java.io.IOException;
 
 public abstract class AnyBaseArithmeticCodec {
 
+	// parameters
+	final int BASE;
+	
+	// computed constants (functions of base, itself constant)
+	final int HIGHEST_OUTPUT;
+	final long SHIFT_MASK;
+	final long UNDERFLOW_MASK;
+	final long UNDERFLOW_LOWEST;
+	
 	long low;
 	long range;
+	
+	AnyBaseArithmeticCodec(int base) {
+		BASE = base;
+		HIGHEST_OUTPUT = BASE - 1;
+		
+		long shiftMask = 1;
+		
+		while (shiftMask < Long.MAX_VALUE/BASE)
+			shiftMask *= BASE;
+		
+		SHIFT_MASK = shiftMask/BASE;
+		UNDERFLOW_MASK = shiftMask/BASE/BASE;
+		UNDERFLOW_LOWEST = HIGHEST_OUTPUT*UNDERFLOW_MASK;
+	}
 
 	void advance(int symbol, int... cumulativeCount) throws IOException {
 		int start = symbol == 0 ? 0 : cumulativeCount[symbol - 1];
@@ -43,6 +66,9 @@ public abstract class AnyBaseArithmeticCodec {
 		
 		while (peek(low) == peek(low + range - 1))
 			shiftOut(shift());
+		
+		while (range < UNDERFLOW_MASK)
+			underflow();
 	}
 	
 	abstract int peek(long v);
@@ -72,5 +98,14 @@ public abstract class AnyBaseArithmeticCodec {
 	}
 	
 	void shiftOut(int v) throws IOException {
+	}
+
+	int underflow() throws IOException {
+		low -= UNDERFLOW_LOWEST;
+		return shift();
+	}
+
+	public String toString() {
+		return String.format("range = [%s, %s)", Long.toString(low, BASE), Long.toString(low + range - 1, BASE));
 	}
 }

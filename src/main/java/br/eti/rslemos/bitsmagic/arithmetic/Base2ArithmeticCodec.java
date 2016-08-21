@@ -38,22 +38,13 @@ public class Base2ArithmeticCodec extends AnyBaseArithmeticCodec {
 
 	// computed constants (functions of baseBits, itself constant)
 	private static final int SHIFT_MASK_BITS = (((Long.SIZE-2)/BASE_BITS-1)*BASE_BITS);
-	private static final long SHIFT_MASK = (1L << SHIFT_MASK_BITS)-1;
-	private static final int HIGHEST_OUTPUT = (1 << BASE_BITS) - 1;
-	private static final int UNDERFLOW_MASK_BITS = SHIFT_MASK_BITS - BASE_BITS;
-	private static final long UNDERFLOW_MASK = 1L << UNDERFLOW_MASK_BITS;
-	private static final long UNDERFLOW_LOWEST = (long)HIGHEST_OUTPUT<< UNDERFLOW_MASK_BITS;
+	final long SHIFT_MASK;
 	
 	private Base2ArithmeticCodec() {
+		super(1 << BASE_BITS);
+		SHIFT_MASK = super.SHIFT_MASK - 1;
 	}
 	
-	@Override protected void advance(int symbol, int... cumulativeCount) throws IOException {
-		super.advance(symbol, cumulativeCount);
-		
-		while (range < UNDERFLOW_MASK)
-			underflow();
-	}
-
 	@Override int peek(long v) {
 		return (int) (v >> SHIFT_MASK_BITS);
 	}
@@ -66,15 +57,6 @@ public class Base2ArithmeticCodec extends AnyBaseArithmeticCodec {
 		return carry;
 	}
 	
-	int underflow() throws IOException {
-		low -= UNDERFLOW_LOWEST;
-		return shift();
-	}
-
-	public String toString() {
-		return String.format("range = [%s, %s)", Long.toString(low, 1 << BASE_BITS), Long.toString(low + range - 1, 1 << BASE_BITS));
-	}
-
 	public static class Encoder extends Base2ArithmeticCodec implements ArithmeticCodec.Encoder {
 		private final DelayedZeroIntOutputStream stream;
 

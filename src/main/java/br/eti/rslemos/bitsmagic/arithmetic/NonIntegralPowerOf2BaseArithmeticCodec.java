@@ -33,36 +33,10 @@ import br.eti.rslemos.bitsmagic.stream.IntInputStream;
 import br.eti.rslemos.bitsmagic.stream.IntOutputStream;
 
 public class NonIntegralPowerOf2BaseArithmeticCodec extends AnyBaseArithmeticCodec {
-	// parameters
-	final int BASE;
-	
-	// computed constants (functions of base, itself constant)
-	final int HIGHEST_OUTPUT;
-	final long SHIFT_MASK;
-	final long UNDERFLOW_MASK;
-	final long UNDERFLOW_LOWEST;
-	
 	private NonIntegralPowerOf2BaseArithmeticCodec(int base) {
-		BASE = base;
-		HIGHEST_OUTPUT = BASE - 1;
-		
-		long shiftMask = 1;
-		
-		while (shiftMask < Long.MAX_VALUE/BASE)
-			shiftMask *= BASE;
-		
-		SHIFT_MASK = shiftMask/BASE;
-		UNDERFLOW_MASK = SHIFT_MASK/BASE;
-		UNDERFLOW_LOWEST = HIGHEST_OUTPUT*UNDERFLOW_MASK;
+		super(base);
 	}
 	
-	@Override protected void advance(int symbol, int... cumulativeCount) throws IOException {
-		super.advance(symbol, cumulativeCount);
-		
-		while (range < UNDERFLOW_MASK)
-			underflow();
-	}
-
 	@Override int peek(long v) {
 		return (int) (v / SHIFT_MASK);
 	}
@@ -75,15 +49,6 @@ public class NonIntegralPowerOf2BaseArithmeticCodec extends AnyBaseArithmeticCod
 		return carry;
 	}
 	
-	int underflow() throws IOException {
-		low -= UNDERFLOW_LOWEST;
-		return shift();
-	}
-	
-	public String toString() {
-		return String.format("range = [%s, %s)", Long.toString(low, BASE), Long.toString(low + range - 1, BASE));
-	}
-
 	public static class Encoder extends NonIntegralPowerOf2BaseArithmeticCodec implements ArithmeticCodec.Encoder {
 		private final DelayedZeroIntOutputStream stream;
 
