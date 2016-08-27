@@ -40,6 +40,8 @@ public class IntegralPowerOf2BaseArithmeticCodec {
 	final int HIGHEST_OUTPUT;
 	final int SHIFT_MASK_BITS;
 	final long SHIFT_MASK;
+	final long UNDERFLOW_MASK;
+	final long UNDERFLOW_LOWEST;
 	
 	// state
 	long low;
@@ -52,6 +54,10 @@ public class IntegralPowerOf2BaseArithmeticCodec {
 		
 		SHIFT_MASK_BITS = (((Long.SIZE-2)/BASE_BITS-1)*BASE_BITS);
 		SHIFT_MASK = (1L << SHIFT_MASK_BITS)-1;
+		
+		int UNDERFLOW_MASK_BITS = SHIFT_MASK_BITS - BASE_BITS;
+		UNDERFLOW_MASK = 1L << UNDERFLOW_MASK_BITS;
+		UNDERFLOW_LOWEST = (long)HIGHEST_OUTPUT<< UNDERFLOW_MASK_BITS;
 	}
 	
 	void advance(int symbol, int... cumulativeCount) throws IOException {
@@ -63,6 +69,9 @@ public class IntegralPowerOf2BaseArithmeticCodec {
 		
 		while (peek(low) == peek(low + range - 1))
 			shiftOut(shift());
+		
+		while (range < UNDERFLOW_MASK)
+			underflow();
 	}
 
 	void scale(int start, int size, int total) {
@@ -89,6 +98,11 @@ public class IntegralPowerOf2BaseArithmeticCodec {
 		return carry;
 	}
 	
+	int underflow() throws IOException {
+		low -= UNDERFLOW_LOWEST;
+		return shift();
+	}
+
 	void shiftOut(int v) throws IOException {
 	}
 	
@@ -98,6 +112,10 @@ public class IntegralPowerOf2BaseArithmeticCodec {
 
 	public static class Encoder extends IntegralPowerOf2BaseArithmeticCodec implements ArithmeticCodec.Encoder {
 		private final DelayedZeroIntOutputStream stream;
+
+		// more state
+		int underflowHeadValue;
+		long underflowTailCount;
 
 		public Encoder(IntOutputStream stream, int baseBits) {
 			super(baseBits);
@@ -110,8 +128,26 @@ public class IntegralPowerOf2BaseArithmeticCodec {
 			advance(symbol, cumulativeCount);
 		}
 		
+		@Override int underflow() throws IOException {
+			if (underflowTailCount == 0)
+				underflowHeadValue = super.underflow();
+			else
+				super.underflow();
+			
+			underflowTailCount++;
+			
+			if (underflowTailCount == 0)
+				throw new IllegalStateException("Too many underflows");
+			
+			return underflowHeadValue;
+		}
+		
 		@Override void shiftOut(int v) throws IOException {
-			stream.writeInt(v);
+			stream.writeInt(v + underflowHeadValue);
+			underflowHeadValue = 0;
+
+			for(; underflowTailCount != 0; underflowTailCount--)
+				stream.writeInt(v == 0 ? HIGHEST_OUTPUT : 0);
 		}
 		
 		@Override public void flush() throws IOException {
@@ -158,10 +194,18 @@ public class IntegralPowerOf2BaseArithmeticCodec {
 		}
 		
 		@Override int shift() throws IOException {
+			int carry = peek(code);
 			code &= SHIFT_MASK;
 			code <<= BASE_BITS;
 			code |= shiftIn();
-			return super.shift();
+			return carry - super.shift();
+		}
+
+		@Override int underflow() throws IOException {
+			int carry = super.underflow();
+			code &= SHIFT_MASK;
+			code |= (long)carry << SHIFT_MASK_BITS;
+			return carry;
 		}
 
 		private int shiftIn() throws IOException {

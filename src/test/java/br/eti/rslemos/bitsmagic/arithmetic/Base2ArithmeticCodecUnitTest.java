@@ -28,18 +28,22 @@
 package br.eti.rslemos.bitsmagic.arithmetic;
 
 import static br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodecUnitTest.Roundtrip.Operation.NoUnderflow.NO_UNDERFLOW;
+import static br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodecUnitTest.Roundtrip.Operation.Underflow.Resolve.HIGH;
+import static br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodecUnitTest.Roundtrip.Operation.Underflow.Resolve.LOW;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assume.assumeThat;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodec.Decoder;
 import br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodec.Encoder;
 import br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodecUnitTest.AutomaticCases;
+import br.eti.rslemos.bitsmagic.arithmetic.ArithmeticCodecUnitTest.Roundtrip.Operation.Underflow.ForceUnderflow;
 import br.eti.rslemos.bitsmagic.stream.IntInputStream;
 import br.eti.rslemos.bitsmagic.stream.IntOutputStream;
 
@@ -50,6 +54,47 @@ public class Base2ArithmeticCodecUnitTest {
 		@RunWith(Enclosed.class)
 		public static class NoUnderflow {
 			public static class Base2 extends AutomaticCases.Base2 { public Base2() { super(new ArithmeticCodecUnitTest.Roundtrip(FACTORY, NO_UNDERFLOW)); } }
+		}
+
+		@RunWith(Enclosed.class)
+		public static class Underflow {
+			@RunWith(Enclosed.class)
+			public static class ResolveHigh {
+				@RunWith(Enclosed.class)
+				public static class MildUnderflow {
+					public static class Base2 extends AutomaticCases.Base2 { public Base2() { super(new ArithmeticCodecUnitTest.Roundtrip(FACTORY, ForceUnderflow.MILD.resolve(HIGH))); } }
+				}
+				
+				@RunWith(Enclosed.class)
+				public static class SevereUnderflow {
+					public static class Base2 extends AutomaticCases.Base2 { public Base2() { super(new ArithmeticCodecUnitTest.Roundtrip(FACTORY, ForceUnderflow.SEVERE.resolve(HIGH))); } }
+				}
+				
+				@RunWith(Enclosed.class)
+				@Ignore("ETA: ~50 minutes")
+				public static class ExtremeUnderflow {
+					public static class Base2 extends AutomaticCases.Base2 { public Base2() { super(new ArithmeticCodecUnitTest.Roundtrip(FACTORY, ForceUnderflow.EXTREME.resolve(HIGH))); } }
+				}
+			}
+			
+			@RunWith(Enclosed.class)
+			public static class ResolveLow {
+				@RunWith(Enclosed.class)
+				public static class MildUnderflow {
+					public static class Base2 extends AutomaticCases.Base2 { public Base2() { super(new ArithmeticCodecUnitTest.Roundtrip(FACTORY, ForceUnderflow.MILD.resolve(LOW))); } }
+				}
+				
+				@RunWith(Enclosed.class)
+				public static class SevereUnderflow {
+					public static class Base2 extends AutomaticCases.Base2 { public Base2() { super(new ArithmeticCodecUnitTest.Roundtrip(FACTORY, ForceUnderflow.SEVERE.resolve(LOW))); } }
+				}
+				
+				@RunWith(Enclosed.class)
+				@Ignore("ETA: ~50 minutes")
+				public static class ExtremeUnderflow {
+					public static class Base2 extends AutomaticCases.Base2 { public Base2() { super(new ArithmeticCodecUnitTest.Roundtrip(FACTORY, ForceUnderflow.EXTREME.resolve(LOW))); } }
+				}
+			}
 		}
 	}
 	

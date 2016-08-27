@@ -448,6 +448,136 @@ public class ArithmeticCodecUnitTest {
 				}
 			}
 			
+			public static class Underflow extends Operation {
+				private static final int[] CUMULATIVE_COUNT_RESOLVE = toCumulative(1, 1);
+				
+				public static enum Resolve {
+					LOW(0), HIGH(1);
+					
+					public final int resolve;
+
+					private Resolve(int resolve) { this.resolve = resolve; }
+				}
+
+				public static enum ForceUnderflow {
+					MILD(1, 1000),
+					SEVERE(29, 1L << 8),
+					EXTREME(29, 1L << 32),
+					;
+					
+					public final long underflowLength;
+					public final int[] underflowCumulativeCount;
+					
+					private ForceUnderflow(int underflowScale, long underflowLength) {
+						this.underflowLength = underflowLength;
+						this.underflowCumulativeCount = toCumulative((1 << underflowScale) - 1, 2, (1 << underflowScale) - 1);
+					}
+					
+					public Underflow resolve(Resolve resolve) { return new Underflow(this, resolve); }
+				}
+				
+				private final ForceUnderflow underflow;
+				private final Resolve resolve;
+				
+				private Underflow(ForceUnderflow underflow, Resolve resolve) {
+					this.underflow = underflow;
+					this.resolve = resolve;
+				}
+				
+				@Override public int[] encode(ArithmeticCodecFactory factory, int internalBase, int externalBase, int[] externalData) throws IOException {
+					IntArrayOutputStream sink = new IntArrayOutputStream(internalDigits(internalBase, externalBase, externalData.length));
+					Encoder encoder = factory.encoder(sink, internalBase);
+
+					encodeHeadPrefix(encoder, externalBase, externalData);
+					encodeHeadLastSymbol(encoder, externalBase, externalData);
+					encodeTailPrefix(encoder);
+					encodeTailLastSymbol(encoder);
+					
+					encoder.flush();
+					return sink.toIntArray();
+				}
+
+				private void encodeHeadPrefix(Encoder encoder, int externalBase, int[] externalData) throws IOException {
+					int[] cumulativeCount = toCumulative(even(externalBase));
+					for (int i = 0; i < externalData.length - 1; i++)
+						encoder.write(externalData[i], cumulativeCount);
+				}
+
+				private void encodeHeadLastSymbol(Encoder encoder, int externalBase, int[] externalData) throws IOException {
+					int[] cumulativeSplitCount = splitCountOver(externalBase);
+					encoder.write(externalData[externalData.length - 1], cumulativeSplitCount);
+				}
+
+				private void encodeTailPrefix(Encoder encoder) throws IOException {
+					for (long l = 0; l < underflow.underflowLength; l++)
+						encoder.write(1, underflow.underflowCumulativeCount);
+				}
+
+				private void encodeTailLastSymbol(Encoder encoder) throws IOException {
+					encoder.write(resolve.resolve, CUMULATIVE_COUNT_RESOLVE);
+				}
+
+				@Override public int[] decode(ArithmeticCodecFactory factory, int internalBase, int externalDigits, int externalBase, int[] internalData) throws IOException {
+					int[] externalData = new int[externalDigits];
+					
+					IntArrayInputStream source = new IntArrayInputStream(internalData);
+					Decoder decoder = factory.decoder(source, internalBase);
+					
+					decodeHeadPrefix(decoder, externalBase, externalData);
+					decodeHeadLastSymbol(decoder, externalBase, externalData);
+					decodeTailPrefix(decoder);
+					decodeTailLastSymbol(decoder);
+					
+					return externalData;
+				}
+
+				private void decodeHeadPrefix(Decoder decoder, int externalBase, int[] externalData) throws IOException {
+					int[] cumulativeCount = toCumulative(even(externalBase));
+					for (int i = 0; i < externalData.length - 1; i++)
+						externalData[i] = decoder.read(cumulativeCount);
+				}
+
+				private void decodeHeadLastSymbol(Decoder decoder, int externalBase, int[] externalData) throws IOException {
+					int[] cumulativeSplitCount = splitCountOver(externalBase);
+					externalData[externalData.length - 1] = decoder.read(cumulativeSplitCount);
+				}
+
+				private void decodeTailPrefix(Decoder decoder) throws IOException {
+					for (long l = 0; l < underflow.underflowLength; l++)
+						assertThat(decoder.read(underflow.underflowCumulativeCount), is(equalTo(1)));
+				}
+
+				private void decodeTailLastSymbol(Decoder decoder) throws IOException {
+					assertThat(decoder.read(CUMULATIVE_COUNT_RESOLVE), is(equalTo(resolve.resolve)));
+				}
+				
+				private static int[] splitCountOver(int base) {
+					int[] count = even(base + 1, 2);
+					count[0] = count[count.length - 1] = 1;
+					return toCumulative(count);
+				}
+				
+				private int internalDigits(int internalBase, int externalBase, int externalDigits) {
+					// https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition
+					
+					double digits = 0;
+					
+					// head prefix
+					digits += (externalDigits - 1)*(Math.log(externalBase));
+					// head last symbol
+					digits += 1*(Math.log(externalBase+1));
+					// tail prefix
+					int p_1 = underflow.underflowCumulativeCount[2]/(underflow.underflowCumulativeCount[1] - underflow.underflowCumulativeCount[0]);
+					digits += underflow.underflowLength*(Math.log(p_1));
+					// tail last symbol
+					digits += 1*(Math.log(2));
+					
+					digits /= Math.log(internalBase);
+					
+					return (int) Math.ceil(digits);
+				}
+			}
+			
 			public abstract int[] encode(ArithmeticCodecFactory factory, int internalBase, int externalBase, int[] externalData) throws IOException;
 			public abstract int[] decode(ArithmeticCodecFactory factory, int internalBase, int externalDigits, int externalBase, int[] internalData) throws IOException;
 		}
