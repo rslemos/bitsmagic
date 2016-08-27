@@ -41,9 +41,13 @@ public class Distribution {
 		return counts;
 	}
 
-	public static int[] even(int values) {
+	public static int[] even(int values, int value) {
 		int[] result = new int[values];
-		Arrays.fill(result, 1);
+		Arrays.fill(result, value);
 		return result;
+	}
+	
+	public static int[] even(int values) {
+		return even(values, 1);
 	}
 }

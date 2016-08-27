@@ -399,4 +399,57 @@ public class ArithmeticCodecUnitTest {
 
 		abstract void run(int internalBase, int externalBase, int[] externalData) throws IOException;
 	}
+	
+	public static final class Roundtrip extends AutomaticOp {
+		private final Operation op;
+
+		Roundtrip(ArithmeticCodecFactory factory, Operation op) {
+			super(factory);
+			this.op = op;
+		}
+
+		@Override void run(int internalBase, int externalBase, int[] externalData) throws IOException {
+			if (externalData[externalData.length - 1] == 0)
+				return;
+			
+			int[] internalData = op.encode(factory, internalBase, externalBase, externalData);
+			int[] result = op.decode(factory, internalBase, externalData.length, externalBase, internalData);
+			
+			assertThat(result, is(equalTo(externalData)));
+		}
+		
+		public static abstract class Operation {
+			public static class NoUnderflow extends Operation {
+				public static final NoUnderflow NO_UNDERFLOW = new NoUnderflow();
+				
+				@Override public int[] encode(ArithmeticCodecFactory factory, int internalBase, int externalBase, int[] externalData) throws IOException {
+					IntArrayOutputStream sink = new IntArrayOutputStream(internalDigits(internalBase, externalBase, externalData.length));
+					Encoder encoder = factory.encoder(sink, internalBase);
+					int[] cumulativeCount = toCumulative(even(externalBase));
+					for (int d : externalData)
+						encoder.write(d, cumulativeCount);
+					encoder.flush();
+					return sink.toIntArray();
+				}
+
+				@Override public int[] decode(ArithmeticCodecFactory factory, int internalBase, int externalDigits, int externalBase, int[] internalData) throws IOException {
+					int[] externalData = new int[externalDigits];
+					IntArrayInputStream source = new IntArrayInputStream(internalData);
+					Decoder decoder = factory.decoder(source, internalBase);
+					int[] cumulativeCount = toCumulative(even(externalBase));
+					for (int i = 0; i < externalData.length; i++) {
+						externalData[i] = decoder.read(cumulativeCount);
+					}
+					return externalData;
+				}
+				
+				public static int internalDigits(int internalBase, int externalBase, int externalDigits) {
+					return (int) Math.ceil(externalDigits*Math.log(externalBase)/Math.log(internalBase));
+				}
+			}
+			
+			public abstract int[] encode(ArithmeticCodecFactory factory, int internalBase, int externalBase, int[] externalData) throws IOException;
+			public abstract int[] decode(ArithmeticCodecFactory factory, int internalBase, int externalDigits, int externalBase, int[] internalData) throws IOException;
+		}
+	}
 }
