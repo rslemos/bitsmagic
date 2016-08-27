@@ -228,4 +228,175 @@ public class ArithmeticCodecUnitTest {
 			}
 		}
 	}
+	
+	public abstract static class AutomaticCases {
+		private static final int MAX_SAMPLES = 1 << 9;
+		
+		private final AutomaticOp op;
+		
+		AutomaticCases(AutomaticOp op) { this.op = op; }
+		
+		void runSingle(int externalBase, int internalBase, int... externalData) {
+			try { runSingle0(externalBase, internalBase, externalData); }
+			catch (IOException e) { throw new RuntimeException(e); }
+		}
+
+		private void runSingle0(int externalBase, int internalBase, int... externalData) throws IOException {
+			op.run(internalBase, externalBase, externalData);
+		}
+		
+		void runMultiple(int externalDigitCount, int externalBase, int internalBase) {
+			try { runMultiple0(externalDigitCount, externalBase, internalBase); }
+			catch (IOException e) { throw new RuntimeException(e); }
+		}
+
+		private void runMultiple0(int externalDigitCount, int externalBase, int internalBase) throws IOException {
+			int[] externalData = new int[externalDigitCount];
+			
+			double fullRange = Math.pow(externalBase, externalData.length);
+			
+			if (fullRange <= MAX_SAMPLES)
+				do op.run(internalBase, externalBase, externalData);
+				while (inc(externalData, externalBase) == 0);
+			else {
+				int amount = (int)((fullRange / MAX_SAMPLES)) | 7;
+				
+				if (amount <= Integer.MAX_VALUE / 2) {
+					do op.run(internalBase, externalBase, externalData);
+					while (add(externalData, externalBase, amount) == 0);
+				}
+			}
+		}
+		
+		public abstract static class Base2 extends AutomaticCases {
+			Base2(AutomaticOp op) { super(op); }
+			
+			@Test public void from_1x_base1M_to_20x_base2_0b00000000000000000000() { runSingle(1 << 20, 2, 0b00000000000000000000); }
+			@Test public void from_1x_base1M_to_20x_base2_0b10011100001111100000() { runSingle(1 << 20, 2, 0b10011100001111100000); }
+			@Test public void from_1x_base1M_to_20x_base2_0b10011100001111100001() { runSingle(1 << 20, 2, 0b10011100001111100001); }
+			@Test public void from_1x_base1M_to_20x_base2_0b11111111111111111111() { runSingle(1 << 20, 2, 0b11111111111111111111); }
+			
+			@Test public void from_4x_base1M_to_80x_base2_0b00000000000000000000_0b10011100001111100000_0b10011100001111100001_0b11111111111111111111() { 
+				runSingle(1 << 20, 2, 0b00000000000000000000, 0b10011100001111100000, 0b10011100001111100001, 0b11111111111111111111);
+			}
+			
+			@Test public void from_4x_base1M_to_80x_base2_0b10011100001111100000_0b10011100001111100001_0b11111111111111111111_0b00000000000000000000() { 
+				runSingle(1 << 20, 2, 0b10011100001111100000, 0b10011100001111100001, 0b11111111111111111111, 0b00000000000000000000);
+			}
+			
+			@Test public void from_4x_base1M_to_80x_base2_0b10011100001111100001_0b11111111111111111111_0b00000000000000000000_0b10011100001111100000() { 
+				runSingle(1 << 20, 2, 0b10011100001111100001, 0b11111111111111111111, 0b00000000000000000000, 0b10011100001111100000);
+			}
+			
+			@Test public void from_4x_base1M_to_80x_base2_0b11111111111111111111_0b00000000000000000000_0b10011100001111100000_0b10011100001111100001() { 
+				runSingle(1 << 20, 2, 0b11111111111111111111, 0b00000000000000000000, 0b10011100001111100000, 0b10011100001111100001);
+			}
+			
+			@Test public void from_48x_base2_to_48x_base2_010101010011001100001111101010101100110011110000() { 
+				runSingle(2, 2, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0); 
+			}
+		
+			@Test public void from_1x_base16_to_4x_base2() { runMultiple(1, 16, 2); }
+			@Test public void from_1x_base8_to_3x_base2()  { runMultiple(1, 8, 2); }
+			@Test public void from_1x_base4_to_2x_base2()  { runMultiple(1, 4, 2); }
+			@Test public void from_1x_base2_to_1x_base2()  { runMultiple(1, 2, 2); }
+		}
+	
+		public abstract static class IntegralPowerOf2 extends AutomaticCases {
+			IntegralPowerOf2(AutomaticOp op) { super(op); }
+			
+			@Test public void from_1x_base64k_to_4x_base16_0b1100001111000001()    { runSingle(1 << 16, 16, 0b1100001111000001); }
+			@Test public void from_1x_base256k_to_6x_base8_0b011100001101100100()  { runSingle(1 << 18, 8, 0b011100001101100100); }
+			@Test public void from_1x_base1M_to_10x_base4_0b10011100000111110000() { runSingle(1 << 20, 4, 0b10011100000111110000); }
+	
+			@Test public void from_1x_base64_to_2x_base8() { runMultiple(1, 64, 8); }
+			@Test public void from_1x_base16_to_2x_base4() { runMultiple(1, 16, 4); }
+			@Test public void from_2x_base8_to_3x_base4()  { runMultiple(2, 8, 4); }
+			
+			@Test public void from_2x_base2_to_1x_base4()  { runMultiple(2, 2,  4); }
+			@Test public void from_3x_base2_to_1x_base8()  { runMultiple(3, 2,  8); }
+			@Test public void from_3x_base4_to_2x_base8()  { runMultiple(3, 4,  8); }
+			@Test public void from_4x_base2_to_1x_base16() { runMultiple(4, 2, 16); }
+			@Test public void from_2x_base4_to_1x_base16() { runMultiple(2, 4, 16); }
+			@Test public void from_2x_base8_to_1x_base64() { runMultiple(2, 8, 64); }
+	
+			
+			@Test public void from_1x_base256_to_4x_base4() { runMultiple(1, 256, 4); }
+			@Test public void from_1x_base64k_to_8x_base4() { runMultiple(1, 1 << 16, 4); }
+	
+			@Test public void from_1x_base512_to_3x_base8() { runMultiple(1, 512, 8); }
+	
+			@Test public void from_1x_base256_to_2x_base16() { runMultiple(1, 256, 16); }
+			
+			@Test public void from_1x_base1k_to_2x_base32() { runMultiple(1, 1 << 10, 1 << 5); }
+			@Test public void from_1x_base32k_to_3x_base32() { runMultiple(1, 1 << 15, 1 << 5); }
+			
+			@Test public void from_1x_base4k_to_2x_base64() { runMultiple(1, 1 << 12, 1 << 6); }
+			@Test public void from_1x_base256k_to_3x_base64() { runMultiple(1, 1 << 18, 1 << 6); }
+			
+			@Test public void from_1x_base16k_to_2x_base128() { runMultiple(1, 1 << 14, 1 << 7); }
+			@Test public void from_1x_base2M_to_3x_base128() { runMultiple(1, 1 << 21, 1 << 7); }
+			
+			@Test public void from_1x_base64k_to_2x_base256() { runMultiple(1, 1 << 16, 1 << 8); }
+			
+			@Test public void from_1x_base256k_to_2x_base512() { runMultiple(1, 1 << 18, 1 << 9); }
+			
+			@Test public void from_1x_base1M_to_2x_base1024() { runMultiple(1, 1 << 20, 1 << 10); }
+		}
+		
+		public abstract static class NonIntegralPowerOf2 extends AutomaticCases {
+			NonIntegralPowerOf2(AutomaticOp op) { super(op); }
+			
+			@Test public void from_1x_base1000_to_3x_base10_762()         { runSingle(   1000,  10,    762); }
+			@Test public void from_1x_base1000000_to_3x_base100_348921()  { runSingle(1000000, 100, 348921); }
+	
+			@Test public void from_1x_base100_to_2x_base10() { runMultiple(1, 100, 10); }
+			@Test public void from_1x_base81_to_2x_base9()   { runMultiple(1, 81, 9); }
+			@Test public void from_1x_base49_to_2x_base7()   { runMultiple(1, 49, 7); }
+			@Test public void from_1x_base36_to_2x_base6()   { runMultiple(1, 36, 6); }
+			@Test public void from_1x_base25_to_2x_base5()   { runMultiple(1, 25, 5); }
+			@Test public void from_1x_base9_to_2x_base3()    { runMultiple(1, 9, 3); }
+			
+			@Test public void from_2x_base3_to_1x_base9()    { runMultiple(2,   3,   9); }
+			@Test public void from_2x_base5_to_1x_base25()   { runMultiple(2,   5,  25); }
+			@Test public void from_2x_base6_to_1x_base36()   { runMultiple(2,   6,  36); }
+			@Test public void from_2x_base7_to_1x_base49()   { runMultiple(2,   7,  49); }
+			@Test public void from_2x_base9_to_1x_base81()   { runMultiple(2,   9,  81); }
+			@Test public void from_2x_base10_to_1x_base100() { runMultiple(2,  10, 100); }
+	
+			@Test public void from_1x_base1000_to_3x_base10()  { runMultiple(1, 1000, 10); }
+			@Test public void from_3x_base10_to_1x_base1000()  { runMultiple(3,   10, 1000); }
+			
+			@Test public void from_1x_base100_to_2x_base10_42()  { runSingle(100, 10, 42); }
+			
+			@Test public void from_2x_base13_to_4x_base_5() { runMultiple(2, 13, 5); }
+			@Test public void from_3x_base17_to_8x_base_3() { runMultiple(3, 17, 3); }
+		}
+		
+		public static int inc(int[] digits, int base) {
+			for (int i = 0; i < digits.length; i++) {
+				if (++digits[i] < base) return 0;
+				digits[i] = 0;
+			}
+			
+			return 1;
+		}
+		
+		public static int add(int[] digits, int base, int amount) {
+			for (int i = 0; i < digits.length; i++) {
+				digits[i] += amount;
+				amount = digits[i] / base;
+				if (amount == 0) return 0;
+				digits[i] %= base;
+			}
+			
+			return amount;
+		}
+	}
+
+	private abstract static class AutomaticOp extends ArithmeticCodecUnitTest {
+		AutomaticOp(ArithmeticCodecFactory factory) { super(factory); }
+
+		abstract void run(int internalBase, int externalBase, int[] externalData) throws IOException;
+	}
 }
