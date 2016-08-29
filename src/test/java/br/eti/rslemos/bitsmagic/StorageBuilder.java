@@ -77,7 +77,7 @@ public interface StorageBuilder<T> {
 	}
 	
 	static class IntArrayBuilder {
-		protected static int[] build0(long...d) {
+		public static int[] build0(long...d) {
 			int[] result = new int[d.length * 2];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 2 + 0] = (int) (d[d.length - i - 1] >>>  0);
