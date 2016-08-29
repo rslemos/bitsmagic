@@ -63,7 +63,7 @@ public interface StorageBuilder<T> {
 	}
 	
 	static class ShortArrayBuilder {
-		protected static short[] build0(long...d) {
+		public static short[] build0(long...d) {
 			short[] result = new short[d.length * 4];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 4 + 0] = (short) (d[d.length - i - 1] >>>  0);

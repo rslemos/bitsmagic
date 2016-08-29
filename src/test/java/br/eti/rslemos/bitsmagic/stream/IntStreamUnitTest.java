@@ -711,4 +711,17 @@ public class IntStreamUnitTest {
 			@Override public char[] build(long... d) { return CharArrayBuilder.build0(d); }
 		}
 	}
+	
+	@RunWith(Enclosed.class)
+	public static class ShortArray {
+		public static class Read extends Cases.Read<short[]> {
+			@Override IntInputStream build(int width, short[] subject, int from, int to) { return new ShortArrayIntStream.Input(width, subject, from, to); }
+			@Override public short[] build(long... d) { return ShortArrayBuilder.build0(d); }
+		}
+		
+		public static class Write extends Cases.Write<short[]> {
+			@Override IntOutputStream build(int width, short[] subject, int from, int to) { return new ShortArrayIntStream.Output(width, subject, from, to); }
+			@Override public short[] build(long... d) { return ShortArrayBuilder.build0(d); }
+		}
+	}
 }
