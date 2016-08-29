@@ -31,7 +31,7 @@ public interface StorageBuilder<T> {
 	T build(long... d);
 	
 	static class ByteArrayBuilder {
-		protected static byte[] build0(long...d) {
+		public static byte[] build0(long...d) {
 			byte[] result = new byte[d.length * 8];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 8 + 0] = (byte) (d[d.length - i - 1] >>>  0);

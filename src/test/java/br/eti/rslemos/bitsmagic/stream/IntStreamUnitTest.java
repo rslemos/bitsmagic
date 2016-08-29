@@ -685,4 +685,17 @@ public class IntStreamUnitTest {
 			abstract IntOutputStream build(int width, T subject, int from, int to);
 		}
 	}
+	
+	@RunWith(Enclosed.class)
+	public static class ByteArray {
+		public static class Read extends Cases.Read<byte[]> {
+			@Override IntInputStream build(int width, byte[] subject, int from, int to) { return new ByteArrayIntStream.Input(width, subject, from, to); }
+			@Override public byte[] build(long... d) { return ByteArrayBuilder.build0(d); }
+		}
+		
+		public static class Write extends Cases.Write<byte[]> {
+			@Override IntOutputStream build(int width, byte[] subject, int from, int to) { return new ByteArrayIntStream.Output(width, subject, from, to); }
+			@Override public byte[] build(long... d) { return ByteArrayBuilder.build0(d); }
+		}
+	}
 }
