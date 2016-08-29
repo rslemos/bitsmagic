@@ -49,7 +49,7 @@ public interface StorageBuilder<T> {
 	}
 	
 	static class CharArrayBuilder {
-		protected static char[] build0(long...d) {
+		public static char[] build0(long...d) {
 			char[] result = new char[d.length * 4];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 4 + 0] = (char) (d[d.length - i - 1] >>>  0);
