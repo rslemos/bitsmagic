@@ -31,7 +31,7 @@ public interface StorageBuilder<T> {
 	T build(long... d);
 	
 	static class ByteArrayBuilder {
-		protected static byte[] build0(long...d) {
+		public static byte[] build0(long...d) {
 			byte[] result = new byte[d.length * 8];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 8 + 0] = (byte) (d[d.length - i - 1] >>>  0);
@@ -49,7 +49,7 @@ public interface StorageBuilder<T> {
 	}
 	
 	static class CharArrayBuilder {
-		protected static char[] build0(long...d) {
+		public static char[] build0(long...d) {
 			char[] result = new char[d.length * 4];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 4 + 0] = (char) (d[d.length - i - 1] >>>  0);
@@ -63,7 +63,7 @@ public interface StorageBuilder<T> {
 	}
 	
 	static class ShortArrayBuilder {
-		protected static short[] build0(long...d) {
+		public static short[] build0(long...d) {
 			short[] result = new short[d.length * 4];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 4 + 0] = (short) (d[d.length - i - 1] >>>  0);
@@ -77,7 +77,7 @@ public interface StorageBuilder<T> {
 	}
 	
 	static class IntArrayBuilder {
-		protected static int[] build0(long...d) {
+		public static int[] build0(long...d) {
 			int[] result = new int[d.length * 2];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 2 + 0] = (int) (d[d.length - i - 1] >>>  0);
@@ -89,7 +89,7 @@ public interface StorageBuilder<T> {
 	}
 	
 	static class LongArrayBuilder {
-		protected static long[] build0(long...d) {
+		public static long[] build0(long...d) {
 			long[] result = new long[d.length * 1];
 			for (int i = 0; i < d.length; i++) {
 				result[i * 1 + 0] = (long) (d[d.length - i - 1] >>>  0);
