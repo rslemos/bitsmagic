@@ -107,9 +107,6 @@ public class Xor {
 		if (length == 0)
 			return;
 		
-		if (length < 0)
-			throw new IllegalArgumentException();
-		
 		int[] sIndex  = {srcPos  >> BYTE_ADDRESS_LINES, (srcPos  + length) >> BYTE_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & BYTE_ADDRESS_MASK,   (srcPos  + length) & BYTE_ADDRESS_MASK  };
 		
@@ -385,9 +382,6 @@ public class Xor {
 	public static void xorFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
 		if (length == 0)
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> CHAR_ADDRESS_LINES, (srcPos  + length) >> CHAR_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & CHAR_ADDRESS_MASK,   (srcPos  + length) & CHAR_ADDRESS_MASK  };
@@ -666,9 +660,6 @@ public class Xor {
 		if (length == 0)
 			return;
 		
-		if (length < 0)
-			throw new IllegalArgumentException();
-		
 		int[] sIndex  = {srcPos  >> SHORT_ADDRESS_LINES, (srcPos  + length) >> SHORT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & SHORT_ADDRESS_MASK,   (srcPos  + length) & SHORT_ADDRESS_MASK  };
 		
@@ -944,9 +935,6 @@ public class Xor {
 		if (length == 0)
 			return;
 		
-		if (length < 0)
-			throw new IllegalArgumentException();
-		
 		int[] sIndex  = {srcPos  >> INT_ADDRESS_LINES, (srcPos  + length) >> INT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & INT_ADDRESS_MASK,   (srcPos  + length) & INT_ADDRESS_MASK  };
 		
@@ -1221,9 +1209,6 @@ public class Xor {
 	public static void xorFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
 		if (length == 0)
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> LONG_ADDRESS_LINES, (srcPos  + length) >> LONG_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & LONG_ADDRESS_MASK,   (srcPos  + length) & LONG_ADDRESS_MASK  };
