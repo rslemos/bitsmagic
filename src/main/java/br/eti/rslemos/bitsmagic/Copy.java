@@ -87,7 +87,7 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 public class Copy {
 	private Copy() { /* non-instantiable */ }
 
-	private static boolean checkSafeIndices(int srcPos, int destPos, int length, int maxSrc, int maxDest) {
+	static boolean checkSafeIndices(int srcPos, int destPos, int length, int maxSrc, int maxDest) {
 		if (srcPos < 0 || srcPos > maxSrc)
 			throw new ArrayIndexOutOfBoundsException(srcPos);
 		
