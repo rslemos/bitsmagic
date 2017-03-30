@@ -59,6 +59,9 @@ public class Shifter {
 	private Shifter() { /* non-instantiable */ }
 
 	private static int fixAmount(int length, int amount) {
+		if (length <= 0)
+			return 0;
+
 		// correct amount greater than length
 		amount %= length;
 		if (amount < 0)
@@ -96,10 +99,10 @@ public class Shifter {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		amount = fixAmount(to - from, amount);
+
+		if (amount == 0)
+			return;
 		
 		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);
 		Store.fill(data, to - amount, to, false);
@@ -133,10 +136,10 @@ public class Shifter {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		amount = fixAmount(to - from, amount);
+
+		if (amount == 0)
+			return;
 		
 		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);
 		Store.fill(data, to - amount, to, false);
@@ -170,10 +173,10 @@ public class Shifter {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		amount = fixAmount(to - from, amount);
+
+		if (amount == 0)
+			return;
 		
 		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);
 		Store.fill(data, to - amount, to, false);
@@ -207,10 +210,10 @@ public class Shifter {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		amount = fixAmount(to - from, amount);
+
+		if (amount == 0)
+			return;
 		
 		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);
 		Store.fill(data, to - amount, to, false);
@@ -244,10 +247,10 @@ public class Shifter {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		amount = fixAmount(to - from, amount);
+
+		if (amount == 0)
+			return;
 		
 		Copy.safeCopyFrom(data, from + amount, data, from, to - from - amount);
 		Store.fill(data, to - amount, to, false);
