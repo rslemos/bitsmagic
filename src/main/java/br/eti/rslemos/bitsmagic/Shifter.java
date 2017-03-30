@@ -93,6 +93,9 @@ public class Shifter {
 	 * @since 1.0.0
 	 */
 	public static void shr(byte[] data, int from, int to, int amount) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to < from)
 			throw new IllegalArgumentException();
 		
@@ -127,6 +130,9 @@ public class Shifter {
 	 * @since 1.0.0
 	 */
 	public static void shr(char[] data, int from, int to, int amount) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to < from)
 			throw new IllegalArgumentException();
 		
@@ -161,6 +167,9 @@ public class Shifter {
 	 * @since 1.0.0
 	 */
 	public static void shr(short[] data, int from, int to, int amount) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to < from)
 			throw new IllegalArgumentException();
 		
@@ -195,6 +204,9 @@ public class Shifter {
 	 * @since 1.0.0
 	 */
 	public static void shr(int[] data, int from, int to, int amount) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to < from)
 			throw new IllegalArgumentException();
 		
@@ -229,6 +241,9 @@ public class Shifter {
 	 * @since 1.0.0
 	 */
 	public static void shr(long[] data, int from, int to, int amount) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to < from)
 			throw new IllegalArgumentException();
 		
