@@ -162,12 +162,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(byte[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -843,12 +837,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(char[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -1444,12 +1432,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(short[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -2050,12 +2032,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(int[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -2629,12 +2605,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(long[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
