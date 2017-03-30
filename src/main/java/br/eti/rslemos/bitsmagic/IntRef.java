@@ -27,14 +27,38 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
+/**
+ * Integer to pass by reference. An object of this class allows to pass 
+ * integers to called methods and have changes to their values reflected back 
+ * at the callee. Since objects of this class are not immutable, both methods 
+ * {@code equals} and {@code hashCode} compute their results on object 
+ * references, that is, {@code Object}'s default implementations are not 
+ * overridden.
+ */
 public class IntRef {
+	/**
+	 * Integer value held by this reference.
+	 */
 	public int i;
-	
+
+	/**
+	 * Create a new reference with 0 as initial content.
+	 */
+	public IntRef() { };
+
+	/**
+	 * Create a new reference with {@code i} as initial content.
+	 */
 	public IntRef(int i) { this.i = i; }
+
+	/**
+	 * Create a new reference with {@code i} as initial content. Syntatic sugar 
+	 * to {@code new IntRef(i)}.
+	 */
 	public static IntRef byRef(int i) { return new IntRef(i); }
 	
 	@Override public String toString() {
 		return String.format("%d&", i);
 	}
 }
-	
+
