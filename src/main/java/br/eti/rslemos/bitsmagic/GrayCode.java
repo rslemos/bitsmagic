@@ -245,6 +245,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void toGray(byte[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -278,6 +281,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void fromGray(byte[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -314,6 +320,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void toGray(char[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -347,6 +356,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void fromGray(char[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -383,6 +395,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void toGray(short[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -416,6 +431,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void fromGray(short[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -452,6 +470,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void toGray(int[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -485,6 +506,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void fromGray(int[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -521,6 +545,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void toGray(long[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
@@ -554,6 +581,9 @@ public class GrayCode {
 	 * @since 1.0.0
 	 */
 	public static void fromGray(long[] data, int from, int to) {
+		if (data == null)
+			throw new NullPointerException();
+
 		if (to - from < 0)
 			throw new IllegalArgumentException();
 		
