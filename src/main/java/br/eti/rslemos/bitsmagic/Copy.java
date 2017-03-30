@@ -49,6 +49,41 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_LINES;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 
+/**
+ * This class consists exclusively of static methods that copy bits over arrays 
+ * of integral primitive type.
+ * 
+ * <p>For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * </p>
+ * <p>The general syntax for methods in this class conforms to that of 
+ * {@link System#arraycopy}.
+ * </p>
+ * <p>For {@link #copyFrom} methods, touching any offlimits bits throws 
+ * {@code ArrayIndexOutOfBoundsException}, destination being left unchanged.
+ * </p>
+ * <p>For {@link #safeCopyFrom} methods, offlimits bits are hardwired to 0: 
+ * they always read as 0, and any value written to them is discarded. Those 
+ * methods should never throw {@code ArrayIndexOutOfBoundsException}.
+ * </p>
+ * <p>In case of using the same underlying storage for both source and 
+ * destination, all methods of this class behave as if copying the bits first 
+ * to a temporary location, then writing them to the destination.
+ * </p>
+ * <p>{@code NullPointerException} is thrown if either given array is 
+ * {@code null}.
+ * </p>
+ * <p>All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * </p>
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ */
 public class Copy {
 	private Copy() { /* non-instantiable */ }
 
@@ -121,6 +156,27 @@ public class Copy {
 
 	/********** byte[] **********/
 	
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * <p>Offlimits bits are read as 0, and discarded when written to.
+	 * </p>
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void safeCopyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
 		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
 	}
@@ -136,6 +192,24 @@ public class Copy {
 		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
 	}
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void copyFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
 		if (!checkSafeIndices(srcPos, destPos, length, source.length << BYTE_ADDRESS_LINES, dest.length << BYTE_ADDRESS_LINES))
 			return;
@@ -473,6 +547,27 @@ public class Copy {
 
 	/********** char[] **********/
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * <p>Offlimits bits are read as 0, and discarded when written to.
+	 * </p>
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void safeCopyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
 		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
 	}
@@ -488,6 +583,24 @@ public class Copy {
 		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
 	}
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void copyFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
 		if (!checkSafeIndices(srcPos, destPos, length, source.length << CHAR_ADDRESS_LINES, dest.length << CHAR_ADDRESS_LINES))
 			return;
@@ -826,6 +939,27 @@ public class Copy {
 
 	/********** short[] **********/
 	
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * <p>Offlimits bits are read as 0, and discarded when written to.
+	 * </p>
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void safeCopyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
 		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
 	}
@@ -841,6 +975,24 @@ public class Copy {
 		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
 	}
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void copyFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
 		if (!checkSafeIndices(srcPos, destPos, length, source.length << SHORT_ADDRESS_LINES, dest.length << SHORT_ADDRESS_LINES))
 			return;
@@ -1179,6 +1331,27 @@ public class Copy {
 
 	/********** int[] **********/
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * <p>Offlimits bits are read as 0, and discarded when written to.
+	 * </p>
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void safeCopyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
 		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
 	}
@@ -1194,6 +1367,24 @@ public class Copy {
 		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
 	}
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void copyFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
 		if (!checkSafeIndices(srcPos, destPos, length, source.length << INT_ADDRESS_LINES, dest.length << INT_ADDRESS_LINES))
 			return;
@@ -1531,6 +1722,27 @@ public class Copy {
 
 	/********** long[] **********/
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 * 
+	 * <p>Offlimits bits are read as 0, and discarded when written to.
+	 * </p>
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void safeCopyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
 		safeCopyFrom0(source, byRef(srcPos), dest, byRef(destPos), byRef(length));
 	}
@@ -1546,6 +1758,24 @@ public class Copy {
 		Store.fill(dest, destPos.i - fillLow.i, destPos.i, false);
 	}
 
+	/**
+	 * Copies bits from the specified source storage, beginning at the 
+	 * specified bit, to the specified bits of the destination storage. A 
+	 * region of bits is copied from the source storage referenced by 
+	 * {@code source} to the destination storage referenced by {@code dest}. 
+	 * The number of bits copied is equal to the {@code length} argument. The 
+	 * bits at offsets {@code srcPos} through {@code srcPos+length-1} in the 
+	 * source storage are copied into positions {@code destPos} through 
+	 * {@code destPos+length-1}, respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be copied.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void copyFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
 		if (!checkSafeIndices(srcPos, destPos, length, source.length << LONG_ADDRESS_LINES, dest.length << LONG_ADDRESS_LINES))
 			return;
