@@ -29,6 +29,15 @@ package br.eti.rslemos.bitsmagic.stream;
 
 import java.io.IOException;
 
+/**
+ * An endless sink of {@code int} values.
+ */
 public interface IntOutputStream {
+	/**
+	 * Writes the next {@code int} to the stream. No value is given any special 
+	 * meaning.
+	 * 
+	 * @param v the next value written to the stream
+	 */
 	void writeInt(int v) throws IOException;
 }

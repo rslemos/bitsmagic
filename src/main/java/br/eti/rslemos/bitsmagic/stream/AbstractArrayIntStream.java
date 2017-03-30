@@ -30,6 +30,11 @@ package br.eti.rslemos.bitsmagic.stream;
 import java.io.EOFException;
 import java.io.IOException;
 
+/**
+ * This class provides implementations for {@link IntInputStream} and 
+ * {@link IntOutputStream} which materializes the stream on an array of an 
+ * integral primitive type (which one is left for subclasses).
+ */
 public abstract class AbstractArrayIntStream<T> {
 
 	final T buffer;
