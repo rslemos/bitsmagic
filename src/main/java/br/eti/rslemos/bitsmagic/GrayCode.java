@@ -248,9 +248,6 @@ public class GrayCode {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to - from < 0)
-			throw new IllegalArgumentException();
-		
 		if (to - from < 2)
 			return;
 		
@@ -283,9 +280,9 @@ public class GrayCode {
 	public static void fromGray(byte[] data, int from, int to) {
 		if (data == null)
 			throw new NullPointerException();
-
-		if (to - from < 0)
-			throw new IllegalArgumentException();
+		
+		if (to - from < 2)
+			return;
 		
 		int[] index  = {from  >> BYTE_ADDRESS_LINES, to >> BYTE_ADDRESS_LINES};
 		int[] offset = {from  & BYTE_ADDRESS_MASK,   to & BYTE_ADDRESS_MASK  };
@@ -323,9 +320,6 @@ public class GrayCode {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to - from < 0)
-			throw new IllegalArgumentException();
-		
 		if (to - from < 2)
 			return;
 		
@@ -358,9 +352,9 @@ public class GrayCode {
 	public static void fromGray(char[] data, int from, int to) {
 		if (data == null)
 			throw new NullPointerException();
-
-		if (to - from < 0)
-			throw new IllegalArgumentException();
+		
+		if (to - from < 2)
+			return;
 		
 		int[] index  = {from  >> CHAR_ADDRESS_LINES, to >> CHAR_ADDRESS_LINES};
 		int[] offset = {from  & CHAR_ADDRESS_MASK,   to & CHAR_ADDRESS_MASK  };
@@ -398,9 +392,6 @@ public class GrayCode {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to - from < 0)
-			throw new IllegalArgumentException();
-		
 		if (to - from < 2)
 			return;
 		
@@ -433,9 +424,9 @@ public class GrayCode {
 	public static void fromGray(short[] data, int from, int to) {
 		if (data == null)
 			throw new NullPointerException();
-
-		if (to - from < 0)
-			throw new IllegalArgumentException();
+		
+		if (to - from < 2)
+			return;
 		
 		int[] index  = {from  >> SHORT_ADDRESS_LINES, to >> SHORT_ADDRESS_LINES};
 		int[] offset = {from  & SHORT_ADDRESS_MASK,   to & SHORT_ADDRESS_MASK  };
@@ -473,9 +464,6 @@ public class GrayCode {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to - from < 0)
-			throw new IllegalArgumentException();
-		
 		if (to - from < 2)
 			return;
 		
@@ -508,9 +496,9 @@ public class GrayCode {
 	public static void fromGray(int[] data, int from, int to) {
 		if (data == null)
 			throw new NullPointerException();
-
-		if (to - from < 0)
-			throw new IllegalArgumentException();
+		
+		if (to - from < 2)
+			return;
 		
 		int[] index  = {from  >> INT_ADDRESS_LINES, to >> INT_ADDRESS_LINES};
 		int[] offset = {from  & INT_ADDRESS_MASK,   to & INT_ADDRESS_MASK  };
@@ -548,9 +536,6 @@ public class GrayCode {
 		if (data == null)
 			throw new NullPointerException();
 
-		if (to - from < 0)
-			throw new IllegalArgumentException();
-		
 		if (to - from < 2)
 			return;
 		
@@ -583,9 +568,9 @@ public class GrayCode {
 	public static void fromGray(long[] data, int from, int to) {
 		if (data == null)
 			throw new NullPointerException();
-
-		if (to - from < 0)
-			throw new IllegalArgumentException();
+		
+		if (to - from < 2)
+			return;
 		
 		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
 		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };
