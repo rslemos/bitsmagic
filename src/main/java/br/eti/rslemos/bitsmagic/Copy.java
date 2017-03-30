@@ -91,17 +91,17 @@ public class Copy {
 		if (srcPos < 0 || srcPos > maxSrc)
 			throw new ArrayIndexOutOfBoundsException(srcPos);
 		
-		if (destPos < 0 || destPos > maxDest)
-			throw new ArrayIndexOutOfBoundsException(destPos);
-		
 		if (srcPos + length < 0 || srcPos + length > maxSrc)
 			throw new ArrayIndexOutOfBoundsException(srcPos + length);
+		
+		if (destPos < 0 || destPos > maxDest)
+			throw new ArrayIndexOutOfBoundsException(destPos);
 		
 		if (destPos + length < 0 || destPos + length > maxDest)
 			throw new ArrayIndexOutOfBoundsException(destPos + length);
 		
 		if (length < 0)
-			throw new IllegalArgumentException();
+			throw new ArrayIndexOutOfBoundsException(length);
 		
 		return length > 0;
 	}
