@@ -29,6 +29,19 @@ package br.eti.rslemos.bitsmagic.stream;
 
 import java.io.IOException;
 
+/**
+ * An endless source of {@code int} values.
+ */
 public interface IntInputStream {
+	/**
+	 * Reads the next {@code int} in the stream.
+	 * 
+	 * <p>It is left to implementations to decide what to do if there is no 
+	 * more {@code int} values to return. It is <strong>strongly 
+	 * discouraged</strong> to return a special value indicating this fact (say 
+	 * {@code -1}, for example). A better approach is to throw 
+	 * {@code EOFException}.
+	 * </p>
+	 */
 	int readInt() throws IOException;
 }

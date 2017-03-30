@@ -43,21 +43,74 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 
+/**
+ * This class consists exclusively of static methods that count set bits on 
+ * integral primitive types, or arrays of integral primitive types.
+ * 
+ * <p>For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * </p>
+ * <p>Offlimits bits are hardwired to 0: they never increment the count of set 
+ * bits. Methods in this class should never throw 
+ * {@code ArrayIndexOutOfBoundsException}.
+ * </p>
+ * <p>{@code NullPointerException} is thrown if the given array is {@code null}.
+ * </p>
+ * <p>All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * </p>
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ * @see Store
+ */
 public class Ones {
 	private Ones() { /* non-instantiable */ }
 
+	/**
+	 * Returns the count of bits set in specified byte.
+	 * 
+	 * @param x byte whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(byte x) {
 		return ones(x & BYTE_DATA_MASK);
 	}
 
+	/**
+	 * Returns the count of bits set in specified char.
+	 * 
+	 * @param x char whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(char x) {
 		return ones(x & CHAR_DATA_MASK);
 	}
 
+	/**
+	 * Returns the count of bits set in specified short.
+	 * 
+	 * @param x short whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(short x) {
 		return ones(x & SHORT_DATA_MASK);
 	}
 
+	/**
+	 * Returns the count of bits set in specified int.
+	 * 
+	 * @param x int whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(int x) {
 		/*
 		 * 32-bit recursive reduction using SWAR... but first step is mapping
@@ -71,6 +124,13 @@ public class Ones {
 		return (x & 0x0000003f);
 	}
 
+	/**
+	 * Returns the count of bits set in specified long.
+	 * 
+	 * @param x long whose bits are to be counted
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(long x) {
 		/*
 		 * 64-bit recursive reduction using SWAR... but first step is mapping
@@ -87,12 +147,30 @@ public class Ones {
 
 	/********** byte[] **********/
 	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to <= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(byte[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << BYTE_ADDRESS_LINES)
+			to = data.length << BYTE_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> BYTE_ADDRESS_LINES, to >> BYTE_ADDRESS_LINES};
 		int[] offset = {from  & BYTE_ADDRESS_MASK,   to & BYTE_ADDRESS_MASK  };
@@ -133,12 +211,30 @@ public class Ones {
 
 	/********** char[] **********/
 	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to <= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(char[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << CHAR_ADDRESS_LINES)
+			to = data.length << CHAR_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> CHAR_ADDRESS_LINES, to >> CHAR_ADDRESS_LINES};
 		int[] offset = {from  & CHAR_ADDRESS_MASK,   to & CHAR_ADDRESS_MASK  };
@@ -179,12 +275,30 @@ public class Ones {
 
 	/********** short[] **********/
 	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to <= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(short[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << SHORT_ADDRESS_LINES)
+			to = data.length << SHORT_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> SHORT_ADDRESS_LINES, to >> SHORT_ADDRESS_LINES};
 		int[] offset = {from  & SHORT_ADDRESS_MASK,   to & SHORT_ADDRESS_MASK  };
@@ -225,12 +339,30 @@ public class Ones {
 
 	/********** int[] **********/
 	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to <= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(int[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << INT_ADDRESS_LINES)
+			to = data.length << INT_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> INT_ADDRESS_LINES, to >> INT_ADDRESS_LINES};
 		int[] offset = {from  & INT_ADDRESS_MASK,   to & INT_ADDRESS_MASK  };
@@ -271,12 +403,30 @@ public class Ones {
 
 	/********** long[] **********/
 	
+	/**
+	 * Returns the count of bits set in the specified region of the given 
+	 * storage. The range considered extends from offset {@code from}, 
+	 * inclusive, to offset {@code to}, exclusive. If {@code to <= from} this 
+	 * method returns 0.
+	 * 
+	 * @param data storage array.
+	 * @param from offset, in bits, 0-based, of the first bit (inclusive) to be 
+	 *        counted.
+	 * @param to offset, in bits, 0-based, of the last bit (exclusive) to be 
+	 *        counted.
+	 * 
+	 * @since 1.0.0
+	 */
 	public static int ones(long[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << LONG_ADDRESS_LINES)
+			to = data.length << LONG_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
 		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };

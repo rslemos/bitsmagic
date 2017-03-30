@@ -27,6 +27,7 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
+import static br.eti.rslemos.bitsmagic.Copy.checkSafeIndices;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_LINES;
@@ -48,17 +49,64 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_LINES;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 
+/**
+ * This class consists exclusively of static methods that xor bits over arrays 
+ * of integral primitive type.
+ * 
+ * <p>For every method available in this class, the arguments that represent
+ * offsets should always be given in bits, and are 0-based. For more 
+ * information about bit mapping in arrays of integral primitive types see 
+ * {@link Store} class.
+ * </p>
+ * <p>The general syntax for methods in this class conforms to that of 
+ * {@link System#arraycopy}.
+ * </p>
+ * <p>Access to offlimits bits, either for reading or for writing, will throw 
+ * {@code ArrayIndexOutOfBoundsException}. In this case destination will be 
+ * left unchanged.
+ * </p>
+ * <p>In case of using the same underlying storage for both source and 
+ * destination, all methods of this class behave as if copying the bits first 
+ * to a temporary location, then xor'ing them over the destination.
+ * </p>
+ * <p>{@code NullPointerException} is thrown if either given array is 
+ * {@code null}.
+ * </p>
+ * <p>All methods are inherently thread unsafe: in case of more than one thread 
+ * acting upon the same storage the results are undefined. Also neither they 
+ * acquire nor block on any monitor. Any necessary synchronization should be 
+ * done externally.
+ * </p>
+ * 
+ * @author Rodrigo Lemos
+ * @since 1.0.0
+ */
 public class Xor {
 	private Xor() { /* non-instantiable */ }
 
 	/********** byte[] **********/
 	
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void xorFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << BYTE_ADDRESS_LINES, dest.length << BYTE_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> BYTE_ADDRESS_LINES, (srcPos  + length) >> BYTE_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & BYTE_ADDRESS_MASK,   (srcPos  + length) & BYTE_ADDRESS_MASK  };
@@ -314,12 +362,27 @@ public class Xor {
 
 	/********** char[] **********/
 
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void xorFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << CHAR_ADDRESS_LINES, dest.length << CHAR_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> CHAR_ADDRESS_LINES, (srcPos  + length) >> CHAR_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & CHAR_ADDRESS_MASK,   (srcPos  + length) & CHAR_ADDRESS_MASK  };
@@ -576,12 +639,27 @@ public class Xor {
 
 	/********** short[] **********/
 	
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void xorFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << SHORT_ADDRESS_LINES, dest.length << SHORT_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> SHORT_ADDRESS_LINES, (srcPos  + length) >> SHORT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & SHORT_ADDRESS_MASK,   (srcPos  + length) & SHORT_ADDRESS_MASK  };
@@ -836,12 +914,27 @@ public class Xor {
 
 	/********** int[] **********/
 
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void xorFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << INT_ADDRESS_LINES, dest.length << INT_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> INT_ADDRESS_LINES, (srcPos  + length) >> INT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & INT_ADDRESS_MASK,   (srcPos  + length) & INT_ADDRESS_MASK  };
@@ -1096,12 +1189,27 @@ public class Xor {
 
 	/********** long[] **********/
 
+	/**
+	 * Xors bits from the specified source storage, beginning at the specified 
+	 * bit, onto the specified bits of the destination storage. A region 
+	 * of bits is xor'ed from the source storage referenced by {@code source} 
+	 * to the destination storage referenced by {@code dest}. The number of 
+	 * bits xor'ed is equal to the {@code length} argument. The bits at offsets 
+	 * {@code srcPos} through {@code srcPos+length-1} in the source storage are 
+	 * xor'ed into positions {@code destPos} through {@code destPos+length-1}, 
+	 * respectively, of the destination storage.
+	 *
+	 * @param source the source storage.
+	 * @param srcPos starting bit in the source storage.
+	 * @param dest the destination storage.
+	 * @param destPos starting bit in the destination storage.
+	 * @param length the number of bits to be xor'ed.
+	 *
+	 * @since 1.0.0
+	 */
 	public static void xorFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << LONG_ADDRESS_LINES, dest.length << LONG_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> LONG_ADDRESS_LINES, (srcPos  + length) >> LONG_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & LONG_ADDRESS_MASK,   (srcPos  + length) & LONG_ADDRESS_MASK  };
