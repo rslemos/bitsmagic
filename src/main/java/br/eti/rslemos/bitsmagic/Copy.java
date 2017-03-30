@@ -87,21 +87,21 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
 public class Copy {
 	private Copy() { /* non-instantiable */ }
 
-	private static boolean checkSafeIndices(int srcPos, int destPos, int length, int maxSrc, int maxDest) {
+	static boolean checkSafeIndices(int srcPos, int destPos, int length, int maxSrc, int maxDest) {
 		if (srcPos < 0 || srcPos > maxSrc)
 			throw new ArrayIndexOutOfBoundsException(srcPos);
 		
-		if (destPos < 0 || destPos > maxDest)
-			throw new ArrayIndexOutOfBoundsException(destPos);
-		
 		if (srcPos + length < 0 || srcPos + length > maxSrc)
 			throw new ArrayIndexOutOfBoundsException(srcPos + length);
+		
+		if (destPos < 0 || destPos > maxDest)
+			throw new ArrayIndexOutOfBoundsException(destPos);
 		
 		if (destPos + length < 0 || destPos + length > maxDest)
 			throw new ArrayIndexOutOfBoundsException(destPos + length);
 		
 		if (length < 0)
-			throw new IllegalArgumentException();
+			throw new ArrayIndexOutOfBoundsException(length);
 		
 		return length > 0;
 	}

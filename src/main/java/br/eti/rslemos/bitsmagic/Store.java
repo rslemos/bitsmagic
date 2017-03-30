@@ -90,7 +90,7 @@ public class Store {
 	
 	// we expect this function to be heavily inlined
 	private static int read(byte[] data, int index) {
-		return index >=0 && index < data.length ? data[index] & BYTE_DATA_MASK : 0;
+		return index < data.length && index >=0 ? data[index] & BYTE_DATA_MASK : 0;
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class Store {
 	public static boolean readBit(byte[] data, int i) {
 		int index = i >> BYTE_ADDRESS_LINES;
 
-		if (index < 0 || index >= data.length)
+		if (index >= data.length || index < 0)
 			return false;
 		
 		int offset = i & BYTE_ADDRESS_MASK;
@@ -127,7 +127,7 @@ public class Store {
 	public static void writeBit(byte[] data, int i, boolean v) {
 		int index = i >> BYTE_ADDRESS_LINES;
 
-		if (index >= 0 && index < data.length)
+		if (index < data.length && index >= 0)
 			writeBit0(data, index, i & BYTE_ADDRESS_MASK, v);
 	}
 
@@ -162,12 +162,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(byte[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -771,7 +765,7 @@ public class Store {
 	
 	// we expect this function to be heavily inlined
 	private static int read(char[] data, int index) {
-		return index >=0 && index < data.length ? data[index] & CHAR_DATA_MASK : 0;
+		return index < data.length && index >=0 ? data[index] & CHAR_DATA_MASK : 0;
 	}
 
 	/**
@@ -785,7 +779,7 @@ public class Store {
 	public static boolean readBit(char[] data, int i) {
 		int index = i >> CHAR_ADDRESS_LINES;
 
-		if (index < 0 || index >= data.length)
+		if (index >= data.length || index < 0)
 			return false;
 		
 		int offset = i & CHAR_ADDRESS_MASK;
@@ -808,7 +802,7 @@ public class Store {
 	public static void writeBit(char[] data, int i, boolean v) {
 		int index = i >> CHAR_ADDRESS_LINES;
 
-		if (index >= 0 && index < data.length)
+		if (index < data.length && index >= 0)
 			writeBit0(data, index, i & CHAR_ADDRESS_MASK, v);
 	}
 
@@ -843,12 +837,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(char[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -1372,7 +1360,7 @@ public class Store {
 	
 	// we expect this function to be heavily inlined
 	private static int read(short[] data, int index) {
-		return index >=0 && index < data.length ? data[index] & SHORT_DATA_MASK : 0;
+		return index < data.length && index >=0 ? data[index] & SHORT_DATA_MASK : 0;
 	}
 
 	/**
@@ -1386,7 +1374,7 @@ public class Store {
 	public static boolean readBit(short[] data, int i) {
 		int index = i >> SHORT_ADDRESS_LINES;
 
-		if (index < 0 || index >= data.length)
+		if (index >= data.length || index < 0)
 			return false;
 		
 		int offset = i & SHORT_ADDRESS_MASK;
@@ -1409,7 +1397,7 @@ public class Store {
 	public static void writeBit(short[] data, int i, boolean v) {
 		int index = i >> SHORT_ADDRESS_LINES;
 
-		if (index >= 0 && index < data.length)
+		if (index < data.length && index >= 0)
 			writeBit0(data, index, i & SHORT_ADDRESS_MASK, v);
 	}
 
@@ -1444,12 +1432,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(short[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -1974,11 +1956,11 @@ public class Store {
 	
 	// we expect this function to be heavily inlined
 	private static int read(int[] data, int index) {
-		return index >=0 && index < data.length ? data[index] : 0;
+		return index < data.length && index >=0 ? data[index] : 0;
 	}
 
 	private static long readl(int[] data, int index) {
-		return index >=0 && index < data.length ? (long)data[index] & INT_DATA_MASKL : 0;
+		return index < data.length && index >=0 ? (long)data[index] & INT_DATA_MASKL : 0;
 	}
 
 	/**
@@ -1992,7 +1974,7 @@ public class Store {
 	public static boolean readBit(int[] data, int i) {
 		int index = i >> INT_ADDRESS_LINES;
 
-		if (index < 0 || index >= data.length)
+		if (index >= data.length || index < 0)
 			return false;
 		
 		int offset = i & INT_ADDRESS_MASK;
@@ -2015,7 +1997,7 @@ public class Store {
 	public static void writeBit(int[] data, int i, boolean v) {
 		int index = i >> INT_ADDRESS_LINES;
 
-		if (index >= 0 && index < data.length)
+		if (index < data.length && index >= 0)
 			writeBit0(data, index, i & INT_ADDRESS_MASK, v);
 	}
 
@@ -2050,12 +2032,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(int[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;
@@ -2557,7 +2533,7 @@ public class Store {
 	
 	// we expect this function to be heavily inlined
 	private static long read(long[] data, int index) {
-		return index >=0 && index < data.length ? data[index] : 0;
+		return index < data.length && index >=0 ? data[index] : 0;
 	}
 
 	/**
@@ -2571,7 +2547,7 @@ public class Store {
 	public static boolean readBit(long[] data, int i) {
 		int index = i >> LONG_ADDRESS_LINES;
 
-		if (index < 0 || index >= data.length)
+		if (index >= data.length || index < 0)
 			return false;
 		
 		int offset = i & LONG_ADDRESS_MASK;
@@ -2594,7 +2570,7 @@ public class Store {
 	public static void writeBit(long[] data, int i, boolean v) {
 		int index = i >> LONG_ADDRESS_LINES;
 
-		if (index >= 0 && index < data.length)
+		if (index < data.length && index >= 0)
 			writeBit0(data, index, i & LONG_ADDRESS_MASK, v);
 	}
 
@@ -2629,12 +2605,6 @@ public class Store {
 	 * @since 1.0.0
 	 */
 	public static void fill(long[] data, int from, int to, boolean v) {
-		if (from == to)
-			return;
-		
-		if (to < from)
-			throw new IllegalArgumentException();
-		
 		// clamp
 		if (from < 0)
 			from = 0;

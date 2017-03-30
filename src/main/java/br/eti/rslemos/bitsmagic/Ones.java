@@ -162,11 +162,15 @@ public class Ones {
 	 * @since 1.0.0
 	 */
 	public static int ones(byte[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << BYTE_ADDRESS_LINES)
+			to = data.length << BYTE_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> BYTE_ADDRESS_LINES, to >> BYTE_ADDRESS_LINES};
 		int[] offset = {from  & BYTE_ADDRESS_MASK,   to & BYTE_ADDRESS_MASK  };
@@ -222,11 +226,15 @@ public class Ones {
 	 * @since 1.0.0
 	 */
 	public static int ones(char[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << CHAR_ADDRESS_LINES)
+			to = data.length << CHAR_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> CHAR_ADDRESS_LINES, to >> CHAR_ADDRESS_LINES};
 		int[] offset = {from  & CHAR_ADDRESS_MASK,   to & CHAR_ADDRESS_MASK  };
@@ -282,11 +290,15 @@ public class Ones {
 	 * @since 1.0.0
 	 */
 	public static int ones(short[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << SHORT_ADDRESS_LINES)
+			to = data.length << SHORT_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> SHORT_ADDRESS_LINES, to >> SHORT_ADDRESS_LINES};
 		int[] offset = {from  & SHORT_ADDRESS_MASK,   to & SHORT_ADDRESS_MASK  };
@@ -342,11 +354,15 @@ public class Ones {
 	 * @since 1.0.0
 	 */
 	public static int ones(int[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << INT_ADDRESS_LINES)
+			to = data.length << INT_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> INT_ADDRESS_LINES, to >> INT_ADDRESS_LINES};
 		int[] offset = {from  & INT_ADDRESS_MASK,   to & INT_ADDRESS_MASK  };
@@ -402,11 +418,15 @@ public class Ones {
 	 * @since 1.0.0
 	 */
 	public static int ones(long[] data, int from, int to) {
-		if (from == to)
-			return 0;
+		// clamp
+		if (from < 0)
+			from = 0;
 		
-		if (to < from)
-			throw new IllegalArgumentException();
+		if (to > data.length << LONG_ADDRESS_LINES)
+			to = data.length << LONG_ADDRESS_LINES;
+		
+		if (!(to > from))
+			return 0;
 
 		int[] index  = {from  >> LONG_ADDRESS_LINES, to >> LONG_ADDRESS_LINES};
 		int[] offset = {from  & LONG_ADDRESS_MASK,   to & LONG_ADDRESS_MASK  };

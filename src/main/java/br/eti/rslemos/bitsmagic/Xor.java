@@ -27,6 +27,7 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
+import static br.eti.rslemos.bitsmagic.Copy.checkSafeIndices;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_LINES;
@@ -104,11 +105,8 @@ public class Xor {
 	 * @since 1.0.0
 	 */
 	public static void xorFrom(byte[] source, int srcPos, byte[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << BYTE_ADDRESS_LINES, dest.length << BYTE_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> BYTE_ADDRESS_LINES, (srcPos  + length) >> BYTE_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & BYTE_ADDRESS_MASK,   (srcPos  + length) & BYTE_ADDRESS_MASK  };
@@ -383,11 +381,8 @@ public class Xor {
 	 * @since 1.0.0
 	 */
 	public static void xorFrom(char[] source, int srcPos, char[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << CHAR_ADDRESS_LINES, dest.length << CHAR_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> CHAR_ADDRESS_LINES, (srcPos  + length) >> CHAR_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & CHAR_ADDRESS_MASK,   (srcPos  + length) & CHAR_ADDRESS_MASK  };
@@ -663,11 +658,8 @@ public class Xor {
 	 * @since 1.0.0
 	 */
 	public static void xorFrom(short[] source, int srcPos, short[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << SHORT_ADDRESS_LINES, dest.length << SHORT_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> SHORT_ADDRESS_LINES, (srcPos  + length) >> SHORT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & SHORT_ADDRESS_MASK,   (srcPos  + length) & SHORT_ADDRESS_MASK  };
@@ -941,11 +933,8 @@ public class Xor {
 	 * @since 1.0.0
 	 */
 	public static void xorFrom(int[] source, int srcPos, int[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << INT_ADDRESS_LINES, dest.length << INT_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> INT_ADDRESS_LINES, (srcPos  + length) >> INT_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & INT_ADDRESS_MASK,   (srcPos  + length) & INT_ADDRESS_MASK  };
@@ -1219,11 +1208,8 @@ public class Xor {
 	 * @since 1.0.0
 	 */
 	public static void xorFrom(long[] source, int srcPos, long[] dest, int destPos, int length) {
-		if (length == 0)
+		if (!checkSafeIndices(srcPos, destPos, length, source.length << LONG_ADDRESS_LINES, dest.length << LONG_ADDRESS_LINES))
 			return;
-		
-		if (length < 0)
-			throw new IllegalArgumentException();
 		
 		int[] sIndex  = {srcPos  >> LONG_ADDRESS_LINES, (srcPos  + length) >> LONG_ADDRESS_LINES};
 		int[] sOffset = {srcPos  & LONG_ADDRESS_MASK,   (srcPos  + length) & LONG_ADDRESS_MASK  };
