@@ -27,15 +27,88 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
+import static br.eti.rslemos.bitsmagic.Store.*;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.infra.Blackhole;
 
 @State(Scope.Benchmark)
 @Fork(2)
 public class StoreBenchmark {
+	
+	public static enum StorageClass {
+		BYTE() {
+			private byte[] data = new byte[16];
+		
+			@Override public boolean readBit(int i)            { return Store.readBit(data, i); }
+			@Override public Object writeBit(int i, boolean v) { Store.writeBit(data, i, v); return data; }
+			@Override public byte readByte(int i)              { return Store.readByte(data, i); }
+			@Override public Object writeByte(int i, byte v)   { Store.writeByte(data, i, v); return data; }
+			@Override public char readChar(int i)              { return Store.readChar(data, i); }
+			@Override public Object writeChar(int i, char v)   { Store.writeChar(data, i, v); return data; }
+		}, 
+		CHAR, 
+		SHORT, 
+		INT, 
+		LONG,
+		;
+		
+		public abstract boolean readBit(int i);
+		public abstract Object writeBit(int i, boolean v);
+		public abstract byte readByte(int i);
+		public abstract Object writeByte(int i, byte v);
+		public abstract char readChar(int i);
+		public abstract Object writeChar(int i, char v);
+	}
+	
+	public static enum AccessClass {
+		BIT() {
+			@Override public void read(StorageClass storage, int i, Blackhole bh) {
+				bh.consume(storage.readBit(i));
+			}
+
+			@Override public void write(StorageClass storage, int i, Object v) {
+				storage.writeBit(i, (Boolean)v);
+			}
+		},
+		BYTE() {
+			@Override public void read(StorageClass storage, int i, Blackhole bh) {
+				bh.consume(storage.readByte(i));
+			}
+
+			@Override public void write(StorageClass storage, int i, Object v) {
+				storage.writeByte(i, (Byte)v);
+			}
+		},
+		CHAR,
+		SHORT,
+		INT,
+		LONG,
+		;
+		
+		public abstract void read(StorageClass storage, int i, Blackhole bh);
+		public abstract void write(StorageClass storage, int i, Object v);
+	}
+	
+	public static enum Operation {
+		READ() {
+			@Override public void run(StorageClass storage, AccessClass access, int i, Blackhole bh, Object v) {
+				access.read(storage, i, bh);
+			}
+		},
+		WRITE() {
+			@Override public void run(StorageClass storage, AccessClass access, int i, Blackhole bh, Object v) {
+				access.write(storage, i, v);
+			}
+		},
+		;
+		
+		public abstract void run(StorageClass storage, AccessClass access, int i, Blackhole bh, Object v);
+	}
 	
 	@Param({"1", "2", "4", "8", "16", "32", "64"})
 	public static int width;
