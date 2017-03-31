@@ -28,10 +28,72 @@
 package br.eti.rslemos.bitsmagic;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
 
+@State(Scope.Benchmark)
+@Fork(2)
 public class StoreBenchmark {
-	@Benchmark
-	public void empty() {
-		
+	
+	@Param({"1", "2", "4", "8", "16", "32", "64"})
+	public static int width;
+	
+	@State(Scope.Benchmark)
+	public static class ByteArray {
+		public static byte[] data = new byte[16];
+			
+		public static class Bit {
+			public static class Write {
+				public static class Aligned extends StoreBenchmark {
+					
+					@Benchmark
+					public byte[] run() {
+						for(int i=0; i<width; i++)
+							Store.writeBit(data, i, true);
+						
+						return data;
+					}
+				}
+				
+				public static class MisAligned extends StoreBenchmark {
+					
+					@Benchmark
+					public byte[] run() {
+						for(int i=1; i<width + 1; i++)
+							Store.writeBit(data, i, true);
+						
+						return data;
+					}
+				}
+			}
+			
+			public static class Read {
+				public static class Aligned extends StoreBenchmark {
+					
+					@Benchmark
+					public boolean run() {
+						boolean result = false;
+						for(int i=0; i<width; i++)
+							result ^= Store.readBit(data, i);
+						
+						return result;
+					}
+				}
+				
+				public static class MisAligned extends StoreBenchmark {
+					
+					@Benchmark
+					public boolean run() {
+						boolean result = false;
+						for(int i=1; i<width + 1; i++)
+							result ^= Store.readBit(data, i);
+						
+						return result;
+					}
+				}
+			}
+		}
 	}
 }
