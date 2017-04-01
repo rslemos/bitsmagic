@@ -27,146 +27,228 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
-import static br.eti.rslemos.bitsmagic.Store.*;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.infra.Blackhole;
 
 @State(Scope.Benchmark)
-@Fork(2)
 public class StoreBenchmark {
 	
 	public static enum StorageClass {
 		BYTE() {
 			private byte[] data = new byte[16];
 		
-			@Override public boolean readBit(int i)            { return Store.readBit(data, i); }
+			@Override public long readBit(int i)               { return Store.readBit(data, i) ? 1 : -1; }
 			@Override public Object writeBit(int i, boolean v) { Store.writeBit(data, i, v); return data; }
-			@Override public byte readByte(int i)              { return Store.readByte(data, i); }
+			@Override public long readByte(int i)              { return Store.readByte(data, i); }
 			@Override public Object writeByte(int i, byte v)   { Store.writeByte(data, i, v); return data; }
-			@Override public char readChar(int i)              { return Store.readChar(data, i); }
+			@Override public long readChar(int i)              { return Store.readChar(data, i); }
 			@Override public Object writeChar(int i, char v)   { Store.writeChar(data, i, v); return data; }
+			@Override public long readShort(int i)             { return Store.readChar(data, i); }
+			@Override public Object writeShort(int i, short v) { Store.writeShort(data, i, v); return data; }
+			@Override public long readInt(int i)               { return Store.readShort(data, i); }
+			@Override public Object writeInt(int i, int v)     { Store.writeInt(data, i, v); return data; }
+			@Override public long readLong(int i)              { return Store.readLong(data, i); }
+			@Override public Object writeLong(int i, long v)   { Store.writeLong(data, i, v); return data; }
 		}, 
-		CHAR, 
-		SHORT, 
-		INT, 
-		LONG,
+
+		CHAR() {
+			private char[] data = new char[8];
+		
+			@Override public long readBit(int i)               { return Store.readBit(data, i) ? 1 : -1; }
+			@Override public Object writeBit(int i, boolean v) { Store.writeBit(data, i, v); return data; }
+			@Override public long readByte(int i)              { return Store.readByte(data, i); }
+			@Override public Object writeByte(int i, byte v)   { Store.writeByte(data, i, v); return data; }
+			@Override public long readChar(int i)              { return Store.readChar(data, i); }
+			@Override public Object writeChar(int i, char v)   { Store.writeChar(data, i, v); return data; }
+			@Override public long readShort(int i)             { return Store.readChar(data, i); }
+			@Override public Object writeShort(int i, short v) { Store.writeShort(data, i, v); return data; }
+			@Override public long readInt(int i)               { return Store.readShort(data, i); }
+			@Override public Object writeInt(int i, int v)     { Store.writeInt(data, i, v); return data; }
+			@Override public long readLong(int i)              { return Store.readLong(data, i); }
+			@Override public Object writeLong(int i, long v)   { Store.writeLong(data, i, v); return data; }
+		}, 
+
+		SHORT() {
+			private short[] data = new short[8];
+		
+			@Override public long readBit(int i)               { return Store.readBit(data, i) ? 1 : -1; }
+			@Override public Object writeBit(int i, boolean v) { Store.writeBit(data, i, v); return data; }
+			@Override public long readByte(int i)              { return Store.readByte(data, i); }
+			@Override public Object writeByte(int i, byte v)   { Store.writeByte(data, i, v); return data; }
+			@Override public long readChar(int i)              { return Store.readChar(data, i); }
+			@Override public Object writeChar(int i, char v)   { Store.writeChar(data, i, v); return data; }
+			@Override public long readShort(int i)             { return Store.readChar(data, i); }
+			@Override public Object writeShort(int i, short v) { Store.writeShort(data, i, v); return data; }
+			@Override public long readInt(int i)               { return Store.readShort(data, i); }
+			@Override public Object writeInt(int i, int v)     { Store.writeInt(data, i, v); return data; }
+			@Override public long readLong(int i)              { return Store.readLong(data, i); }
+			@Override public Object writeLong(int i, long v)   { Store.writeLong(data, i, v); return data; }
+		}, 
+
+		INT() {
+			private int[] data = new int[4];
+		
+			@Override public long readBit(int i)               { return Store.readBit(data, i) ? 1 : -1; }
+			@Override public Object writeBit(int i, boolean v) { Store.writeBit(data, i, v); return data; }
+			@Override public long readByte(int i)              { return Store.readByte(data, i); }
+			@Override public Object writeByte(int i, byte v)   { Store.writeByte(data, i, v); return data; }
+			@Override public long readChar(int i)              { return Store.readChar(data, i); }
+			@Override public Object writeChar(int i, char v)   { Store.writeChar(data, i, v); return data; }
+			@Override public long readShort(int i)             { return Store.readChar(data, i); }
+			@Override public Object writeShort(int i, short v) { Store.writeShort(data, i, v); return data; }
+			@Override public long readInt(int i)               { return Store.readShort(data, i); }
+			@Override public Object writeInt(int i, int v)     { Store.writeInt(data, i, v); return data; }
+			@Override public long readLong(int i)              { return Store.readLong(data, i); }
+			@Override public Object writeLong(int i, long v)   { Store.writeLong(data, i, v); return data; }
+		}, 
+
+		LONG() {
+			private long[] data = new long[2];
+		
+			@Override public long readBit(int i)               { return Store.readBit(data, i) ? 1 : -1; }
+			@Override public Object writeBit(int i, boolean v) { Store.writeBit(data, i, v); return data; }
+			@Override public long readByte(int i)              { return Store.readByte(data, i); }
+			@Override public Object writeByte(int i, byte v)   { Store.writeByte(data, i, v); return data; }
+			@Override public long readChar(int i)              { return Store.readChar(data, i); }
+			@Override public Object writeChar(int i, char v)   { Store.writeChar(data, i, v); return data; }
+			@Override public long readShort(int i)             { return Store.readChar(data, i); }
+			@Override public Object writeShort(int i, short v) { Store.writeShort(data, i, v); return data; }
+			@Override public long readInt(int i)               { return Store.readShort(data, i); }
+			@Override public Object writeInt(int i, int v)     { Store.writeInt(data, i, v); return data; }
+			@Override public long readLong(int i)              { return Store.readLong(data, i); }
+			@Override public Object writeLong(int i, long v)   { Store.writeLong(data, i, v); return data; }
+		}, 
+
 		;
 		
-		public abstract boolean readBit(int i);
+		public abstract long readBit(int i);
 		public abstract Object writeBit(int i, boolean v);
-		public abstract byte readByte(int i);
+		public abstract long readByte(int i);
 		public abstract Object writeByte(int i, byte v);
-		public abstract char readChar(int i);
+		public abstract long readChar(int i);
 		public abstract Object writeChar(int i, char v);
+		public abstract long readShort(int i);
+		public abstract Object writeShort(int i, short v);
+		public abstract long readInt(int i);
+		public abstract Object writeInt(int i, int v);
+		public abstract long readLong(int i);
+		public abstract Object writeLong(int i, long v);
 	}
 	
 	public static enum AccessClass {
-		BIT() {
-			@Override public void read(StorageClass storage, int i, Blackhole bh) {
-				bh.consume(storage.readBit(i));
+		BIT(1) {
+			@Override public long read(StorageClass storage, int i) {
+				return storage.readBit(i);
 			}
 
-			@Override public void write(StorageClass storage, int i, Object v) {
-				storage.writeBit(i, (Boolean)v);
+			@Override public Object write(StorageClass storage, int i, long v) {
+				return storage.writeBit(i, v != 0);
 			}
 		},
-		BYTE() {
-			@Override public void read(StorageClass storage, int i, Blackhole bh) {
-				bh.consume(storage.readByte(i));
-			}
-
-			@Override public void write(StorageClass storage, int i, Object v) {
-				storage.writeByte(i, (Byte)v);
-			}
-		},
-		CHAR,
-		SHORT,
-		INT,
-		LONG,
-		;
 		
-		public abstract void read(StorageClass storage, int i, Blackhole bh);
-		public abstract void write(StorageClass storage, int i, Object v);
+		BYTE(8) {
+			@Override public long read(StorageClass storage, int i) {
+				return storage.readByte(i);
+			}
+
+			@Override public Object write(StorageClass storage, int i, long v) {
+				return storage.writeByte(i, (byte)v);
+			}
+		},
+		
+		CHAR(16) {
+			@Override public long read(StorageClass storage, int i) {
+				return storage.readChar(i);
+			}
+
+			@Override public Object write(StorageClass storage, int i, long v) {
+				return storage.writeChar(i, (char)v);
+			}
+		},
+		
+		SHORT(16) {
+			@Override public long read(StorageClass storage, int i) {
+				return storage.readShort(i);
+			}
+
+			@Override public Object write(StorageClass storage, int i, long v) {
+				return storage.writeShort(i, (short)v);
+			}
+		},
+		
+		INT(32) {
+			@Override public long read(StorageClass storage, int i) {
+				return storage.readInt(i);
+			}
+
+			@Override public Object write(StorageClass storage, int i, long v) {
+				return storage.writeInt(i, (int)v);
+			}
+		},
+		
+		LONG(64) {
+			@Override public long read(StorageClass storage, int i) {
+				return storage.readLong(i);
+			}
+
+			@Override public Object write(StorageClass storage, int i, long v) {
+				return storage.writeLong(i, v);
+			}
+		},
+		;
+
+		public int size;
+
+		private AccessClass(int size) {
+			this.size = size;
+		}
+		
+		public abstract long read(StorageClass storage, int i);
+		public abstract Object write(StorageClass storage, int i, long v);
 	}
 	
-	public static enum Operation {
-		READ() {
-			@Override public void run(StorageClass storage, AccessClass access, int i, Blackhole bh, Object v) {
-				access.read(storage, i, bh);
-			}
-		},
-		WRITE() {
-			@Override public void run(StorageClass storage, AccessClass access, int i, Blackhole bh, Object v) {
-				access.write(storage, i, v);
-			}
-		},
-		;
-		
-		public abstract void run(StorageClass storage, AccessClass access, int i, Blackhole bh, Object v);
-	}
+	@Param
+	public StorageClass storage;
+	
+	@Param
+	public AccessClass access;
 	
 	@Param({"1", "2", "4", "8", "16", "32", "64"})
-	public static int width;
+	public int width;
 	
-	@State(Scope.Benchmark)
-	public static class ByteArray {
-		public static byte[] data = new byte[16];
-			
-		public static class Bit {
-			public static class Write {
-				public static class Aligned extends StoreBenchmark {
-					
-					@Benchmark
-					public byte[] run() {
-						for(int i=0; i<width; i++)
-							Store.writeBit(data, i, true);
-						
-						return data;
-					}
-				}
-				
-				public static class MisAligned extends StoreBenchmark {
-					
-					@Benchmark
-					public byte[] run() {
-						for(int i=1; i<width + 1; i++)
-							Store.writeBit(data, i, true);
-						
-						return data;
-					}
-				}
-			}
-			
-			public static class Read {
-				public static class Aligned extends StoreBenchmark {
-					
-					@Benchmark
-					public boolean run() {
-						boolean result = false;
-						for(int i=0; i<width; i++)
-							result ^= Store.readBit(data, i);
-						
-						return result;
-					}
-				}
-				
-				public static class MisAligned extends StoreBenchmark {
-					
-					@Benchmark
-					public boolean run() {
-						boolean result = false;
-						for(int i=1; i<width + 1; i++)
-							result ^= Store.readBit(data, i);
-						
-						return result;
-					}
-				}
-			}
-		}
+	@Param({"0", "1", "128", "-128"})
+	public int offset;
+	
+	private long v = 20L;
+	
+	@Benchmark
+	@Fork(2)
+	public Object write() {
+		if (width % access.size != 0)
+			throw new IllegalArgumentException();
+		
+		Object result = null;
+		
+		for (int i = offset; i < offset + width; i += access.size)
+			result = access.write(storage, i, v);
+		
+		return result;
+	}
+	
+	@Benchmark
+	@Fork(2)
+	public long read() {
+		if (width % access.size != 0)
+			throw new IllegalArgumentException();
+		
+		long result = 0;
+		
+		for (int i = offset; i < offset + width; i += access.size)
+			result += access.read(storage, i);
+		
+		return result;
 	}
 }
