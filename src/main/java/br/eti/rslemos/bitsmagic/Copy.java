@@ -27,7 +27,7 @@
  *******************************************************************************/
 package br.eti.rslemos.bitsmagic;
 
-import static br.eti.rslemos.bitsmagic.IntRef.byRef;
+import static br.eti.rslemos.bitsmagic.ByReference.byRef;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.BYTE_DATA_LINES;
@@ -48,6 +48,8 @@ import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_LINES;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_ADDRESS_MASK;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_LINES;
 import static br.eti.rslemos.bitsmagic.Store.SHORT_DATA_MASK;
+
+import br.eti.rslemos.bitsmagic.ByReference.IntRef;
 
 /**
  * This class consists exclusively of static methods that copy bits over arrays 
